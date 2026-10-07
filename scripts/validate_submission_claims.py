@@ -27,7 +27,7 @@ FILES = (
 REQUIRED_CAVEATS = (
     "reference centroids",
     "biological phenotype classification",
-    "not official Cell Tracking Challenge leaderboard scores",
+    "not official cell tracking challenge leaderboard scores",
 )
 
 def main() -> None:

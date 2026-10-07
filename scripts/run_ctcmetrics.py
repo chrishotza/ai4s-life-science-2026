@@ -29,6 +29,12 @@ def main() -> None:
     parser.add_argument("--res", required=True, help="CTC sequence result directory.")
     parser.add_argument("--sequence", required=True, choices=["01", "02"])
     parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument(
+        "--lineage-mode",
+        choices=["oracle-compatible", "none"],
+        default="oracle-compatible",
+        help="Lineage metadata mode used when the CTC result was exported.",
+    )
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--repository-root", default=".")
     args = parser.parse_args()
@@ -70,7 +76,7 @@ def main() -> None:
             "version": version("py-ctcmetrics"),
         },
         "repository_commit": git_sha(root),
-        "protocol": "reference-geometry association isolation; oracle lineage when frame-compatible",
+        "protocol": f"reference-geometry association isolation; lineage={args.lineage_mode}",
     }
 
     output = Path(args.output_json)

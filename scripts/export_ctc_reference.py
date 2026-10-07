@@ -23,6 +23,12 @@ def main() -> None:
     parser.add_argument("--sequence", default="01", choices=["01", "02"])
     parser.add_argument("--distance", type=float, default=8.0)
     parser.add_argument("--output", default="ctc_reference_export")
+    parser.add_argument(
+        "--lineage-mode",
+        choices=["oracle-compatible", "none"],
+        default="oracle-compatible",
+        help="Whether to carry frame-compatible reference parent edges into res_track.txt.",
+    )
     args = parser.parse_args()
 
     dataset_root = ensure_ctc_dataset(ROOT / ".benchmark_cache")
@@ -47,14 +53,14 @@ def main() -> None:
         predicted,
         reference_masks,
         output,
-        reference_metadata=metadata,
+        reference_metadata=metadata if args.lineage_mode == "oracle-compatible" else None,
     )
 
     print(f"exported={output}")
     print(f"tracks={len(mapping)}")
     print(f"distance_um={args.distance}")
     print("geometry=reference")
-    print("lineage=oracle-when-frame-compatible")
+    print(f"lineage={args.lineage_mode}")
 
 
 if __name__ == "__main__":
