@@ -51,6 +51,28 @@ FORMAL_REQUIREMENTS = {
         "[x] 200–300 word Project Summary in Writeup",
         "[x] Dataset/software provenance and licensing documented",
         "[x] Development AI-tool provenance disclosed",
+        "[x] Cross-sequence image-to-tracking validation protocol",
+        "[x] CTC GT/SEG image-segmentation validation protocol",
+    ),
+    ROOT / "docs" / "RUBRIC_SCORECARD.md": (
+        "Problem Importance & Potential Impact",
+        "Technical Approach & Innovation",
+        "Results & Validation",
+        "Reproducibility & Implementation Quality",
+        "Presentation Quality",
+    ),
+    ROOT / "docs" / "DEMO_SCRIPT.md": (
+        "association-isolation",
+        "reference centroids",
+        "biological phenotype score",
+    ),
+    ROOT / "requirements-lock-py311.txt": (
+        "numpy==2.4.6",
+        "pandas==3.0.6",
+    ),
+    ROOT / "requirements-dev-lock-py311.txt": (
+        "pytest==9.1.1",
+        "ruff==0.16.10",
     ),
 }
 
