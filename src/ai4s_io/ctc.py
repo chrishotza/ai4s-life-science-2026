@@ -120,6 +120,24 @@ def load_ctc_tracking(sequence_dir: str | Path) -> tuple[pd.DataFrame, pd.DataFr
         metadata_rows,
         columns=["track_id", "start_frame", "end_frame", "parent_id"],
     )
+
+    known_tracks = set(nodes["track_id"].astype(int))
+    for row in metadata.itertuples(index=False):
+        track_id = int(row.track_id)
+        if track_id not in known_tracks:
+            raise ValueError(f"metadata references unknown track_id {track_id}")
+        observed = nodes[nodes["track_id"].eq(track_id)]
+        observed_start = int(observed["t"].min())
+        observed_end = int(observed["t"].max())
+        if observed_start != int(row.start_frame) or observed_end != int(row.end_frame):
+            raise ValueError(
+                f"metadata frame range mismatch for track_id {track_id}: "
+                f"metadata=({row.start_frame},{row.end_frame}) "
+                f"observed=({observed_start},{observed_end})"
+            )
+        parent_id = int(row.parent_id)
+        if parent_id > 0 and parent_id not in known_tracks:
+            raise ValueError(f"metadata references unknown parent_id {parent_id}")
     validate_nodes(nodes)
     validate_edges(edge_df, nodes, require_forward_time=True)
     return nodes, edge_df, metadata
