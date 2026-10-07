@@ -7,6 +7,8 @@ import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import RobustScaler, StandardScaler
 
+FEATURE_SCHEMA_VERSION = "trajectory-lineage-v1"
+
 FEATURES = [
     "duration",
     "observations",
@@ -114,6 +116,10 @@ class PhenotypeDiscoveryModel:
         x = _feature_matrix(phenotypes, log_columns=self.log_columns)
         if tuple(x.columns) != self.feature_names:
             raise ValueError("phenotype feature schema does not match fitted model")
+        if self.feature_schema_version != FEATURE_SCHEMA_VERSION:
+            raise ValueError(
+                f"unsupported phenotype feature schema: {self.feature_schema_version}"
+            )
 
         out = phenotypes.copy()
         scaled = self.scaler.transform(x)
