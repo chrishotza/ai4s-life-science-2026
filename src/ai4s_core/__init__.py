@@ -8,6 +8,7 @@ from .contracts import (
     validate_nodes,
 )
 from .provenance import runtime_metadata
+from .lineage import validate_lineage_graph
 
 __all__ = [
     "NODE_COLUMNS",
@@ -16,4 +17,5 @@ __all__ = [
     "validate_nodes",
     "validate_edges",
     "runtime_metadata",
+    "validate_lineage_graph",
 ]
