@@ -143,11 +143,6 @@ def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[
     label_frame = nodes.groupby("track_id")["truth_track"].agg(
         lambda series: int(series.value_counts().index[0])
     )
-    predicted_groups = [
-        truth_groups[int(truth_track)]
-        for truth_track in label_frame.to_numpy()
-        if int(truth_track) in truth_groups
-    ]
     cluster_frame = discovered.merge(
         pd.Series(
             [truth_groups[int(v)] for v in label_frame.to_numpy()],
@@ -202,6 +197,12 @@ def main() -> None:
         "purpose": "evaluate temporal phenotype discovery after re-tracking perturbed synthetic detections",
         "synthetic_groups": list(GROUPS),
         "cases": rows,
+        "method_summary": (
+            frame.groupby("method")[["mean_track_purity", "phenotype_group_ARI"]]
+            .mean()
+            .reset_index()
+            .to_dict(orient="records")
+        ),
     }
     (ROOT / "end_to_end_phenotype_results.json").write_text(
         json.dumps(output, indent=2)
