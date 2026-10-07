@@ -12,6 +12,12 @@ microscopy
 → unsupervised phenotype discovery
 → validation/reporting
 
+## Imaging dimensionality
+
+The detection layer accepts either 2-D+t frames or 3-D+t volumes and emits the same `(t,z,y,x)` node schema. In 2-D input, z is a fixed coordinate; in 3-D input, connected components are evaluated volumetrically and z is measured from the component centroid.
+
+This keeps the image-ingestion contract consistent with the downstream 3-D tracker instead of requiring a separate implementation for volumetric inputs.
+
 ## End-to-end entry points
 
 TemporalPhenotypeEngine.run_frames performs baseline detection and then enters the same tracking, lineage, phenotype, and discovery path as TemporalPhenotypeEngine.run. This prevents the demo path and the scientific pipeline from silently diverging.
