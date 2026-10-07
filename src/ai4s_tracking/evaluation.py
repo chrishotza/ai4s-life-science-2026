@@ -35,7 +35,7 @@ def link_metrics(predicted_edges: pd.DataFrame, true_edges: pd.DataFrame) -> dic
     f1 = (
         2 * precision * recall / (precision + recall)
         if precision + recall
-        else 1.0
+        else (1.0 if predicted_count == 0 and truth_count == 0 else 0.0)
     )
 
     return {
@@ -83,9 +83,19 @@ def tracking_error_profile(
     identity_switches = 0
     ordered = predicted_nodes.sort_values(["track_id", "t", "node_id"])
     for _, group in ordered.groupby("track_id", sort=False):
-        labels = truth.loc[group["node_id"], "track_id"].to_numpy()
-        if len(labels) > 1:
-            identity_switches += int((labels[1:] != labels[:-1]).sum())
+        records = group[["node_id", "t"]].to_numpy()
+        if len(records) <= 1:
+            continue
+        previous_truth = int(truth.loc[int(records[0, 0]), "track_id"])
+        previous_t = int(records[0, 1])
+        for node_id, current_t in records[1:]:
+            current_t = int(current_t)
+            current_truth = int(truth.loc[int(node_id), "track_id"])
+            if current_t > previous_t:
+                if current_t == previous_t + 1 and current_truth != previous_truth:
+                    identity_switches += 1
+                previous_truth = current_truth
+                previous_t = current_t
 
     predicted_for_truth = (
         predicted_nodes.set_index("node_id")["track_id"]
