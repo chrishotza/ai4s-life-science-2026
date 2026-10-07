@@ -141,9 +141,6 @@ def track_detections(
     if missing:
         raise ValueError(f"missing columns: {sorted(missing)}")
 
-    if set(detections.columns) < required:
-        raise ValueError(f"missing columns: {sorted(required - set(detections.columns))}")
-
     df = (
         detections.copy()
         .sort_values(["t", "z", "y", "x"])
