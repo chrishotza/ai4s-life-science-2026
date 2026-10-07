@@ -168,13 +168,13 @@ This makes the system directly usable as a phenotype-analysis layer on top of mi
 
 ## Research provenance
 
-The private BioHub project contains earlier learned temporal-association research. This public competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
+The private BioHub project contains earlier learned temporal-association research. This competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
 
 ## Architecture hardening
 
 See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture.
 
-The public system now has explicit boundaries between:
+The submission system has explicit boundaries between:
 
 1. **Data contracts** — node/edge schema validation and a single physical coordinate transform.
 2. **Detection** — microscopy-to-centroid preprocessing.
