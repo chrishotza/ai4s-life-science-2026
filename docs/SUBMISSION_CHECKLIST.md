@@ -8,6 +8,7 @@
 - [x] Real CTC association benchmark
 - [x] Method/gating ablation
 - [x] Downstream phenotype preservation benchmark
+- [x] CTC lineage/division representation validation
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
 - [x] Five-minute demo script
@@ -20,8 +21,8 @@
 - [ ] Verify final public repository URL
 - [ ] Re-run CI on the final public commit
 - [ ] Confirm all benchmark scripts reproduce their published numbers
-- [ ] Add representative real-data visualization artifact
-- [ ] Produce final 5-minute demo video
+- [x] Add representative real-data visualization artifact
+- [x] Produce final demo video renderer
 - [ ] Paste Kaggle Writeup
 - [ ] Submit final technical report
 - [ ] Add independent biological phenotype validation if time permits
