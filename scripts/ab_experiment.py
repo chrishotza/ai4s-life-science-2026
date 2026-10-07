@@ -10,12 +10,14 @@ from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 
+from ai4s_core import scale_coordinates
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ai4s_io import load_ctc_tracking
 from ai4s_phenotype import analyze
-from ai4s_tracking import TrackingConfig, track_detections
+from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
 DATA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
 VOXEL = (1.0, 0.19, 0.19)
@@ -58,31 +60,18 @@ def truth_links(nodes: pd.DataFrame) -> set[tuple[int, int]]:
     return out
 
 
-def link_score(truth: set[tuple[int, int]], pred: set[tuple[int, int]]) -> dict[str, float]:
-    tp, fp, fn = len(truth & pred), len(pred - truth), len(truth - pred)
-    precision = tp / (tp + fp) if tp + fp else 1.0
-    recall = tp / (tp + fn) if tp + fn else 1.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    return {"precision": precision, "recall": recall, "f1": f1}
-
-
 def phenotype_score(
     truth_nodes: pd.DataFrame,
     truth_edges: pd.DataFrame,
     pred_nodes: pd.DataFrame,
     pred_edges: pd.DataFrame,
 ) -> dict[str, float]:
-    def scale(frame: pd.DataFrame) -> pd.DataFrame:
-        out = frame.copy()
-        out[["z", "y", "x"]] = out[["z", "y", "x"]].to_numpy(float) * np.asarray(VOXEL)
-        return out
-
     # Reconstruct the same deterministic node-id space used by track_detections.
     gt_nodes = truth_nodes.sort_values(["t", "z", "y", "x"]).reset_index(drop=True).copy()
     gt_nodes["node_id"] = np.arange(len(gt_nodes), dtype=int)
 
-    gt = analyze(scale(gt_nodes), pd.DataFrame(columns=["source_id", "target_id"]))
-    pr = analyze(scale(pred_nodes), pred_edges)
+    gt = analyze(scale_coordinates(gt_nodes, VOXEL), pd.DataFrame(columns=["source_id", "target_id"]))
+    pr = analyze(scale_coordinates(pred_nodes, VOXEL), pred_edges)
 
     left = gt_nodes[["node_id", "track_id", "t"]]
     right = pred_nodes[["node_id", "track_id", "t"]]
@@ -126,7 +115,7 @@ def evaluate(method: str, distance: float, root: Path) -> dict[str, float]:
         )
         predicted_set = {(int(r.source_id), int(r.target_id)) for r in predicted_edges.itertuples()}
         rows.append({
-            **link_score(truth_links(detections), predicted_set),
+            **{k: v for k, v in link_metrics(\n                pd.DataFrame(list(predicted_set), columns=["source_id", "target_id"]),\n                pd.DataFrame(list(truth_links(detections)), columns=["source_id", "target_id"]),\n            ).items() if k in {"precision", "recall", "f1"}},
             **phenotype_score(truth, truth_edges, predicted, predicted_edges),
         })
 
