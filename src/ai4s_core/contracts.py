@@ -62,6 +62,13 @@ def validate_edges(
     if edges.empty:
         return
 
+    for column in EDGE_COLUMNS:
+        if not pd.api.types.is_numeric_dtype(edges[column]):
+            raise ValueError(f"{column} values must be numeric")
+        values = edges[column].to_numpy(float)
+        if not np.isfinite(values).all() or not np.all(values == np.floor(values)):
+            raise ValueError(f"{column} values must be finite integer identifiers")
+
     pairs = edges[["source_id", "target_id"]].astype(int)
     if require_unique and pairs.duplicated().any():
         raise ValueError("duplicate source-target edges are not allowed")
