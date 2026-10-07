@@ -68,7 +68,7 @@ def perturb(
 ) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
     out = detections.copy()
-    xyz = out[["z", "y", "x"]].to_numpy(float)
+    xyz = out[["z", "y", "x"]].to_numpy(float, copy=True)
     xyz += rng.normal(0.0, noise_um, size=xyz.shape)
     out[["z", "y", "x"]] = xyz
 
