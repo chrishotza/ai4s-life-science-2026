@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-import sys
 from importlib.metadata import version
 from pathlib import Path
 
