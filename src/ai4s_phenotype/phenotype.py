@@ -44,7 +44,10 @@ def _attribute_features(group: pd.DataFrame) -> dict[str, float]:
     }
     out: dict[str, float] = {}
     for column in group.columns:
-        if column in excluded:
+        lowered = column.lower()
+        if column in excluded or lowered.startswith("truth_") or lowered.startswith("label_"):
+            continue
+        if lowered.endswith("_id") or lowered in {"source", "target"}:
             continue
         if not pd.api.types.is_numeric_dtype(group[column]):
             continue
