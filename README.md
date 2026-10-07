@@ -85,6 +85,7 @@ The repository includes:
 - microscopy-to-detection tests;
 - phenotype discovery tests;
 - controlled synthetic perturbations;
+- end-to-end tracking-to-phenotype robustness under perturbed detections;
 - real Cell Tracking Challenge association benchmarking;
 - downstream temporal phenotype preservation benchmarking.
 
