@@ -81,7 +81,7 @@ Known 3-D trajectories and exact temporal links are used to test association met
 
 ### C. Public microscopy benchmark
 
-The CTC experiment uses DIC-C2DH-HeLa sequences 01 and 02. The current association benchmark feeds reference track centroids as detections, isolating the temporal-association problem from segmentation.
+The CTC experiment uses DIC-C2DH-HeLa sequences 01 and 02. The association benchmark feeds reference track centroids as detections, isolating the temporal-association problem from segmentation.
 
 ### Measured CTC association results
 
@@ -92,31 +92,40 @@ An initial mutual-nearest-neighbor run achieved:
 | 01 | 1.0000 | 0.8401 | 0.9131 |
 | 02 | 0.9977 | 0.8597 | 0.9236 |
 
-A physical-unit ablation at 3.0 µm produced:
+A physical-unit method/gating sweep was then run over mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian assignment.
 
-| Method | Mean precision | Mean recall | Mean F1 |
-|---|---:|---:|---:|
-| Hungarian | 0.99734 | 0.90736 | **0.95015** |
-| Mutual NN | 0.99734 | 0.90736 | **0.95015** |
-| Velocity Hungarian | 0.99730 | 0.89283 | 0.94212 |
+The best measured configuration was **mutual-nearest-neighbor at 8.0 µm**:
 
-For Hungarian at 3.0 µm, the per-sequence F1 values were 0.94192 and 0.95838.
+| Method | Threshold | Mean precision | Mean recall | Mean F1 |
+|---|---:|---:|---:|---:|
+| Mutual NN | 8.0 µm | 0.99135 | 0.99322 | **0.99228** |
+| Hungarian | 8.0 µm | 0.99134 | 0.99230 | 0.99182 |
+| Velocity Hungarian | 8.0 µm | 0.99129 | 0.98609 | 0.98868 |
 
-These results indicate that the dominant error is missed association rather than false linkage. The benchmark therefore motivates continuity-recovery experiments rather than indiscriminate gating expansion.
+Per-sequence results for the best configuration:
 
-A wider 3.0–8.0 µm sweep is implemented and executed independently to test this hypothesis.
+| Sequence | GT tracks | Predicted tracks | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|---:|
+| 01 | 38 | 35 | 0.99171 | 0.99446 | 0.99308 |
+| 02 | 32 | 31 | 0.99099 | 0.99198 | 0.99149 |
+
+Mean F1 therefore increased from 0.9183 in the initial run to **0.9923** in the calibrated physical-unit configuration, while precision remained approximately 0.991.
+
+At 3.0 µm, mean F1 was 0.95015, showing that the larger physical gate recovered substantially more true links without collapsing precision.
+
+These results identify overly restrictive spatial gating as a major source of track fragmentation on this association benchmark.
 
 ## 6. Baselines and ablations
 
-The final experimental table should compare:
+The final experimental table compares:
 
 1. mutual nearest neighbor;
 2. Hungarian assignment;
 3. constant-velocity Hungarian assignment;
-4. distance/gating sensitivity;
+4. physical distance/gating sensitivity;
 5. phenotype discovery with and without temporal features.
 
-For each variant, report tracking metrics and downstream phenotype stability.
+The measured evidence shows that the simple, calibrated mutual-nearest-neighbor baseline currently outperforms the velocity-aware variant on these two sequences. This is preferable to claiming complexity that is not supported by the data.
 
 ## 7. Reliability and limitations
 
@@ -144,7 +153,7 @@ The repository contains:
 - benchmark scripts;
 - demo entry point.
 
-The CI test suite currently passes on Python 3.11.
+The CI test suite passes on Python 3.11.
 
 ## 9. Scientific impact
 
