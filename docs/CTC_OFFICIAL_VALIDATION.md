@@ -67,6 +67,17 @@ These are **reference-geometry association-isolation results**. The export prese
 
 The workflow ran on the pull-request merge ref, so the JSON records checkout commit `a96737195a22d47d3b4f94823a99effbdaff06fe`, which is the merge of PR head `28620d770b30bc728703ddeff5c7c8aaad072b5a` into `main` `892b382ae1692dac9b7fd765b0c6c59ef000ef8c`.
 
+### Lineage sensitivity control
+
+A second controlled run removed **all reference parent edges** while keeping the same 8.0 µm MNN association and the same preserved CTC object geometry. The results were unchanged:
+
+| Sequence | Oracle-compatible TRA | Oracle-compatible LNK | No-oracle TRA | No-oracle LNK |
+|---|---:|---:|---:|---:|
+| 01 | 0.9973151751 | 0.9790909091 | 0.9973151751 | 0.9790909091 |
+| 02 | 0.9972072949 | 0.9782393670 | 0.9972072949 | 0.9782393670 |
+
+This sensitivity control removes the main concern that the captured TRA/LNK values might depend on reference lineage metadata. For these two sequences, the metrics are invariant to that metadata choice.
+
 ## Official TRA executable boundary
 
 The repository also includes `scripts/run_ctc_tra.py`. It accepts an externally installed official TRA evaluator through the `CTC_TRA_EXECUTABLE` environment variable.
