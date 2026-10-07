@@ -59,3 +59,9 @@ def test_edge_contract_can_require_forward_time():
     edges = pd.DataFrame({"source_id": [1], "target_id": [0]})
     with pytest.raises(ValueError, match="forward"):
         validate_edges(edges, nodes, require_forward_time=True)
+
+def test_edge_contract_rejects_fractional_identifiers():
+    nodes = base_nodes()
+    edges = pd.DataFrame({"source_id": [0.5], "target_id": [1.0]})
+    with pytest.raises(ValueError, match="integer identifiers"):
+        validate_edges(edges, nodes)
