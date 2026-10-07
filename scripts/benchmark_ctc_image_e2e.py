@@ -45,17 +45,6 @@ def image_files(root: Path, sequence: str) -> list[Path]:
 
 
 
-def _morphological_skeleton(mask: np.ndarray) -> np.ndarray:
-    structure = np.ones((3, 3), dtype=bool)
-    current = mask.copy()
-    skeleton = np.zeros_like(mask, dtype=bool)
-    while current.any():
-        eroded = ndimage.binary_erosion(current, structure=structure)
-        opened = ndimage.binary_dilation(eroded, structure=structure)
-        skeleton |= current & ~opened
-        current = eroded
-    return skeleton
-
 def _dic_ridge_mask(frame: np.ndarray, invert: bool = False) -> np.ndarray:
     image = np.asarray(frame, dtype=np.float32)
     finite = np.isfinite(image)
@@ -97,7 +86,7 @@ def _dic_ridge_mask(frame: np.ndarray, invert: bool = False) -> np.ndarray:
     transformed = transformed / mean_value
     boundary = transformed >= 0.75
     boundary = ndimage.binary_closing(boundary, structure=np.ones((3, 3), dtype=bool))
-    boundary = _morphological_skeleton(boundary)
+    boundary = ndimage.binary_dilation(boundary, iterations=1)
 
     local_mean = ndimage.uniform_filter(image, size=9, mode="nearest")
     local_sq = ndimage.uniform_filter(image ** 2, size=9, mode="nearest")
