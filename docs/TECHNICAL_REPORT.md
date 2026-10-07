@@ -8,6 +8,10 @@ The core hypothesis is that biological information is often contained not only i
 
 The system therefore combines image-to-detection preprocessing, temporal association, 3-D tracking, lineage/event inference, feature extraction, and unsupervised phenotype discovery.
 
+## 1.1 Team information
+
+**Primary contributor / repository owner:** Chris Hotza. The final team roster and team-lead designation must match the official Kaggle registration exactly at submission time.
+
 ## 2. Problem
 
 Many microscopy workflows provide segmentation masks or tracks but stop before producing a compact, interpretable description of cellular state.
@@ -254,6 +258,10 @@ The repository contains:
 - demo entry point.
 
 The CI workflow is configured for Python 3.11 and includes syntax, dependency, regression, robustness, and submission-claim gates.
+
+## 10.1 External software and licensing
+
+The public pipeline uses standard scientific Python packages declared in `pyproject.toml` and the requirements files. Core dependencies are specified by minimum versions for the general pipeline; the CTC validation dependency is pinned to **py-ctcmetrics==1.3.3**. `py-ctcmetrics` is released under the BSD 2-Clause License and is maintained by the Cell Tracking Challenge project. The final submission should preserve the corresponding upstream attribution and citation. The technical report should also retain the official CTC dataset provenance and Nature Methods citation described in Section 4.
 
 ## 11. Scientific impact
 
