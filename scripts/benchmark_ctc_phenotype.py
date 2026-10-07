@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ai4s_core import scale_coordinates
+from ai4s_core import greedy_track_overlap, scale_coordinates
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -29,43 +29,6 @@ FEATURES = [
     "mean_speed",
     "directional_persistence",
 ]
-
-
-def match_tracks(
-    truth_nodes: pd.DataFrame,
-    predicted_nodes: pd.DataFrame,
-) -> list[tuple[int, int, int, float]]:
-    gt = truth_nodes[["node_id", "track_id", "t"]].copy()
-    pred = predicted_nodes[["node_id", "track_id", "t"]].copy()
-
-    aligned = gt.merge(pred, on=["node_id", "t"], suffixes=("_gt", "_pred"))
-    overlap = (
-        aligned.groupby(["track_id_gt", "track_id_pred"])
-        .size()
-        .reset_index(name="overlap")
-    )
-    if overlap.empty:
-        return []
-
-    gt_sizes = gt.groupby("track_id").size().to_dict()
-    overlap = overlap.sort_values("overlap", ascending=False)
-
-    used_gt: set[int] = set()
-    used_pred: set[int] = set()
-    matches = []
-
-    for row in overlap.itertuples(index=False):
-        gt_id = int(row.track_id_gt)
-        pred_id = int(row.track_id_pred)
-        if gt_id in used_gt or pred_id in used_pred:
-            continue
-        shared = int(row.overlap)
-        coverage = shared / max(1, int(gt_sizes[gt_id]))
-        matches.append((gt_id, pred_id, shared, coverage))
-        used_gt.add(gt_id)
-        used_pred.add(pred_id)
-
-    return matches
 
 
 def compare_features(
@@ -138,7 +101,7 @@ def main() -> None:
             predicted_edges,
         )
 
-        matches = match_tracks(truth_for_matching, predicted_nodes)
+        matches = greedy_track_overlap(truth_for_matching, predicted_nodes)
         metrics = compare_features(
             truth_phenotypes,
             predicted_phenotypes,
