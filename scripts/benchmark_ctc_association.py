@@ -17,7 +17,7 @@ from ai4s_tracking import TrackingConfig, track_detections
 
 DATA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
 VOXEL_SIZE_UM = (1.0, 0.19, 0.19)
-DISTANCES_UM = (0.8, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0)
+DISTANCES_UM = (0.8, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0)
 METHODS = ("mutual_nn", "hungarian", "velocity_hungarian")
 
 
