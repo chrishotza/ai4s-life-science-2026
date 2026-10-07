@@ -17,7 +17,7 @@ The first reproducible run used mutual-nearest-neighbor association with a 12-co
 
 ### Physical-unit ablation
 
-The second reproducible run evaluated mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian assignment using the CTC DIC pixel scale of 0.19 µm in-plane and a physical distance threshold.
+A reproducible sweep evaluated mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian assignment using the CTC DIC pixel scale of 0.19 µm in-plane.
 
 | Method | Threshold | Mean precision | Mean recall | Mean F1 |
 |---|---:|---:|---:|---:|
@@ -27,7 +27,7 @@ The second reproducible run evaluated mutual nearest neighbor, Hungarian assignm
 
 The best measured configuration is therefore **mutual-nearest-neighbor at 8.0 µm**, with mean F1 **0.99228** across the two real sequences.
 
-Per-sequence results for that configuration:
+Per-sequence results:
 
 | Sequence | GT tracks | Predicted tracks | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|---:|
@@ -36,13 +36,52 @@ Per-sequence results for that configuration:
 
 Compared with the initial mean F1 of 0.9183, the calibrated physical-unit configuration reaches **0.9923 mean F1** while retaining approximately **0.991 precision**.
 
-The 3.0 µm point is also informative: mean F1 was 0.95015. Increasing the physical gate to 8.0 µm recovers substantially more true links without collapsing precision.
+The 3.0 µm point produced mean F1 0.95015. The larger physical gate therefore recovered substantially more true links without collapsing precision.
+
+### Downstream temporal phenotype preservation
+
+A second real-data experiment pushed the selected tracker into the phenotype layer.
+
+The experiment again used CTC reference centroids as detections, so it measures **phenotype preservation under tracking**, not image segmentation or biological phenotype classification.
+
+For every predicted track matched to a reference track, the benchmark measured trajectory coverage and absolute error in:
+
+- duration;
+- observations;
+- displacement;
+- path length;
+- mean speed;
+- directional persistence.
+
+Aggregate results across both CTC sequences:
+
+| Metric | Result |
+|---|---:|
+| Matched tracks | 27.5 mean / sequence |
+| Mean trajectory coverage | **0.9451** |
+| Median trajectory coverage | **1.0000** |
+| Duration MAE | 6.2184 frames |
+| Displacement MAE | 2.1605 µm |
+| Path-length MAE | 9.9353 µm |
+| Mean-speed MAE | 0.1206 µm/frame |
+| Directional-persistence MAE | **0.0439** |
+
+Per sequence:
+
+| Sequence | Matched tracks | Mean coverage | Median coverage | Speed MAE | Directional-persistence MAE |
+|---|---:|---:|---:|---:|---:|
+| 01 | 31 | 0.9557 | 1.0000 | 0.0615 | 0.0307 |
+| 02 | 24 | 0.9346 | 1.0000 | 0.1797 | 0.0572 |
+
+The important result is that the downstream temporal phenotype is comparatively stable for matched tracks: the median track coverage is 100%, and directional persistence has a mean absolute error of only 0.0439 across the two sequences.
 
 ### Interpretation
 
-The initial failure mode was track fragmentation caused by an overly restrictive distance gate. On this CTC association benchmark, the strongest simple baseline is not the velocity model: it is a physically calibrated mutual-nearest-neighbor association with a permissive 8.0 µm gate.
+The initial failure mode was track fragmentation caused by an overly restrictive distance gate. Physical calibration corrected most of that association loss.
 
-This is a useful result because it gives us a measured, reproducible reference configuration before introducing additional learned or lineage-aware machinery.
+The phenotype experiment then shows that the selected association layer preserves meaningful trajectory-derived features sufficiently well to support the next stage of the system.
+
+This does **not** establish biological phenotype validity. That requires a dataset with biological phenotype labels or perturbation annotations. The current result establishes reproducible preservation of trajectory-derived phenotype features.
 
 ## Evidence policy
 
@@ -50,3 +89,4 @@ Only measured outputs from reproducible benchmark runs are included.
 
 No synthetic score is presented as a real-data result.
 No segmentation performance is inferred from centroid-association performance.
+No biological phenotype claim is inferred from trajectory agreement alone.
