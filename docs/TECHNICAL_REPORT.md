@@ -147,7 +147,15 @@ The median trajectory coverage of 1.0 indicates that at least half of the matche
 
 This provides downstream evidence that the selected temporal association configuration preserves trajectory-derived phenotype features, while remaining explicit that biological phenotype validity requires independent biological labels or perturbation annotations.
 
-## 6. Baselines and ablations
+## 6. Lineage validation
+
+### Lineage and division representation validation
+
+The public lineage layer is now validated separately from the association benchmark using the CTC reference lineage graph for sequences 01 and 02. The benchmark reconstructs parent-child relations from the published lineage metadata, passes the resulting edges through the phenotype engine, and checks division-parent recovery plus exact child-count and descendant-count reconstruction.
+
+This establishes that the phenotype representation faithfully carries annotated lineage structure. It is deliberately not reported as an image-derived division-detection score: the current baseline tracker does not claim biological division inference from microscopy alone.
+
+## 7. Baselines and ablations
 
 The final experimental table compares:
 
@@ -160,7 +168,7 @@ The final experimental table compares:
 
 The measured evidence shows that the simple, calibrated mutual-nearest-neighbor baseline currently outperforms the velocity-aware variant on these two sequences. This is preferable to claiming complexity that is not supported by the data.
 
-## 7. Reliability and limitations
+## 8. Reliability and limitations
 
 The transparent public baseline has known limitations:
 
@@ -173,7 +181,7 @@ The transparent public baseline has known limitations:
 
 These limitations are explicit design constraints rather than hidden assumptions.
 
-## 8. Reproducibility
+## 9. Reproducibility
 
 The repository contains:
 
@@ -189,7 +197,7 @@ The repository contains:
 
 The CI test suite passes on Python 3.11.
 
-## 9. Scientific impact
+## 10. Scientific impact
 
 The intended output is a dynamic phenotype representation that can support:
 
@@ -199,7 +207,7 @@ The intended output is a dynamic phenotype representation that can support:
 - lineage-aware phenotype analysis;
 - downstream perturbation studies.
 
-## 10. Final submission evidence
+## 11. Final submission evidence
 
 The final Kaggle submission should only claim quantitative performance that is directly reproduced by the public repository.
 
