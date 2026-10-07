@@ -57,8 +57,12 @@ class TemporalPhenotypeEngine:
         return self.run(detections)
 
     def run(self, detections: pd.DataFrame) -> PipelineResult:
+        required = ["t", "z", "y", "x"]
+        missing = [column for column in required if column not in detections.columns]
+        if missing:
+            raise ValueError(f"detections missing columns: {missing}")
         nodes, temporal_edges = track_detections(
-            detections[["t", "z", "y", "x"]],
+            detections,
             self.config.tracking,
         )
         lineage_edges = infer_divisions(
