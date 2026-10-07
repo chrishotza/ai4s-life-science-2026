@@ -1,0 +1,68 @@
+# Architecture
+
+## Pipeline boundary
+
+The public system is organized as explicit scientific layers:
+
+microscopy
+→ detection
+→ temporal association
+→ lineage/event structure
+→ temporal phenotype
+→ unsupervised phenotype discovery
+→ validation/reporting
+
+## Contract boundary
+
+All tracking nodes use:
+
+- node_id
+- track_id
+- t
+- z
+- y
+- x
+
+Temporal and lineage edges use source_id and target_id, with optional distance_um and edge_type metadata.
+
+Core contracts validate uniqueness, finite coordinates, known edge references, and optional consecutive-frame constraints.
+
+## Coordinate boundary
+
+Physical coordinate conversion is centralized as a z/y/x scale.
+
+This prevents a frequent scientific failure mode where tracking is evaluated in micrometers while downstream lineage geometry silently uses raw pixels.
+
+## Orchestration boundary
+
+TemporalPhenotypeEngine is the canonical production path from detections to:
+
+- tracked nodes;
+- temporal links;
+- candidate lineage edges;
+- phenotype table;
+- discovered phenotype groups.
+
+Benchmark scripts are intentionally outside this production boundary.
+
+## Evaluation boundary
+
+Validation is separated into:
+
+1. deterministic unit/regression tests;
+2. controlled synthetic phenotype stability;
+3. end-to-end perturbed-detection tracking-to-phenotype robustness;
+4. CTC association benchmarking;
+5. CTC trajectory-phenotype preservation;
+6. CTC lineage representation validation;
+7. automated submission-claim auditing.
+
+## Known architectural limits
+
+The baseline tracker has no gap closing and only associates adjacent frames.
+
+Division inference is candidate-based and should not be presented as biological division detection without independent labels.
+
+CTC association results use reference centroids as detections and therefore isolate temporal association from image segmentation.
+
+Unsupervised phenotype labels are descriptive and depend on the selected feature space and clustering configuration.
