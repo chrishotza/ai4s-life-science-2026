@@ -32,6 +32,7 @@ class DetectorSpec:
 
 CANDIDATES = (
     DetectorSpec("dic_ridge_kth", "ridge", 0.0),
+    DetectorSpec("dic_ridge_kth_inverted", "ridge_inverted", 0.0),
     DetectorSpec("raw_high_p90", "high", 90.0),
     DetectorSpec("raw_high_p95", "high", 95.0),
     DetectorSpec("raw_high_p97", "high", 97.0),
@@ -51,9 +52,11 @@ def image_files(root: Path, sequence: str) -> list[Path]:
     return candidates
 
 
-def _dic_ridge_mask(frame: np.ndarray) -> np.ndarray:
+def _dic_ridge_mask(frame: np.ndarray, invert: bool = False) -> np.ndarray:
     image = np.asarray(frame, dtype=np.float32)
     finite = np.isfinite(image)
+    if invert:
+        image = -image
     if not finite.any():
         return np.zeros_like(image, dtype=bool)
 
@@ -109,7 +112,9 @@ def _dic_ridge_mask(frame: np.ndarray) -> np.ndarray:
 
 def _mask_from_spec(frame: np.ndarray, spec: DetectorSpec) -> np.ndarray:
     if spec.polarity == "ridge":
-        return _dic_ridge_mask(frame)
+        return _dic_ridge_mask(frame, invert=False)
+    if spec.polarity == "ridge_inverted":
+        return _dic_ridge_mask(frame, invert=True)
 
     image = np.asarray(frame, dtype=np.float32)
     finite = np.isfinite(image)
