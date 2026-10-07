@@ -72,6 +72,16 @@ class PipelineResult:
                 if "observation_fraction" in self.phenotypes.columns and len(self.phenotypes)
                 else None
             ),
+            "mean_track_integrity_score": (
+                float(self.phenotypes["track_integrity_score"].mean())
+                if "track_integrity_score" in self.phenotypes.columns and len(self.phenotypes)
+                else None
+            ),
+            "mean_phenotype_reliability_score": (
+                float(self.discovered["phenotype_reliability_score"].mean())
+                if "phenotype_reliability_score" in self.discovered.columns and len(self.discovered)
+                else None
+            ),
         }
         return summary
 
