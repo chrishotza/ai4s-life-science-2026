@@ -85,13 +85,14 @@ The repository includes:
 - microscopy-to-detection tests;
 - phenotype discovery tests;
 - controlled synthetic perturbations;
-- real Cell Tracking Challenge association benchmarking.
+- real Cell Tracking Challenge association benchmarking;
+- downstream temporal phenotype preservation benchmarking.
 
-See **[docs/RESULTS.md](docs/RESULTS.md)** for the full measured results.
+See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
 
 ## Real benchmark
 
-The CTC benchmark uses **DIC-C2DH-HeLa sequences 01 and 02**. The evaluation feeds the reference track centroids into the association stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
+The CTC benchmark uses **DIC-C2DH-HeLa sequences 01 and 02**. The association experiment feeds the reference track centroids into the tracking stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
 
 The completed physical-unit sweep compared:
 
@@ -108,6 +109,12 @@ Per sequence:
 
 - sequence 01: F1 0.99308;
 - sequence 02: F1 0.99149.
+
+The downstream phenotype-preservation experiment on the same reference centroids reports:
+
+**mean trajectory coverage 0.9451 · median coverage 1.0000 · directional-persistence MAE 0.0439**
+
+These phenotype values measure trajectory-feature preservation under tracking; they are not biological phenotype classification scores.
 
 The benchmark is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
