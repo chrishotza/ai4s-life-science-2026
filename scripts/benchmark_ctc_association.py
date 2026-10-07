@@ -2,16 +2,14 @@ from __future__ import annotations
 
 import json
 import sys
-import zipfile
 from pathlib import Path
-from urllib.request import urlretrieve
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ai4s_io import load_ctc_tracking
+from ai4s_io import ensure_ctc_dataset, load_ctc_tracking
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
 
@@ -60,22 +58,8 @@ def score(
     }
 
 def main() -> None:
-    work = ROOT / ".benchmark_cache"
-    work.mkdir(exist_ok=True)
-    archive = work / "DIC-C2DH-HeLa.zip"
+    dataset_root = ensure_ctc_dataset(ROOT / ".benchmark_cache")
 
-    if not archive.exists():
-        print(f"Downloading {DATA_URL}", flush=True)
-        urlretrieve(DATA_URL, archive)
-
-    extract = work / "dataset"
-    dataset_root = extract / "DIC-C2DH-HeLa"
-    if not dataset_root.exists():
-        extract.mkdir(exist_ok=True)
-        with zipfile.ZipFile(archive) as zf:
-            zf.extractall(extract)
-
-    all_results: list[dict[str, object]] = []
 
     for sequence in ("01", "02"):
         truth_dir = dataset_root / f"{sequence}_GT" / "TRA"
