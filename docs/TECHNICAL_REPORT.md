@@ -58,13 +58,15 @@ When detections contain numeric measurements beyond coordinates and identifiers,
 
 The published discovery benchmark remains trajectory/lineage-only. Auxiliary features are therefore additive metadata, not a silent change to the validated clustering feature space.
 
-### 3.5.1 Assignment confidence
-
-Each discovered phenotype assignment now records distance to its assigned cluster center and the margin to the second-nearest cluster center. These values are intended for uncertainty visualization and filtering, not as calibrated probabilities.
 
 ### 3.5 Phenotype discovery
 
 Standardized temporal features are clustered with K-Means to obtain unsupervised behavioral groups. The clusters are reported together with interpretable feature summaries rather than opaque class IDs alone.
+
+### 3.5.1 Assignment confidence
+
+Each discovered phenotype assignment now records distance to its assigned cluster center and the margin to the second-nearest cluster center. These values are intended for uncertainty visualization and filtering, not as calibrated probabilities.
+
 
 ## 4. Data
 
@@ -180,7 +182,7 @@ In addition to the validated adjacent-frame baseline, the repository now contain
 
 This branch is evaluated only through the existing A/B protocol and is not part of the published baseline. Its purpose is to test robustness to incomplete observations and align the architecture with linking-oriented benchmark conditions.
 
-## 7. Baselines and ablations
+## 8. Baselines and ablations
 
 The final experimental table compares:
 
@@ -193,7 +195,7 @@ The final experimental table compares:
 
 The measured evidence shows that the simple, calibrated mutual-nearest-neighbor baseline currently outperforms the velocity-aware variant on these two sequences. This is preferable to claiming complexity that is not supported by the data.
 
-## 8. Reliability and limitations
+## 9. Reliability and limitations
 
 The transparent public baseline has known limitations:
 
@@ -206,7 +208,7 @@ The transparent public baseline has known limitations:
 
 These limitations are explicit design constraints rather than hidden assumptions.
 
-## 9. Reproducibility
+## 10. Reproducibility
 
 The repository contains:
 
@@ -222,7 +224,7 @@ The repository contains:
 
 The CI workflow is configured for Python 3.11 and includes syntax, dependency, regression, robustness, and submission-claim gates.
 
-## 10. Scientific impact
+## 11. Scientific impact
 
 The intended output is a dynamic phenotype representation that can support:
 
@@ -232,7 +234,7 @@ The intended output is a dynamic phenotype representation that can support:
 - lineage-aware phenotype analysis;
 - downstream perturbation studies.
 
-## 11. Final submission evidence
+## 12. Final submission evidence
 
 The final Kaggle submission should only claim quantitative performance that is directly reproduced by the public repository.
 
