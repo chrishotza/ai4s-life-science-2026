@@ -147,7 +147,13 @@ The median trajectory coverage of 1.0 indicates that at least half of the matche
 
 This provides downstream evidence that the selected temporal association configuration preserves trajectory-derived phenotype features, while remaining explicit that biological phenotype validity requires independent biological labels or perturbation annotations.
 
-## 6. Lineage validation
+## 6. End-to-end robustness validation
+
+A controlled synthetic benchmark now perturbs detection coordinates and introduces missing observations before re-running the tracker and phenotype pipeline. This produces a stricter end-to-end robustness test than perturbing completed trajectories, because association errors can propagate into the phenotype representation.
+
+The benchmark reports track purity and phenotype-group adjusted Rand index against the known synthetic behavioral groups. It is explicitly treated as controlled computational evidence rather than biological validation.
+
+## 7. Lineage validation
 
 ### Lineage and division representation validation
 
