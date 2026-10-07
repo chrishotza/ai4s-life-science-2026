@@ -10,10 +10,6 @@
 
 **Technical report:** This Writeup contains the submission report sections; the full technical report is also maintained at `docs/TECHNICAL_REPORT.md`.
 
-## Category Declaration
-
-**Category: End-to-End System**
-
 ## Project Summary
 
 Time-lapse microscopy contains information about how cells move, persist, divide, and change over time, but many workflows stop at segmentation or tracking. The Temporal Cellular Phenotype Engine turns those trajectories into interpretable temporal phenotype profiles.
