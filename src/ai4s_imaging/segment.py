@@ -19,8 +19,10 @@ def segment_frames(
     reproducible benchmarking and for feeding the temporal phenotype engine.
     """
     arr = np.asarray(frames, dtype=float)
-    if arr.ndim != 3:
-        raise ValueError("frames must have shape (t, y, x)")
+    if arr.ndim not in {3, 4}:
+        raise ValueError("frames must have shape (t, y, x) or (t, z, y, x)")
+    spatial_ndim = arr.ndim - 1
+
     if min_area < 1:
         raise ValueError("min_area must be >= 1")
     if threshold is not None and not np.isfinite(threshold):
@@ -47,17 +49,28 @@ def segment_frames(
             area = int(coords.shape[0])
             if area < min_area:
                 continue
-            yy0, xx0 = slc[0].start, slc[1].start
-            yy = coords[:, 0] + yy0
-            xx = coords[:, 1] + xx0
+
+            if spatial_ndim == 2:
+                y0, x0 = slc[0].start, slc[1].start
+                yy = coords[:, 0] + y0
+                xx = coords[:, 1] + x0
+                zz = np.full(len(coords), float(z), dtype=float)
+            else:
+                z0, y0, x0 = slc[0].start, slc[1].start, slc[2].start
+                zz = coords[:, 0] + z0
+                yy = coords[:, 1] + y0
+                xx = coords[:, 2] + x0
+
             rows.append(
                 {
                     "t": int(t),
-                    "z": float(z),
-                    "y": float(yy.mean()),
-                    "x": float(xx.mean()),
+                    "z": float(np.mean(zz)),
+                    "y": float(np.mean(yy)),
+                    "x": float(np.mean(xx)),
                     "area": area,
-                    "mean_intensity": float(frame[yy, xx].mean()),
+                    "mean_intensity": float(frame[tuple(
+                        coords[:, axis] + slc[axis].start for axis in range(spatial_ndim)
+                    )].mean()),
                 }
             )
 
