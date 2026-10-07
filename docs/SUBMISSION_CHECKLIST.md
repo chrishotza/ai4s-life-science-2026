@@ -8,6 +8,8 @@
 - [x] Real CTC association benchmark
 - [x] Method/gating ablation
 - [x] Downstream phenotype preservation benchmark
+- [x] Cross-sequence image-to-tracking validation protocol
+- [x] CTC GT/SEG image-segmentation validation protocol
 - [x] End-to-end tracking-to-phenotype robustness benchmark
 - [x] Explicit architecture/data-contract layer
 - [x] CTC lineage/division representation validation
@@ -24,6 +26,7 @@
 - [x] Five-minute demo script
 - [x] CI tests
 - [x] Docker reproduction path
+- [x] Judge-facing rubric evidence map
 
 ## Official competition submission constraints
 
@@ -36,7 +39,7 @@ Verified against the current Kaggle competition overview: the official submissio
 - [ ] Verify final public repository URL
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Re-run CI on the final public commit
-- [ ] Confirm all benchmark scripts reproduce their published numbers
+- [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Add representative real-data visualization artifact
 - [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup
