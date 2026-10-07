@@ -12,12 +12,15 @@ class TrackingConfig:
     max_distance_um: float = 8.0
     mutual: bool = True
     method: str = "mutual_nn"
+    voxel_size_um: tuple[float, float, float] = (1.0, 1.0, 1.0)
 
     def __post_init__(self) -> None:
         if self.max_distance_um <= 0:
             raise ValueError("max_distance_um must be positive")
         if self.method not in {"mutual_nn", "hungarian", "velocity_hungarian"}:
             raise ValueError("unknown tracking method")
+        if len(self.voxel_size_um) != 3 or any(value <= 0 for value in self.voxel_size_um):
+            raise ValueError("voxel_size_um must contain three positive values")
 
 
 def _distance(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -71,6 +74,8 @@ def track_detections(
 ):
     """Track frame-wise 3-D detections with deterministic association.
 
+    Distances are computed in physical units using voxel_size_um=(z,y,x).
+
     Methods:
     - mutual_nn: mutually nearest detections.
     - hungarian: globally optimal one-to-one distance assignment.
@@ -89,6 +94,7 @@ def track_detections(
     df["node_id"] = np.arange(len(df), dtype=int)
     df["track_id"] = -1
 
+    scale = np.asarray(config.voxel_size_um, dtype=float)
     edges = []
     next_track = 0
     active: dict[int, int] = {}
@@ -96,7 +102,7 @@ def track_detections(
 
     for t in sorted(df.t.unique()):
         cur_idx = df.index[df.t.eq(t)].to_numpy()
-        cur_xyz = df.loc[cur_idx, ["z", "y", "x"]].to_numpy(float)
+        cur_xyz = df.loc[cur_idx, ["z", "y", "x"]].to_numpy(float) * scale
 
         if not active:
             for i in cur_idx:
@@ -104,12 +110,13 @@ def track_detections(
                 next_track += 1
                 df.loc[i, "track_id"] = tr
                 active[tr] = int(i)
-                history[tr] = [(int(t), df.loc[i, ["z", "y", "x"]].to_numpy(float))]
+                position = df.loc[i, ["z", "y", "x"]].to_numpy(float) * scale
+                history[tr] = [(int(t), position)]
             continue
 
         prev_tracks = sorted(active)
         prev_idx = np.array([active[k] for k in prev_tracks], dtype=int)
-        prev_xyz = df.loc[prev_idx, ["z", "y", "x"]].to_numpy(float)
+        prev_xyz = df.loc[prev_idx, ["z", "y", "x"]].to_numpy(float) * scale
 
         if config.method == "velocity_hungarian":
             predicted = []
@@ -124,14 +131,6 @@ def track_detections(
                     predicted.append(hist[-1][1])
             predicted_xyz = np.asarray(predicted, dtype=float)
             pairs = _hungarian_pairs(predicted_xyz, cur_xyz, config.max_distance_um)
-            distances = [
-                float(np.linalg.norm(predicted_xyz[pi] - cur_xyz[ci]))
-                for pi, ci, _ in pairs
-            ]
-            pairs = [
-                (pi, ci, dist)
-                for (pi, ci, _), dist in zip(pairs, distances)
-            ]
         else:
             pairs = _assign_pairs(
                 prev_xyz,
@@ -149,8 +148,8 @@ def track_detections(
             df.loc[dst, "track_id"] = tr
             used.add(ci)
             new_active[tr] = dst
-            pos = df.loc[dst, ["z", "y", "x"]].to_numpy(float)
-            history.setdefault(tr, []).append((int(t), pos))
+            position = df.loc[dst, ["z", "y", "x"]].to_numpy(float) * scale
+            history.setdefault(tr, []).append((int(t), position))
             history[tr] = history[tr][-3:]
             edges.append((src, dst, dist, "link"))
 
@@ -160,8 +159,8 @@ def track_detections(
                 next_track += 1
                 df.loc[dst, "track_id"] = tr
                 new_active[tr] = int(dst)
-                pos = df.loc[dst, ["z", "y", "x"]].to_numpy(float)
-                history[tr] = [(int(t), pos)]
+                position = df.loc[dst, ["z", "y", "x"]].to_numpy(float) * scale
+                history[tr] = [(int(t), position)]
 
         active = new_active
 
