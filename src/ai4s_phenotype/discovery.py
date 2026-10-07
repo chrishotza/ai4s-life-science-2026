@@ -20,15 +20,20 @@ FEATURES = [
 ]
 
 
-def _feature_matrix(phenotypes: pd.DataFrame, log_transform: bool) -> pd.DataFrame:
+def _feature_matrix(
+    phenotypes: pd.DataFrame,
+    *,
+    log_columns: tuple[str, ...] = (),
+) -> pd.DataFrame:
     missing = [column for column in FEATURES if column not in phenotypes.columns]
     if missing:
         raise ValueError(f"phenotypes missing columns: {missing}")
 
     x = phenotypes[FEATURES].astype(float).replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    if log_transform:
-        positive = [column for column in FEATURES if (x[column] >= 0).all()]
-        x[positive] = np.log1p(x[positive])
+    for column in log_columns:
+        if (x[column] < 0).any():
+            raise ValueError(f"feature {column} contains negative values but the fitted discovery model requires log1p")
+        x[column] = np.log1p(x[column])
     return x
 
 
@@ -64,7 +69,8 @@ class PhenotypeDiscoveryModel:
     model: KMeans
     feature_names: tuple[str, ...]
     log_transform: bool
-    cluster_names: dict[int, str]
+    log_columns: tuple[str, ...]
+    cluster_names: dict[int, str>
 
     @classmethod
     def fit(
@@ -79,7 +85,13 @@ class PhenotypeDiscoveryModel:
         if n_clusters < 2 or len(phenotypes) < n_clusters:
             raise ValueError("invalid n_clusters for phenotype table")
 
-        x = _feature_matrix(phenotypes, log_transform)
+        raw_x = _feature_matrix(phenotypes)
+        log_columns = (
+            tuple(column for column in FEATURES if (raw_x[column] >= 0).all())
+            if log_transform
+            else ()
+        )
+        x = _feature_matrix(phenotypes, log_columns=log_columns)
         transformer = _make_scaler(scaler)
         scaled = transformer.fit_transform(x)
         model = KMeans(
@@ -94,11 +106,12 @@ class PhenotypeDiscoveryModel:
             model=model,
             feature_names=tuple(FEATURES),
             log_transform=log_transform,
+            log_columns=log_columns,
             cluster_names=_cluster_names(model),
         )
 
     def transform(self, phenotypes: pd.DataFrame) -> pd.DataFrame:
-        x = _feature_matrix(phenotypes, self.log_transform)
+        x = _feature_matrix(phenotypes, log_columns=self.log_columns)
         if tuple(x.columns) != self.feature_names:
             raise ValueError("phenotype feature schema does not match fitted model")
 
