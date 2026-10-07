@@ -30,6 +30,7 @@ Verified against the current Kaggle competition overview: the official submissio
 - [ ] Complete the required competition registration form
 - [ ] Make competition repository public
 - [ ] Verify final public repository URL
+- [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Re-run CI on the final public commit
 - [ ] Confirm all benchmark scripts reproduce their published numbers
 - [x] Add representative real-data visualization artifact
@@ -45,7 +46,7 @@ Verified against the current Kaggle competition overview: the official submissio
 - `main` contains the merged external CTC validation bridge.
 - Captured `py-ctcmetrics==1.3.3` results are documented for sequences 01 and 02.
 - Official Cell Tracking Challenge leaderboard scores remain explicitly unclaimed.
-- Repository visibility is still **private**; making it public is a separate submission action and has not been changed automatically.
+- Final repository visibility and URL must be verified immediately before submission.
 
 ## Claims policy
 
