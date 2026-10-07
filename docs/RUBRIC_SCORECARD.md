@@ -26,6 +26,7 @@ This document maps each AI4S Open Innovation judging criterion to concrete evide
 - docs/ARCHITECTURE.md: data contracts, coordinate boundary, model lifecycle, validation boundary.
 - Method/gating ablation and no-oracle CTC sensitivity control.
 - Observable trajectory-integrity and phenotype-reliability scores, validated under controlled tracking perturbations.
+- Uncertainty-aware cohort comparison with standardized effect sizes and bootstrap confidence intervals.
 
 **What must be visible in the final report:** why this is more than a tracker, why the architecture is interpretable, and which components are validated versus experimental.
 
@@ -101,3 +102,8 @@ Before submission, the repository, technical report, Kaggle Writeup, demo, bench
 The engine now exposes a bounded track_integrity_score and phenotype_reliability_score. These scores are deliberately descriptive: they combine observables already present in the trajectory and association output and are not presented as calibrated probabilities.
 
 The synthetic robustness benchmark records reliability scores alongside phenotype-group ARI and tracking-error profiles. The intended use is operational: down-weight ambiguous trajectories, surface low-integrity cells for review, and avoid treating every unsupervised phenotype assignment as equally trustworthy.
+
+
+## Scientific decision layer
+
+The cohort comparison API is the final analysis layer between phenotype extraction and experimental interpretation. It reports effect sizes and bootstrap intervals for selected trajectory features across two cohorts while keeping biological labeling outside the software unless independent evidence is supplied.
