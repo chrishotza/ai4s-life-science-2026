@@ -79,56 +79,86 @@ def recompute_edges(nodes: pd.DataFrame) -> pd.DataFrame:
 
 def main() -> None:
     nodes, edges, labels = make_tracks()
-    baseline = discover_phenotypes(analyze(nodes, edges), n_clusters=3, random_state=17)
-
-    name_to_expected = {
-        "persistent_slow": "persistent_or_stable",
-        "persistent_fast": "high_motility",
-        "exploratory": "exploratory_motion",
-    }
-
-    baseline_expected = baseline["track_id"].map(labels).map(name_to_expected)
-    baseline_cluster = baseline["phenotype_cluster"].to_numpy(int)
+    configurations = [
+        ("standard", False),
+        ("robust", False),
+        ("robust_log", True),
+    ]
 
     rows = []
-    for noise_um, drop_rate in ((0.00, 0.00), (0.10, 0.05), (0.20, 0.10), (0.35, 0.15)):
-        perturbed = perturb(nodes, noise_um, drop_rate, seed=100 + int(noise_um * 1000) + int(drop_rate * 100))
-        p_edges = recompute_edges(perturbed)
-        phenotype = analyze(perturbed, p_edges)
-        discovered = discover_phenotypes(phenotype, n_clusters=3, random_state=17)
-
-        common = baseline[["track_id", "phenotype_cluster"]].merge(
-            discovered[["track_id", "phenotype_cluster"]],
-            on="track_id",
-            suffixes=("_baseline", "_perturbed"),
-        )
-        ari = adjusted_rand_score(
-            common["phenotype_cluster_baseline"],
-            common["phenotype_cluster_perturbed"],
-        ) if len(common) else 0.0
-
-        expected_matches = float(
-            (baseline_expected.iloc[: len(baseline)].to_numpy() == baseline["phenotype_cluster_name"].map(name_to_expected).to_numpy()).mean()
+    for name, log_transform in configurations:
+        scaler = "robust" if name.startswith("robust") else "standard"
+        baseline = discover_phenotypes(
+            analyze(nodes, edges),
+            n_clusters=3,
+            random_state=17,
+            scaler=scaler,
+            log_transform=log_transform,
         )
 
-        rows.append({
-            "noise_um": noise_um,
-            "drop_rate": drop_rate,
-            "tracks_remaining": int(perturbed["track_id"].nunique()),
-            "matched_tracks": int(len(common)),
-            "cluster_ARI_vs_baseline": float(ari),
-            "baseline_semantic_agreement": expected_matches,
-        })
+        for noise_um, drop_rate in ((0.00, 0.00), (0.10, 0.05), (0.20, 0.10), (0.35, 0.15)):
+            perturbed = perturb(
+                nodes,
+                noise_um,
+                drop_rate,
+                seed=100 + int(noise_um * 1000) + int(drop_rate * 100),
+            )
+            p_edges = recompute_edges(perturbed)
+            phenotype = analyze(perturbed, p_edges)
+            discovered = discover_phenotypes(
+                phenotype,
+                n_clusters=3,
+                random_state=17,
+                scaler=scaler,
+                log_transform=log_transform,
+            )
+
+            common = baseline[["track_id", "phenotype_cluster"]].merge(
+                discovered[["track_id", "phenotype_cluster"]],
+                on="track_id",
+                suffixes=("_baseline", "_perturbed"),
+            )
+            ari = (
+                adjusted_rand_score(
+                    common["phenotype_cluster_baseline"],
+                    common["phenotype_cluster_perturbed"],
+                )
+                if len(common)
+                else 0.0
+            )
+
+            rows.append(
+                {
+                    "configuration": name,
+                    "noise_um": noise_um,
+                    "drop_rate": drop_rate,
+                    "tracks_remaining": int(perturbed["track_id"].nunique()),
+                    "matched_tracks": int(len(common)),
+                    "cluster_ARI_vs_baseline": float(ari),
+                }
+            )
 
     frame = pd.DataFrame(rows)
     print(frame.to_string(index=False))
+
+    summary = (
+        frame.groupby("configuration")["cluster_ARI_vs_baseline"]
+        .agg(["mean", "min"])
+        .reset_index()
+        .sort_values(["mean", "min"], ascending=False)
+    )
+    print("\nCONFIGURATION RANKING")
+    print(summary.to_string(index=False))
+
     output = {
         "benchmark": "controlled phenotype-discovery stability",
         "synthetic_groups": list(GROUPS),
         "rows": rows,
-        "mean_ARI_nonzero_perturbations": float(frame.iloc[1:]["cluster_ARI_vs_baseline"].mean()),
+        "summary": summary.to_dict(orient="records"),
     }
-    (ROOT / "phenotype_stability_results.json").write_text(json.dumps(output, indent=2))
+    (ROOT / "phenotype_stability_results.json").write_text(
+        json.dumps(output, indent=2)
+    )
 
 
 if __name__ == "__main__":
