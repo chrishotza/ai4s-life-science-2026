@@ -1,0 +1,38 @@
+name: CTC Image E2E Validation
+
+on:
+  push:
+    paths:
+      - ".github/workflows/ctc-image-e2e.yml"
+      - "scripts/benchmark_ctc_image_e2e.py"
+      - "src/ai4s_io/**"
+      - "src/ai4s_tracking/**"
+      - "requirements.txt"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache CTC dataset
+        uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-\${{ runner.os }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Run cross-sequence image-to-tracking benchmark
+        run: python scripts/benchmark_ctc_image_e2e.py
+      - name: Upload image-to-tracking evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctc-image-e2e-evidence
+          path: ctc_image_e2e_results.json
