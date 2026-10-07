@@ -349,3 +349,8 @@ The track-integrity score uses only quantities already measured by the tracker: 
 This design deliberately avoids a statistical calibration claim. It is a transparent operational score for triage and cohort analysis. The end-to-end synthetic robustness benchmark now records reliability together with phenotype-group ARI and the tracking-error taxonomy, allowing degradation to be inspected rather than hidden.
 
 In a biological workflow, the intended behavior is conservative: high-integrity/high-separation trajectories contribute normally to downstream analysis, while low-integrity or ambiguous trajectories can be flagged for manual review or sensitivity analysis.
+
+
+### Image-level negative controls
+
+The raw-image experiments are retained as explicit negative controls rather than silently discarded. `docs/ABLATION_AND_FAILURES.md` records generic thresholding, DIC-ridge segmentation, and a lightweight supervised segmentation model, including strict cross-sequence metrics and the resulting decision not to promote these methods into the headline association benchmark.
