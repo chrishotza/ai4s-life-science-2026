@@ -5,45 +5,54 @@
 
 This project converts time-lapse microscopy into interpretable temporal cellular phenotype analysis.
 
+## Core idea
+
+Most pipelines stop at segmentation or tracking. This system treats tracking as infrastructure and asks the downstream scientific question:
+
+> **What phenotype is a cell expressing over time, and how does that phenotype change across trajectories and lineages?**
+
+The engine combines transparent image preprocessing, temporal association, 3-D trajectory analysis, and unsupervised phenotype discovery.
+
 ## System
 
 ```
-3D / time-lapse microscopy
+microscopy time-lapse
         ↓
-cell detection
+cell detection / segmentation
         ↓
 temporal association
         ↓
-3D tracking
+3-D tracking
         ↓
-lineage reconstruction
+lineage/event structure
         ↓
-division / event detection
+temporal phenotype features
         ↓
-temporal phenotype extraction
+unsupervised phenotype discovery
         ↓
 interpretable phenotype report
 ```
 
-Tracking is the infrastructure; the scientific output is the **dynamic phenotype of each cell and lineage**.
-
 ## Public MVP
 
-The repository provides a deterministic, reproducible 3-D tracking baseline from frame-wise detections and a phenotype layer over reconstructed trajectories and lineage edges.
+The public implementation contains four reproducible layers:
 
-Tracking input:
+1. **Microscopy baseline** — threshold + connected-component detection for time-lapse frames.
+2. **Tracking baseline** — deterministic mutual-nearest-neighbor 3-D temporal association.
+3. **Temporal phenotype engine** — duration, displacement, path length, speed, directional persistence, parent/child structure, divisions and descendants.
+4. **Phenotype discovery** — standardized trajectory features clustered with K-Means into interpretable behavioral groups.
+
+Tracking tables use:
 
 `t,z,y,x`
 
-Tracking output:
+and produce:
 
 `node_id,track_id,t,z,y,x`
 
-and an edge table:
+plus:
 
 `source_id,target_id,distance_um,edge_type`
-
-The phenotype layer extracts trajectory duration, displacement, path length, mean speed, directional persistence, division events, parent/child counts, descendant counts, and phenotype flags.
 
 ## Reproducible setup
 
@@ -62,39 +71,56 @@ pytest -q
 python demo.py
 ```
 
-The test suite includes deterministic pipeline checks, quantitative link precision/recall/F1, and a synthetic 3-D tracking benchmark.
+The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, temporal phenotypes, and discovered phenotype groups.
 
-## Synthetic benchmark
+## Quantitative validation
 
-The repository contains a deterministic generator for controlled trajectory experiments. It produces known 3-D cell trajectories and exact consecutive-frame ground-truth links, allowing tracking performance to be measured without hidden assumptions.
+The repository includes:
 
-This benchmark is intended for regression testing and controlled perturbation experiments before evaluation on public microscopy data.
+- deterministic tracking regression tests;
+- link precision, recall and F1;
+- exact synthetic trajectory ground truth;
+- microscopy-to-detection tests;
+- phenotype discovery tests;
+- controlled synthetic perturbations for stress testing.
+
+The next evaluation target is a public microscopy benchmark with reference annotations.
+
+## Public benchmark target
+
+The Cell Tracking Challenge provides freely downloadable 2D+time and 3D+time microscopy datasets with reference annotations. The repository is designed so the same detection/tracking/phenotype pipeline can be evaluated against those public references. Real benchmark results will be reported only after an actual run, not inferred from synthetic tests.
+
+## Scientific output
+
+The final output is not merely a track ID. For each cell trajectory the engine produces an interpretable temporal phenotype profile, including:
+
+- persistence and motility;
+- displacement and path geometry;
+- temporal duration;
+- lineage relationships;
+- division events;
+- descendant structure;
+- unsupervised phenotype group.
+
+This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments.
 
 ## Research provenance
 
-The private BioHub project contains the research tracker and experiment history. Its documented 0.947 baseline uses a learned 3-D temporal association stack. The public competition repository does not silently redistribute private model artifacts or claim those components as reproducible.
-
-The public repository therefore separates:
-
-1. **Reproducible baseline** — available here.
-2. **Research tracker** — private BioHub provenance.
-3. **Phenotype interpretation** — competition-facing scientific layer.
+The private BioHub project contains earlier learned temporal-association research. This public competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
 
 ## Competition positioning
 
 **Category:** End-to-End System  
 **Impact:** Single-cell Phenotype Analysis
 
-The project is intentionally framed around measurable temporal phenotype information rather than presenting cell tracking as the final scientific objective.
+The intended contribution is a reproducible pipeline that moves from microscopy to **dynamic, interpretable single-cell phenotype**, rather than treating cell tracking as the final objective.
 
 ## Validation roadmap
 
-- deterministic tracking baseline;
-- synthetic perturbation benchmark;
-- quantitative tracking metrics;
-- public microscopy dataset evaluation;
-- lineage/division validation;
-- temporal phenotype validation;
-- comparison against stronger association methods.
+1. Public microscopy benchmark evaluation.
+2. Baseline comparison against stronger association methods.
+3. Division/lineage validation.
+4. Phenotype-discovery stability analysis.
+5. Real experimental perturbation case study.
+6. 5-minute demonstration and 15–20 page technical report.
 
-The learned BioHub components will only be promoted into the public pipeline after their model/code redistribution and reproducibility conditions are verified.
