@@ -17,6 +17,9 @@
 - [x] Submission claim audit synchronized with CTC TRA/LNK values
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
+- [x] Category declaration at start of Writeup
+- [x] 200–300 word Project Summary in Writeup
+- [x] Dataset/software provenance and licensing documented
 - [x] Five-minute demo script
 - [x] CI tests
 - [x] Docker reproduction path
