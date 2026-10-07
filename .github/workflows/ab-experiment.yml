@@ -16,6 +16,7 @@ on:
         type: choice
         options:
           - mutual_nn
+          - mutual_rescue
           - hungarian
           - velocity_hungarian
       distance:
