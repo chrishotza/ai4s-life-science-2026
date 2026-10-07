@@ -99,7 +99,7 @@ def evaluate(method: str, distance: float, root: Path) -> dict[str, float]:
 
         predicted, predicted_edges = track_detections(
             detections[["t", "z", "y", "x"]],
-            TrackingConfig(max_distance_um=distance, method=method, voxel_size_um=VOXEL),
+            TrackingConfig(max_distance_um=distance, method=method, voxel_size_um=VOXEL, max_frame_gap=2 if method == "gap_hungarian" else 1),
         )
         predicted_set = {(int(r.source_id), int(r.target_id)) for r in predicted_edges.itertuples()}
         rows.append({
@@ -171,14 +171,14 @@ def compare(metrics: dict[str, float]) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", default="mutual_nn", choices=["mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian"])
+    parser.add_argument("--method", default="mutual_nn", choices=["mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian", "gap_hungarian"])
     parser.add_argument("--distance", type=float, default=8.0)
     parser.add_argument("--sweep", action="store_true")
     parser.add_argument("--output", default="ab_experiment_results.json")
     args = parser.parse_args()
 
     root = dataset_root()
-    methods = ["mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian"] if args.sweep else [args.method]
+    methods = ["mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian", "gap_hungarian"] if args.sweep else [args.method]
     distances = [1.0, 2.0, 4.0, 6.0, 8.0] if args.sweep else [args.distance]
 
     reports = []
