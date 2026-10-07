@@ -2,7 +2,7 @@
 
 ## Evidence
 
-- [x] Public end-to-end pipeline
+- [x] Reproducible end-to-end pipeline (prepared for public release)
 - [x] Deterministic synthetic benchmark
 - [x] Quantitative tracking metrics
 - [x] Real CTC association benchmark
@@ -21,8 +21,13 @@
 - [x] CI tests
 - [x] Docker reproduction path
 
+## Official competition submission constraints
+
+Verified against the current Kaggle competition overview: the official submission is a Kaggle Writeup containing a public demo video, a publicly accessible code repository, and a technical report. Teams must also complete the required registration form before submission. The current preliminary-round window ends **October 10, 2026**. See: https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview
+
 ## Before submission
 
+- [ ] Complete the required competition registration form
 - [ ] Make competition repository public
 - [ ] Verify final public repository URL
 - [ ] Re-run CI on the final public commit
