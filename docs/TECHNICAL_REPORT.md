@@ -338,3 +338,14 @@ Required evidence before submission:
 - public code;
 - 5-minute demo video;
 - final technical report.
+
+
+### Reliability as a first-class output
+
+A key failure mode in temporal phenotype analysis is treating every inferred trajectory as equally trustworthy. The engine therefore exposes a reproducible quality layer alongside the phenotype label.
+
+The track-integrity score uses only quantities already measured by the tracker: observation fraction, mean link confidence, and the fraction of low-confidence links. The assignment-quality score uses the fitted K-Means geometry: distance to the assigned centroid and the margin to the next-nearest cluster. The combined reliability score is bounded to [0,1].
+
+This design deliberately avoids a statistical calibration claim. It is a transparent operational score for triage and cohort analysis. The end-to-end synthetic robustness benchmark now records reliability together with phenotype-group ARI and the tracking-error taxonomy, allowing degradation to be inspected rather than hidden.
+
+In a biological workflow, the intended behavior is conservative: high-integrity/high-separation trajectories contribute normally to downstream analysis, while low-integrity or ambiguous trajectories can be flagged for manual review or sensitivity analysis.
