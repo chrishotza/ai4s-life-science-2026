@@ -8,6 +8,8 @@
 - [x] Real CTC association benchmark
 - [x] Method/gating ablation
 - [x] Downstream phenotype preservation benchmark
+- [x] End-to-end tracking-to-phenotype robustness benchmark
+- [x] Explicit architecture/data-contract layer
 - [x] CTC lineage/division representation validation
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
