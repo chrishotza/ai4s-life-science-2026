@@ -227,6 +227,29 @@ def render_phenotype(path: Path, tracks, edges) -> None:
     fig.savefig(path)
     plt.close(fig)
 
+
+def render_cohort_effect(path: Path) -> None:
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=120)
+    ax.set_axis_off()
+    ax.text(0.05, 0.86, "Stage 4 | Cohort effect layer", fontsize=24, weight="bold")
+    ax.text(0.05, 0.76, "Synthetic methodological validation", fontsize=15)
+    ax.text(0.07, 0.61, "Displacement", fontsize=18)
+    ax.text(0.07, 0.52, "treated − control", fontsize=14)
+    ax.text(0.70, 0.61, "+1.893 µm", fontsize=23, weight="bold", ha="center")
+    ax.text(0.70, 0.51, "95% bootstrap CI: [1.718, 2.062]", fontsize=13, ha="center")
+    ax.text(0.07, 0.36, "Standardized mean difference", fontsize=16)
+    ax.text(0.70, 0.36, "3.93", fontsize=22, weight="bold", ha="center")
+    ax.text(
+        0.05,
+        0.14,
+        "This validates the comparison method on known synthetic cohorts.\n"
+        "It is not a biological treatment result.",
+        fontsize=12,
+    )
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
 def render_summary(path: Path) -> None:
     fig, ax = plt.subplots(figsize=(10, 7), dpi=120)
     ax.set_axis_off()
@@ -297,6 +320,8 @@ def main() -> None:
 
         phenotype_path = tmp_path / "phenotype.png"
         render_phenotype(phenotype_path, predicted, predicted_edges)
+        cohort_path = tmp_path / "cohort.png"
+        render_cohort_effect(cohort_path)
         summary_path = tmp_path / "summary.png"
         render_summary(summary_path)
 
@@ -315,9 +340,12 @@ def main() -> None:
             "-t", str(6),
             "-i", str(phenotype_path),
             "-loop", "1",
+            "-t", str(4),
+            "-i", str(cohort_path),
+            "-loop", "1",
             "-t", str(5),
             "-i", str(summary_path),
-            "-filter_complex", "[0:v]fps=6[title];[1:v]fps=6[track];[2:v]fps=6[detection];[3:v]fps=6[phenotype];[4:v]fps=6[summary];[title][track][detection][phenotype][summary]concat=n=5:v=1:a=0[v]",
+            "-filter_complex", "[0:v]fps=6[title];[1:v]fps=6[track];[2:v]fps=6[detection];[3:v]fps=6[phenotype];[4:v]fps=6[cohort];[5:v]fps=6[summary];[title][track][detection][phenotype][cohort][summary]concat=n=6:v=1:a=0[v]",
             "-map", "[v]",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
@@ -332,4 +360,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# Render protocol v5: intro card + real microscopy + phenotype discovery + validation summary.
+# Render protocol v6: intro + real microscopy + phenotype + synthetic cohort-method validation + validation summary.
