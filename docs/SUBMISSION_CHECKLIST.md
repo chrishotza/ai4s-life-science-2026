@@ -20,6 +20,7 @@
 - [x] Category declaration at start of Writeup
 - [x] 200–300 word Project Summary in Writeup
 - [x] Dataset/software provenance and licensing documented
+- [x] Development AI-tool provenance disclosed
 - [x] Five-minute demo script
 - [x] CI tests
 - [x] Docker reproduction path
