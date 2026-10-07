@@ -58,7 +58,7 @@ def make_tracks(seed: int = 17, tracks_per_group: int = 12) -> tuple[pd.DataFram
 def perturb(nodes: pd.DataFrame, noise_um: float, drop_rate: float, seed: int) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
     out = nodes.copy()
-    xyz = out[["z", "y", "x"]].to_numpy(float)
+    xyz = out[["z", "y", "x"]].to_numpy(float).copy()
     xyz += rng.normal(0.0, noise_um, size=xyz.shape)
     out[["z", "y", "x"]] = xyz
     if drop_rate:
