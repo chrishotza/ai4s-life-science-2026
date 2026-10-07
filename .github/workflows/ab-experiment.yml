@@ -1,6 +1,12 @@
 name: A-B Experiment
 
 on:
+  push:
+    paths:
+      - "scripts/ab_experiment.py"
+      - "src/ai4s_tracking/**"
+      - "src/ai4s_phenotype/**"
+      - "tests/test_ab_experiment.py"
   workflow_dispatch:
     inputs:
       method:
@@ -38,10 +44,12 @@ jobs:
       - name: Run experiment
         shell: bash
         run: |
-          if [ "${{ inputs.sweep }}" = "true" ]; then
+          if [ "\${{ github.event_name }}" = "push" ]; then
+            python scripts/ab_experiment.py --sweep
+          elif [ "\${{ inputs.sweep }}" = "true" ]; then
             python scripts/ab_experiment.py --sweep
           else
-            python scripts/ab_experiment.py --method "${{ inputs.method }}" --distance "${{ inputs.distance }}"
+            python scripts/ab_experiment.py --method "\${{ inputs.method }}" --distance "\${{ inputs.distance }}"
           fi
       - uses: actions/upload-artifact@v4
         with:
