@@ -20,7 +20,7 @@ The public implementation now exposes a canonical TemporalPhenotypeEngine that c
 
 ### 3.1 Microscopy preprocessing
 
-The public baseline uses transparent thresholding and connected components to convert microscopy frames into object centroids and basic intensity/area measurements.
+The public baseline uses transparent thresholding and connected components to convert 2-D+t frames or 3-D+t volumes into object centroids and basic intensity/area measurements.
 
 ### 3.2 Temporal association
 
