@@ -26,6 +26,13 @@ def validate_nodes(
     if require_track_ids and nodes["track_id"].isna().any():
         raise ValueError("track_id values must not be missing")
 
+    for column in ("node_id", "track_id"):
+        if not pd.api.types.is_numeric_dtype(nodes[column]):
+            raise ValueError(f"{column} values must be numeric")
+        values = nodes[column].to_numpy(float)
+        if not np.isfinite(values).all() or not np.all(values == np.floor(values)):
+            raise ValueError(f"{column} values must be finite integer identifiers")
+
     if not pd.api.types.is_numeric_dtype(nodes["t"]):
         raise ValueError("t values must be numeric")
     t_values = nodes["t"].to_numpy(float)
