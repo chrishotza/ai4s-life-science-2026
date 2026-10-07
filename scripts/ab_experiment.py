@@ -77,10 +77,14 @@ def phenotype_score(
         out[["z", "y", "x"]] = out[["z", "y", "x"]].to_numpy(float) * np.asarray(VOXEL)
         return out
 
-    gt = analyze(scale(truth_nodes), truth_edges)
+    # Reconstruct the same deterministic node-id space used by track_detections.
+    gt_nodes = truth_nodes.sort_values(["t", "z", "y", "x"]).reset_index(drop=True).copy()
+    gt_nodes["node_id"] = np.arange(len(gt_nodes), dtype=int)
+
+    gt = analyze(scale(gt_nodes), pd.DataFrame(columns=["source_id", "target_id"]))
     pr = analyze(scale(pred_nodes), pred_edges)
 
-    left = truth_nodes[["node_id", "track_id", "t"]]
+    left = gt_nodes[["node_id", "track_id", "t"]]
     right = pred_nodes[["node_id", "track_id", "t"]]
     aligned = left.merge(right, on=["node_id", "t"], suffixes=("_gt", "_pred"))
     overlap = aligned.groupby(["track_id_gt", "track_id_pred"]).size().reset_index(name="n")
@@ -108,7 +112,6 @@ def phenotype_score(
         for g, p, _ in rows
     ]
     return {"coverage": float(np.mean(coverage)), "persistence_mae": float(np.mean(persistence_mae))}
-
 
 def evaluate(method: str, distance: float, root: Path) -> dict[str, float]:
     rows = []
