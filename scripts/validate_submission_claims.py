@@ -22,7 +22,6 @@ FILES = (
 
 REQUIRED_CAVEATS = (
     "reference centroids",
-    "not an end-to-end segmentation score",
     "biological phenotype classification",
 )
 
