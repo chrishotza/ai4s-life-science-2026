@@ -127,7 +127,7 @@ The same 8.0 µm MNN association path was exported with CTC reference object geo
 - sequence 01: **TRA 0.997315 · LNK 0.979091**
 - sequence 02: **TRA 0.997207 · LNK 0.978239**
 
-These values are independently reproduced CTC-metrics evidence, not end-to-end segmentation or biological phenotype results, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains a separate boundary. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+These values are independently reproduced CTC-metrics evidence, not end-to-end segmentation or biological phenotype results, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains a separate boundary. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md). A no-oracle lineage sensitivity control produced exactly the same TRA/LNK values on both sequences, removing lineage-metadata dependence for this benchmark.
 
 ### Missing-observation stress test
 
