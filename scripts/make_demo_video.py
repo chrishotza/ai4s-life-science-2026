@@ -102,7 +102,7 @@ def render_frame(
     )
     ax.set_axis_off()
     fig.tight_layout()
-    fig.savefig(path, bbox_inches="tight")
+    fig.savefig(path)
     plt.close(fig)
 
 
@@ -133,7 +133,7 @@ def render_summary(path: Path) -> None:
         fontsize=11,
     )
     fig.tight_layout()
-    fig.savefig(path, bbox_inches="tight")
+    fig.savefig(path)
     plt.close(fig)
 
 
@@ -190,3 +190,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# Render protocol v2: fixed frame dimensions for reliable ffmpeg concatenation.
