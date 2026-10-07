@@ -1,12 +1,36 @@
 from __future__ import annotations
 
 from pathlib import Path
+import zipfile
+from urllib.request import urlretrieve
 
 import numpy as np
 import pandas as pd
 import tifffile
 
 from ai4s_core import validate_edges, validate_nodes
+
+CTC_DIC_C2DH_HELA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
+DIC_C2DH_HELA_VOXEL_SIZE_UM = (1.0, 0.19, 0.19)
+
+
+def ensure_ctc_dataset(cache_root: str | Path) -> Path:
+    """Download and unpack DIC-C2DH-HeLa into a reusable local cache."""
+    cache = Path(cache_root)
+    cache.mkdir(parents=True, exist_ok=True)
+    archive = cache / "DIC-C2DH-HeLa.zip"
+    dataset_root = cache / "dataset" / "DIC-C2DH-HeLa"
+
+    if not archive.exists():
+        print(f"Downloading {CTC_DIC_C2DH_HELA_URL}", flush=True)
+        urlretrieve(CTC_DIC_C2DH_HELA_URL, archive)
+
+    if not dataset_root.exists():
+        dataset_root.parent.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(archive) as zf:
+            zf.extractall(dataset_root.parent)
+
+    return dataset_root
 
 
 def _marker_centroids(mask: np.ndarray) -> list[tuple[int, float, float, float]]:
