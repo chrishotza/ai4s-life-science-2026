@@ -1,0 +1,35 @@
+name: CTC Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/ctc-benchmark.yml"
+      - "scripts/benchmark_ctc_association.py"
+      - "src/ai4s_io/**"
+      - "src/ai4s_tracking/**"
+      - "requirements.txt"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run CTC association benchmark
+        run: python scripts/benchmark_ctc_association.py
+
+      - name: Publish benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctc-association-results
+          path: ctc_association_results.json
