@@ -74,7 +74,17 @@ def infer_divisions(
                     )
                 )
 
-    return pd.DataFrame(
+    result = pd.DataFrame(
         events,
         columns=["source_id", "target_id", "distance_um", "edge_type"],
     )
+    if result.empty:
+        result = result.astype(
+            {
+                "source_id": "int64",
+                "target_id": "int64",
+                "distance_um": "float64",
+                "edge_type": "object",
+            }
+        )
+    return result
