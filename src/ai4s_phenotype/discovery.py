@@ -117,9 +117,17 @@ class PhenotypeDiscoveryModel:
 
         out = phenotypes.copy()
         scaled = self.scaler.transform(x)
-        labels = self.model.predict(scaled).astype(int)
+        distances = self.model.transform(scaled)
+        labels = np.argmin(distances, axis=1).astype(int)
+        ordered = np.sort(distances, axis=1)
         out["phenotype_cluster"] = labels
         out["phenotype_cluster_name"] = out["phenotype_cluster"].map(self.cluster_names)
+        out["phenotype_cluster_distance"] = distances[np.arange(len(out)), labels]
+        out["phenotype_cluster_margin"] = (
+            ordered[:, 1] - ordered[:, 0]
+            if distances.shape[1] > 1
+            else np.zeros(len(out))
+        )
         return out
 
 
