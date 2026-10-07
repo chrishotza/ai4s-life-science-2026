@@ -6,11 +6,12 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
 
+from ai4s_core import validate_nodes
+
 
 @dataclass(frozen=True)
 class TrackingConfig:
     max_distance_um: float = 8.0
-    mutual: bool = True
     method: str = "mutual_nn"
     voxel_size_um: tuple[float, float, float] = (1.0, 1.0, 1.0)
 
@@ -118,6 +119,9 @@ def track_detections(
     if missing:
         raise ValueError(f"missing columns: {sorted(missing)}")
 
+    if set(detections.columns) < required:
+        raise ValueError(f"missing columns: {sorted(required - set(detections.columns))}")
+
     df = (
         detections.copy()
         .sort_values(["t", "z", "y", "x"])
@@ -195,6 +199,8 @@ def track_detections(
                 history[tr] = [(int(t), position)]
 
         active = new_active
+
+    validate_nodes(df)
 
     edge_df = pd.DataFrame(
         edges,
