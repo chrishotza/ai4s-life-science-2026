@@ -71,7 +71,7 @@ The selected 8.0 µm MNN association path was also exported with the **reference
 - sequence 01: **TRA 0.997315**, **LNK 0.979091**;
 - sequence 02: **TRA 0.997207**, **LNK 0.978239**.
 
-These values are reported separately from the custom F1 because TRA/LNK and the repository's edge F1 are different metrics. They are not end-to-end segmentation results, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official submission evaluator was not used.
+These values are reported separately from the custom F1 because TRA/LNK and the repository's edge F1 are different metrics. They are not end-to-end segmentation results, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official submission evaluator was not used. A no-oracle sensitivity control removed all reference parent edges and produced identical TRA/LNK values on both sequences.
 
 ### Downstream phenotype preservation
 
