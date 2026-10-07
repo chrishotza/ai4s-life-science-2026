@@ -22,7 +22,13 @@ The public baseline uses transparent thresholding and connected components to co
 
 ### 3.2 Temporal association
 
-A deterministic mutual-nearest-neighbor baseline links detections between adjacent frames under a configurable spatial radius.
+The tracker supports three deterministic association strategies:
+
+1. mutual-nearest-neighbor;
+2. globally optimal Hungarian assignment;
+3. constant-velocity prediction followed by Hungarian assignment.
+
+Distances can be computed in physical units using sequence-specific voxel sizes.
 
 ### 3.3 Lineage and events
 
@@ -55,46 +61,60 @@ The repository contains deterministic microscopy-like image generators and traje
 
 ### 4.2 Cell Tracking Challenge
 
-The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time microscopy datasets, including reference tracking annotations and lineage metadata. The repository includes an adapter for `man_track*.tif` and `man_track.txt` data. The exact dataset and sequence used for the final submission must be stated with its conditions of use. 
+The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time microscopy datasets, including reference tracking annotations and lineage metadata. The repository includes an adapter for `man_track*.tif` and `man_track.txt` data.
 
 ### 4.3 Organ-on-a-chip validation target
 
-A public Organ-on-a-Chip image dataset contains 3,000+ brightfield microscopy images from multiple cell lines, with sample-quality labels and metadata such as cell type and time after seeding. The dataset is available from Zenodo (DOI 10.5281/zenodo.10203721) under the published dataset terms. A real OoC validation experiment should be added only after the exact files, license terms, and preprocessing route are verified.
+A public Organ-on-a-Chip image dataset is identified as a candidate secondary validation source. The exact files, license terms, and preprocessing route must be verified before using it in the final submission.
 
 ## 5. Experimental design
 
-The evaluation should contain three levels:
+The evaluation contains three levels:
 
 ### A. Unit and regression tests
 
-Verify deterministic behavior of image preprocessing, tracking, lineage inference, phenotype extraction, and clustering.
+Deterministic tests cover image preprocessing, tracking, lineage inference, phenotype extraction, clustering, and public CTC loading.
 
 ### B. Controlled synthetic benchmark
 
-Generate trajectories with known motion and temporal links, then measure link precision, recall and F1.
+Known 3-D trajectories and exact temporal links are used to test association metrics and regression behavior.
 
 ### C. Public microscopy benchmark
 
-Run the complete pipeline on at least one public real microscopy sequence and report:
+The CTC experiment uses DIC-C2DH-HeLa sequences 01 and 02. The current association benchmark feeds reference track centroids as detections, isolating the temporal-association problem from segmentation.
 
-- detection output;
-- number of tracks;
-- link precision/recall/F1 where a compatible reference is available;
-- lineage/event counts;
-- phenotype distribution;
-- representative visualizations;
-- failure cases.
+### Measured CTC association results
 
-**Important:** real-data values are intentionally left blank until an actual run is completed.
+An initial mutual-nearest-neighbor run achieved:
+
+| Sequence | Precision | Recall | F1 |
+|---|---:|---:|---:|
+| 01 | 1.0000 | 0.8401 | 0.9131 |
+| 02 | 0.9977 | 0.8597 | 0.9236 |
+
+A physical-unit ablation at 3.0 µm produced:
+
+| Method | Mean precision | Mean recall | Mean F1 |
+|---|---:|---:|---:|
+| Hungarian | 0.99734 | 0.90736 | **0.95015** |
+| Mutual NN | 0.99734 | 0.90736 | **0.95015** |
+| Velocity Hungarian | 0.99730 | 0.89283 | 0.94212 |
+
+For Hungarian at 3.0 µm, the per-sequence F1 values were 0.94192 and 0.95838.
+
+These results indicate that the dominant error is missed association rather than false linkage. The benchmark therefore motivates continuity-recovery experiments rather than indiscriminate gating expansion.
+
+A wider 3.0–8.0 µm sweep is implemented and executed independently to test this hypothesis.
 
 ## 6. Baselines and ablations
 
 The final experimental table should compare:
 
-1. nearest-neighbor association;
-2. mutual-nearest-neighbor association;
-3. motion-aware or learned association;
-4. phenotype discovery with and without temporal features.
+1. mutual nearest neighbor;
+2. Hungarian assignment;
+3. constant-velocity Hungarian assignment;
+4. distance/gating sensitivity;
+5. phenotype discovery with and without temporal features.
 
 For each variant, report tracking metrics and downstream phenotype stability.
 
@@ -103,9 +123,10 @@ For each variant, report tracking metrics and downstream phenotype stability.
 The transparent public baseline has known limitations:
 
 - threshold-based segmentation is not robust to all microscopy modalities;
-- nearest-neighbor association can fail under crowding, crossing trajectories, missing detections, and rapid motion;
+- temporal association can fail under crowding, crossing trajectories, missing detections, and rapid motion;
 - lineage inference is candidate-based and should be validated against reference annotations;
-- unsupervised clusters are descriptive rather than biological diagnoses.
+- unsupervised clusters are descriptive rather than biological diagnoses;
+- the CTC association results use reference centroids and therefore do not measure the full image-to-phenotype pipeline.
 
 These limitations are explicit design constraints rather than hidden assumptions.
 
@@ -114,13 +135,16 @@ These limitations are explicit design constraints rather than hidden assumptions
 The repository contains:
 
 - Python package configuration;
-- lower-bounded scientific dependencies;
+- scientific dependencies;
 - deterministic synthetic generators;
 - automated tests;
 - Dockerfile;
 - GitHub Actions CI;
 - public dataset adapter;
+- benchmark scripts;
 - demo entry point.
+
+The CI test suite currently passes on Python 3.11.
 
 ## 9. Scientific impact
 
