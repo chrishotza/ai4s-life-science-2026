@@ -141,6 +141,7 @@ The final output is not merely a track ID. For each cell trajectory the engine p
 - lineage relationships;
 - division events;
 - descendant structure;
+- temporal integrity and tracking-link confidence diagnostics;
 - unsupervised phenotype group.
 
 This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments.
