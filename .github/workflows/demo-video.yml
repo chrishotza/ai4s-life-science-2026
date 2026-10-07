@@ -12,6 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+      - name: Cache CTC dataset
+        uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-${{ runner.os }}
         with:
           python-version: "3.11"
       - name: Install ffmpeg
