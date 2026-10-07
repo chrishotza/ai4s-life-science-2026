@@ -118,6 +118,12 @@ These phenotype values measure trajectory-feature preservation under tracking; t
 
 The benchmark is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
+## Demo video
+
+A reproducible demo-video renderer is included in `scripts/make_demo_video.py`. It downloads the public DIC-C2DH-HeLa sequence, overlays the deterministic tracking trajectories on real microscopy frames, and appends a measured validation summary card.
+
+The GitHub Actions workflow `.github/workflows/demo-video.yml` produces the MP4 as a workflow artifact.
+
 ## Scientific output
 
 The final output is not merely a track ID. For each cell trajectory the engine produces an interpretable temporal phenotype profile, including:
