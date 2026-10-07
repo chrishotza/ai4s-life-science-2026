@@ -67,6 +67,12 @@ Phenotype discovery now has an explicit fit/transform boundary. A fitted discove
 
 This makes it possible to fit phenotype states on a reference cohort and transform a new cohort without silently re-fitting the clustering model. It is a prerequisite for scientifically meaningful cross-condition comparisons.
 
+## Performance boundary
+
+The production baseline remains exact mutual-nearest-neighbor association for reproducibility. A KD-tree implementation is now available as an explicitly experimental variant and is included in the A/B harness rather than being silently substituted.
+
+Lineage candidate search uses a KD-tree because its spatial query is independent of global assignment. This reduces repeated parent-versus-child scans without changing the physical-unit semantics.
+
 ## Known architectural limits
 
 The baseline tracker has no gap closing and only associates adjacent frames.
