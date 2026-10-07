@@ -69,6 +69,12 @@ The default phenotype discovery feature space remains trajectory/lineage-only. T
 
 For the current microscopy baseline, this preserves fields such as object area and mean intensity for future multimodal phenotype experiments.
 
+## Discovery confidence
+
+Phenotype assignments now expose two diagnostics: distance to the assigned K-Means centroid and the margin to the next-nearest centroid. These are descriptive confidence signals, not calibrated probabilities.
+
+The production discovery feature space remains unchanged. The diagnostics make ambiguous cells visible instead of forcing every cluster assignment to look equally certain.
+
 ## Model lifecycle
 
 Phenotype discovery now has an explicit fit/transform boundary. A fitted discovery model stores the scaler, K-Means model, feature schema, transformation policy, and interpretable cluster names.
