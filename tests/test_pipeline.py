@@ -70,3 +70,20 @@ def test_pipeline_preserves_numeric_detection_attributes_in_phenotypes():
     assert row["mean_area"] == 12.0
     assert row["mean_mean_intensity"] == 3.0
     assert row["max_area"] == 14.0
+
+def test_phenotype_attribute_summary_excludes_truth_and_identifier_columns():
+    from ai4s_phenotype import analyze
+
+    nodes = pd.DataFrame(
+        [
+            (0, 0, 0, 0.0, 0.0, 0.0, 10.0, 1, 101),
+            (1, 0, 1, 0.0, 1.0, 0.0, 12.0, 1, 102),
+        ],
+        columns=["node_id", "track_id", "t", "z", "y", "x", "area", "truth_track", "object_id"],
+    )
+    edges = pd.DataFrame([(0, 1)], columns=["source_id", "target_id"])
+    row = analyze(nodes, edges).iloc[0]
+
+    assert row["mean_area"] == 11.0
+    assert "mean_truth_track" not in row
+    assert "mean_object_id" not in row
