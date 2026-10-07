@@ -276,6 +276,36 @@ The public pipeline uses standard scientific Python packages declared in `pyproj
 - **Development AI tooling:** OpenAI ChatGPT was used as an AI-assisted development and reasoning tool during implementation and documentation. No external AI service is required at runtime, and no third-party model weights are required or redistributed by the submitted system.
 - **External AI services at runtime:** none are required to run the submitted baseline, benchmarks, or demo renderer.
 
+## 10.3 Exact reproduction recipe
+
+The following commands reproduce the principal public evidence from a clean Python 3.11 environment:
+
+```bash
+pip install -e .
+pip install -r requirements-dev.txt
+python scripts/benchmark_ctc_association.py
+python scripts/benchmark_ctc_phenotype.py
+python scripts/benchmark_ctc_lineage.py
+python scripts/benchmark_phenotype_stability.py
+python scripts/benchmark_end_to_end_phenotype.py
+```
+
+The headline 0.99228 mean-F1 result is produced by `scripts/benchmark_ctc_association.py`, which evaluates DIC-C2DH-HeLa sequences 01 and 02 across the physical gates 0.8, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, and 8.0 µm for mutual-nearest-neighbor, Hungarian, and constant-velocity Hungarian association.
+
+The captured CTC-maintained TRA/LNK validation can be reproduced after installing `requirements-ctc.txt`:
+
+```bash
+pip install -r requirements-ctc.txt
+python scripts/export_ctc_reference.py --sequence 01 --distance 8.0
+python scripts/run_ctcmetrics.py --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/01_GT --res ctc_reference_export/01 --sequence 01 --output-json results/ctc_metrics_01.json --lineage-mode oracle-compatible
+python scripts/export_ctc_reference.py --sequence 02 --distance 8.0
+python scripts/run_ctcmetrics.py --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/02_GT --res ctc_reference_export/02 --sequence 02 --output-json results/ctc_metrics_02.json --lineage-mode oracle-compatible
+```
+
+The no-oracle lineage sensitivity protocol uses the same commands with `--lineage-mode none`.
+
+The demo-video renderer additionally requires `ffmpeg`; its GitHub Actions workflow installs it on a standard Ubuntu runner. No paid API, proprietary hardware, pretrained model download, or private dataset is required for the submitted baseline or its reported benchmarks.
+
 ## 11. Scientific impact
 
 The intended output is a dynamic phenotype representation that can support:
