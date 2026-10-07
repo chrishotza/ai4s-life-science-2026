@@ -46,3 +46,16 @@ def test_scale_coordinates_uses_z_y_x_order():
     assert scaled.loc[1, "z"] == 0.0
     assert scaled.loc[1, "y"] == 6.0
     assert scaled.loc[1, "x"] == 12.0
+
+def test_edge_contract_rejects_self_edges():
+    nodes = base_nodes()
+    edges = pd.DataFrame({"source_id": [0], "target_id": [0]})
+    with pytest.raises(ValueError, match="self"):
+        validate_edges(edges, nodes)
+
+
+def test_edge_contract_can_require_forward_time():
+    nodes = base_nodes()
+    edges = pd.DataFrame({"source_id": [1], "target_id": [0]})
+    with pytest.raises(ValueError, match="forward"):
+        validate_edges(edges, nodes, require_forward_time=True)
