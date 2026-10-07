@@ -13,6 +13,7 @@
 - [x] CTC lineage/division representation validation
 - [x] CTC-maintained TRA/LNK external validation on sequences 01 and 02
 - [x] Reproducible CTC TRA/LNK evidence artifact captured
+- [x] No-oracle lineage sensitivity control completed with unchanged TRA/LNK
 - [x] Submission claim audit synchronized with CTC TRA/LNK values
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
