@@ -194,7 +194,7 @@ def render_summary(path: Path) -> None:
     ax.text(
         0.05,
         0.11,
-        "DIC-C2DH-HeLa 01/02 | reference centroids used as detections\n"
+        "DIC-C2DH-HeLa sequence 01 | reference centroids used as detections\n"
         "Association benchmark, not an end-to-end segmentation score.",
         fontsize=11,
     )
