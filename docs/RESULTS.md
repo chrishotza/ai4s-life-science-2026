@@ -47,6 +47,8 @@ The same 8.0 µm mutual-nearest-neighbor association path was exported with the 
 
 Captured in GitHub Actions run **37662335395**, with evidence artifact **ctc-tra-lnk-evidence (11501247207)**. These values are reported separately from the custom **0.99228 F1** because the metrics are not interchangeable. The exported protocol carries reference lineage only where parent/child frame ranges remain compatible. These are reference-geometry association-isolation results and **not official Cell Tracking Challenge leaderboard scores**; the official submission evaluator was not used.
 
+A lineage-sensitivity control then removed all reference parent edges while keeping the same tracker and reference geometry. The TRA/LNK values for both sequences were exactly unchanged, providing a conservative check against lineage-metadata inflation.
+
 The 3.0 µm point produced mean F1 0.95015. The larger physical gate therefore recovered substantially more true links without collapsing precision.
 
 ### Downstream temporal phenotype preservation
