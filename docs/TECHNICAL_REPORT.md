@@ -354,3 +354,12 @@ In a biological workflow, the intended behavior is conservative: high-integrity/
 ### Image-level negative controls
 
 The raw-image experiments are retained as explicit negative controls rather than silently discarded. `docs/ABLATION_AND_FAILURES.md` records generic thresholding, DIC-ridge segmentation, and a lightweight supervised segmentation model, including strict cross-sequence metrics and the resulting decision not to promote these methods into the headline association benchmark.
+
+
+### Cohort-level experimental comparison
+
+The phenotype layer now exposes an uncertainty-aware cohort comparison API. Given a cohort label and two experimental groups, it reports group means, mean differences, standardized mean differences, and bootstrap 95% confidence intervals for selected temporal phenotype features.
+
+This closes an important analysis gap between unsupervised clustering and a scientific decision. The comparison module does not assign biological meaning to a feature; it quantifies whether two cohorts differ in the measured temporal representation and makes uncertainty visible.
+
+A deterministic synthetic benchmark (\`scripts/benchmark_cohort_effect.py\`) verifies recovery of known directionally shifted phenotypes under a strict reproducible protocol. This benchmark is methodological validation only and is not presented as biological validation.
