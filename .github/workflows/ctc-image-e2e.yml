@@ -1,6 +1,14 @@
 name: CTC Image E2E Validation
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/ctc-image-e2e.yml"
+      - "scripts/benchmark_ctc_image_e2e.py"
+      - "src/ai4s_io/**"
+      - "src/ai4s_tracking/**"
+      - "requirements.txt"
+      - "pyproject.toml"
   push:
     paths:
       - ".github/workflows/ctc-image-e2e.yml"
