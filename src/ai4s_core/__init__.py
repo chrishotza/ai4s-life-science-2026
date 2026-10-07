@@ -9,6 +9,7 @@ from .contracts import (
 )
 from .provenance import runtime_metadata
 from .lineage import validate_lineage_graph
+from .matching import greedy_track_overlap
 
 __all__ = [
     "NODE_COLUMNS",
@@ -18,4 +19,5 @@ __all__ = [
     "validate_edges",
     "runtime_metadata",
     "validate_lineage_graph",
+    "greedy_track_overlap",
 ]
