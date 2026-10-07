@@ -139,7 +139,7 @@ The repository also validates the lineage representation layer against the CTC r
 
 The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
-The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and is not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and are not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
 
 ## Demo video
 
@@ -170,7 +170,7 @@ The private BioHub project contains earlier learned temporal-association researc
 
 ## Architecture hardening
 
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture.
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture, and **[docs/RUBRIC_SCORECARD.md](docs/RUBRIC_SCORECARD.md)** for the judge-facing evidence map.
 
 The submission system has explicit boundaries between:
 
