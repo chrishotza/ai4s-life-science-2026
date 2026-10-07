@@ -77,6 +77,19 @@ FORMAL_REQUIREMENTS = {
         "Lightweight supervised pixel/region model",
         "No image-level method is promoted into the headline benchmark",
     ),
+    ROOT / "docs" / "DEMO_SCRIPT.md": (
+        "Synthetic method validation",
+        "not a biological treatment result",
+    ),
+    ROOT / "src" / "ai4s_phenotype" / "cohort.py": (
+        "CohortComparison",
+        "bootstrap",
+        "standardized_mean_difference",
+    ),
+    ROOT / "scripts" / "benchmark_cohort_effect.py": (
+        "cohort phenotype effect recovery",
+        "not biological validation",
+    ),
     ROOT / "requirements-lock-py311.txt": (
         "numpy==2.4.6",
         "pandas==3.0.6",
