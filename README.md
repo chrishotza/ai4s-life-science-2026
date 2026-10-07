@@ -200,4 +200,4 @@ The intended contribution is a reproducible pipeline that moves from microscopy 
 2. Real-data phenotype visualization: integrated into the demo renderer.
 3. Lineage/division representation validation: added as a dedicated GitHub Actions benchmark.
 4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
-5. Remaining submission blockers: public repository visibility, final public-URL check, Kaggle upload, and final claim consistency review.
+5. Remaining submission blockers: required competition registration, public repository visibility, final public-URL check, final narrated demo video, Kaggle Writeup/technical-report submission, and final claim consistency review.

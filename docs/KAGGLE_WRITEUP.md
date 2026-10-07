@@ -20,7 +20,7 @@ The system is organized as an end-to-end pipeline:
 6. temporal phenotype extraction;
 7. unsupervised phenotype discovery.
 
-The public implementation is deliberately deterministic and reproducible.
+The submission implementation is deliberately deterministic and reproducible.
 
 ### What is novel about the submission
 

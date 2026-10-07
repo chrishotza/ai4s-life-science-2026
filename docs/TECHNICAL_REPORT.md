@@ -16,7 +16,7 @@ The competition target is single-cell phenotype analysis. The system addresses t
 
 ## 3. System architecture
 
-The public implementation now exposes a canonical TemporalPhenotypeEngine that can start from microscopy frames or precomputed detections. Internal data contracts and a centralized physical-coordinate transform are shared by tracking, lineage, and phenotype layers.
+The submission implementation exposes a canonical TemporalPhenotypeEngine that can start from microscopy frames or precomputed detections. Internal data contracts and a centralized physical-coordinate transform are shared by tracking, lineage, and phenotype layers.
 
 ### 3.1 Microscopy preprocessing
 
@@ -267,7 +267,7 @@ The intended output is a dynamic phenotype representation that can support:
 
 ## 12. Final submission evidence
 
-The final Kaggle submission should only claim quantitative performance that is directly reproduced by the public repository.
+The final Kaggle submission should only claim quantitative performance that is directly reproduced by the submission repository once public.
 
 Required evidence before submission:
 
