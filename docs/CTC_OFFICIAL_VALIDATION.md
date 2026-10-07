@@ -52,6 +52,21 @@ The evaluator first validates the CTC result directory and then computes `TRA` a
 
 These values are an externally implemented CTC-metrics validation track. They should be reported separately from the custom 0.99228 F1 headline and from any submission claim that requires the official challenge executable.
 
+## Captured external run
+
+The pull-request workflow executed the pinned evaluator on both real DIC-C2DH-HeLa sequences.
+
+| Sequence | TRA | LNK | AOGM | AOGM0 | Validation |
+|---|---:|---:|---:|---:|---:|
+| 01 | **0.997315** | **0.979091** | 34.5 | 12850.0 | Valid |
+| 02 | **0.997207** | **0.978239** | 33.0 | 11816.5 | Valid |
+
+Run: **GitHub Actions 37662335395**. Evidence artifact: **ctc-tra-lnk-evidence (11501247207)**. Evaluator: `py-ctcmetrics==1.3.3`.
+
+These are **reference-geometry association-isolation results**. The export preserves the CTC reference object masks and uses reference lineage only when frame-compatible; therefore these values are not an end-to-end segmentation result, not a biological lineage result, and not official Cell Tracking Challenge leaderboard scores.
+
+The workflow ran on the pull-request merge ref, so the JSON records checkout commit `a96737195a22d47d3b4f94823a99effbdaff06fe`, which is the merge of PR head `28620d770b30bc728703ddeff5c7c8aaad072b5a` into `main` `892b382ae1692dac9b7fd765b0c6c59ef000ef8c`.
+
 ## Official TRA executable boundary
 
 The repository also includes `scripts/run_ctc_tra.py`. It accepts an externally installed official TRA evaluator through the `CTC_TRA_EXECUTABLE` environment variable.
@@ -82,4 +97,5 @@ Until an external evaluator is executed, the public quantitative claim remains t
 - Reference-geometry CTC export: implemented.
 - CTC-maintained TRA/LNK execution path: implemented.
 - Official external TRA executable boundary: implemented.
-- Official TRA/LNK scores: **not claimed until externally executed and captured**.
+- CTC-maintained `py-ctcmetrics` TRA/LNK execution: **captured for sequences 01 and 02**.
+- Official Cell Tracking Challenge TRA/LNK scores: **not claimed; the official challenge submission evaluator has not been executed**.
