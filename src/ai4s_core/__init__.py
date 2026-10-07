@@ -7,6 +7,7 @@ from .contracts import (
     validate_edges,
     validate_nodes,
 )
+from .provenance import runtime_metadata
 
 __all__ = [
     "NODE_COLUMNS",
@@ -14,4 +15,5 @@ __all__ = [
     "scale_coordinates",
     "validate_nodes",
     "validate_edges",
+    "runtime_metadata",
 ]
