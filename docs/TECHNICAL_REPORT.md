@@ -58,6 +58,10 @@ When detections contain numeric measurements beyond coordinates and identifiers,
 
 The published discovery benchmark remains trajectory/lineage-only. Auxiliary features are therefore additive metadata, not a silent change to the validated clustering feature space.
 
+### 3.5.1 Assignment confidence
+
+Each discovered phenotype assignment now records distance to its assigned cluster center and the margin to the second-nearest cluster center. These values are intended for uncertainty visualization and filtering, not as calibrated probabilities.
+
 ### 3.5 Phenotype discovery
 
 Standardized temporal features are clustered with K-Means to obtain unsupervised behavioral groups. The clusters are reported together with interpretable feature summaries rather than opaque class IDs alone.
