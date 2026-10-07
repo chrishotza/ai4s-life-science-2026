@@ -12,7 +12,7 @@ def segment_frames(
     min_area: int = 12,
     z: float = 0.0,
 ) -> pd.DataFrame:
-    """Segment bright cellular objects from a 2-D time-lapse stack.
+    """Segment bright cellular objects from 2-D+t or 3-D+t microscopy.
 
     This is an intentionally transparent baseline: global thresholding followed
     by connected components and centroid extraction. It is suitable for
