@@ -3,6 +3,16 @@ from __future__ import annotations
 import pandas as pd
 
 
+def _edge_set(edges: pd.DataFrame) -> set[tuple[int, int]]:
+    required = {"source_id", "target_id"}
+    if not required.issubset(edges.columns):
+        raise ValueError("edges must contain source_id and target_id")
+    return {
+        (int(source_id), int(target_id))
+        for source_id, target_id in edges[["source_id", "target_id"]].to_numpy()
+    }
+
+
 def link_metrics(predicted_edges: pd.DataFrame, true_edges: pd.DataFrame) -> dict[str, float]:
     """Score predicted consecutive-frame links against ground-truth links."""
     required = {"source_id", "target_id"}
