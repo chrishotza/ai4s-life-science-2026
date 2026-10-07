@@ -17,7 +17,6 @@ from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tr
 from ai4s_phenotype import analyze
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
-DATA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
 VOXEL = DIC_C2DH_HELA_VOXEL_SIZE_UM
 SEQS = ("01", "02")
 
@@ -177,7 +176,7 @@ def main() -> None:
     args = parser.parse_args()
 
     root = dataset_root()
-    methods = ["mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian"] if args.sweep else [args.method]
+    methods = ["mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian"] if args.sweep else [args.method]
     distances = [1.0, 2.0, 4.0, 6.0, 8.0] if args.sweep else [args.distance]
 
     reports = []
