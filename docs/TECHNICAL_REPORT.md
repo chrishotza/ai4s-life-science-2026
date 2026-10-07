@@ -110,6 +110,12 @@ Known 3-D trajectories and exact temporal links are used to test association met
 
 The CTC experiment uses DIC-C2DH-HeLa sequences 01 and 02. The association benchmark feeds reference track centroids as detections, isolating the temporal-association problem from segmentation.
 
+### Image-level validation track
+
+To close the boundary between image processing and association-only validation, the repository now includes two additional cross-sequence holdout experiments. The first begins from raw DIC-C2DH-HeLa microscopy, performs transparent object detection, and then measures both object-level detection and temporal-link recovery after tracking. Detector settings are selected on one sequence and evaluated on the other.
+
+The second compares the same transparent segmentation baseline against the available CTC GT/SEG instance annotations using frame-level instance matching. These measurements are reported as an independent image-segmentation validation layer and are not substituted for official CTC SEG leaderboard scores.
+
 ### Measured CTC association results
 
 An initial mutual-nearest-neighbor run achieved:
