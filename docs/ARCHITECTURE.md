@@ -57,6 +57,12 @@ Validation is separated into:
 6. CTC lineage representation validation;
 7. automated submission-claim auditing.
 
+## Model lifecycle
+
+Phenotype discovery now has an explicit fit/transform boundary. A fitted discovery model stores the scaler, K-Means model, feature schema, transformation policy, and interpretable cluster names.
+
+This makes it possible to fit phenotype states on a reference cohort and transform a new cohort without silently re-fitting the clustering model. It is a prerequisite for scientifically meaningful cross-condition comparisons.
+
 ## Known architectural limits
 
 The baseline tracker has no gap closing and only associates adjacent frames.
