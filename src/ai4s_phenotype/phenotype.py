@@ -86,6 +86,7 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     children: dict[int, list[int]] = defaultdict(list)
     parents: dict[int, list[int]] = defaultdict(list)
     temporal_link_stats: dict[int, list[float]] = defaultdict(list)
+    temporal_link_confidences: dict[int, list[float]] = defaultdict(list)
 
     temporal_edge_mask = (
         edges["edge_type"].eq("link")
@@ -108,10 +109,18 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
         if parent_track not in parents[child_track]:
             parents[child_track].append(parent_track)
 
-    if not temporal_edges.empty and "distance_um" in temporal_edges.columns:
-        for row in temporal_edges[["source_id", "distance_um"]].itertuples(index=False):
+    if not temporal_edges.empty:
+        columns = ["source_id"]
+        if "distance_um" in temporal_edges.columns:
+            columns.append("distance_um")
+        if "link_confidence" in temporal_edges.columns:
+            columns.append("link_confidence")
+        for row in temporal_edges[columns].itertuples(index=False):
             source_track = int(node_to_track[int(row.source_id)])
-            temporal_link_stats[source_track].append(float(row.distance_um))
+            if "distance_um" in columns:
+                temporal_link_stats[source_track].append(float(row.distance_um))
+            if "link_confidence" in columns:
+                temporal_link_confidences[source_track].append(float(row.link_confidence))
 
     out = []
     for track_id, g in n.groupby("track_id", sort=False):
@@ -166,6 +175,16 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
                 "max_link_distance_um": (
                     float(np.max(temporal_link_stats[int(track_id)]))
                     if temporal_link_stats.get(int(track_id))
+                    else 0.0
+                ),
+                "mean_link_confidence": (
+                    float(np.mean(temporal_link_confidences[int(track_id)]))
+                    if temporal_link_confidences.get(int(track_id))
+                    else 0.0
+                ),
+                "min_link_confidence": (
+                    float(np.min(temporal_link_confidences[int(track_id)]))
+                    if temporal_link_confidences.get(int(track_id))
                     else 0.0
                 ),
                 **_attribute_features(g),
