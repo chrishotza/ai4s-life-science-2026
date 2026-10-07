@@ -44,7 +44,7 @@ FORMAL_REQUIREMENTS = {
         "## 10.2 Sources and licenses",
         "## 10.3 Exact reproduction recipe",
         "Data provenance and use conditions",
-        "Development AI-tooling:",
+        "Development AI tooling:",
     ),
     ROOT / "docs" / "SUBMISSION_CHECKLIST.md": (
         "[x] Category declaration at start of Writeup",
