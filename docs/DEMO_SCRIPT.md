@@ -1,71 +1,86 @@
-# 5-Minute Demo Script
+# Final Demo Script
 
-The repository renderer produces a concise proof clip of the core system. The final submission can use that clip as the visual backbone while the 5-minute narration follows the sections below.
+Target duration: 2–3 minutes. Hard maximum: 5 minutes.
 
-## 0:00–0:30 — Problem
+## 0:00–0:20 — Problem
 
-Use the rendered intro card and first real-microscopy frames as the visual hook.
+**Visual:** real DIC-C2DH-HeLa microscopy.
 
-"Microscopy produces huge volumes of cell observations, but segmentation or tracking alone does not answer the biological question. We want to recover how each cell behaves over time."
+**Narration:**
 
-Show one microscopy sequence and the target phenotype report.
+"Time-lapse microscopy contains much more than a sequence of images. It contains how individual cells move, persist, divide, and change over time.
 
-## 0:30–1:15 — End-to-end pipeline
+The goal of this system is to turn that temporal information into an interpretable single-cell phenotype representation instead of stopping at segmentation or track IDs."
 
-Show:
+## 0:20–0:45 — Real image input
 
-microscopy → detection → temporal association → tracking → lineage/events → phenotype features → phenotype discovery.
+**Visual:** raw microscopy followed by transparent baseline detections.
 
-Run:
+**Narration:**
 
-```bash
-python demo.py
-```
+"The public baseline starts directly from microscopy. It uses transparent image preprocessing and connected components to produce reproducible cell observations.
 
-## 1:15–2:00 — Tracking
+This stage is deliberately simple and inspectable, and it requires no proprietary model or paid service."
 
-Show trajectories and explain that the public baseline is deterministic and reproducible.
+## 0:45–1:15 — Tracking
 
-Highlight:
+**Visual:** real microscopy sequence with trajectories.
 
-- track continuity;
-- spatial association;
-- candidate division events.
+**Narration:**
 
-## 2:00–3:00 — Temporal phenotype
+"Those observations are associated through time using deterministic spatial tracking in physical units.
 
-Show the phenotype table.
+The selected real-data association configuration is mutual nearest neighbor with an 8 micrometer gate.
 
-Highlight:
+Tracking is infrastructure. The scientific output is the behavior represented by the resulting trajectories."
 
-- mean speed;
-- displacement;
-- directional persistence;
-- duration;
-- lineage structure.
+## 1:15–1:45 — Temporal phenotype
 
-Explain that the scientific output is the dynamic phenotype, not the track ID.
+**Visual:** phenotype scatter plot and per-cell feature panel.
 
-## 3:00–3:45 — AI phenotype discovery
+**Narration:**
 
-Show the unsupervised clusters.
+"For every trajectory, the engine derives duration, displacement, path length, speed, directional persistence, temporal integrity, and lineage context.
 
-Explain that temporal features are standardized and grouped into interpretable behavioral phenotypes without requiring manually assigned phenotype labels.
+These features can be transformed into reproducible unsupervised behavioral groups with an explicit fit-and-transform lifecycle."
 
-## 3:45–4:30 — Validation
+## 1:45–2:15 — Validation
 
-Show the synthetic benchmark and the real public microscopy benchmark.
+**Visual:** validation summary.
 
-Display only measured values:
+**Narration:**
 
-- link precision;
-- link recall;
-- F1;
-- phenotype stability;
-- representative failure cases.
+"On DIC-C2DH-HeLa sequences 01 and 02, the association-isolation benchmark reaches a mean F1 of 0.99228.
 
-## 4:30–5:00 — Impact
+Downstream trajectory preservation gives 0.9451 mean coverage and 0.0439 directional-persistence mean absolute error.
 
-"Instead of stopping at segmentation or tracking, the system converts microscopy into a compact temporal phenotype representation that can be used to compare cellular behaviors and detect abnormal trajectories."
+The same association path was also checked with pinned py-ctcmetrics, producing TRA and LNK values above 0.97 on both sequences. A no-oracle sensitivity control produced the same values."
 
-End with GitHub repository, reproducibility instructions, and dataset provenance.
+## 2:15–2:35 — Scientific boundary
+
+**Visual:** limitations card.
+
+**Narration:**
+
+"One boundary is important: the strongest CTC association result uses reference centroids as detections to isolate temporal association from segmentation. It is not presented as an end-to-end biological phenotype score.
+
+Image-level validation, association validation, synthetic robustness, and biological interpretation are therefore kept as separate evidence layers."
+
+## 2:35–2:50 — Close
+
+**Visual:** final title and repository.
+
+**Narration:**
+
+"The contribution is a reproducible bridge from microscopy to trajectories to interpretable temporal phenotype.
+
+The next scientific step is independent biological validation against labeled perturbations and conditions."
+
+## Recording rules
+
+- Show the real system and microscopy, not generic stock footage.
+- Keep benchmark values visible long enough to read.
+- Say "association-isolation" whenever reference centroids are used.
+- Do not call TRA/LNK values official CTC leaderboard scores.
+- Do not call unsupervised clusters biological diagnoses.
+- End on the scientific contribution and evidence boundary.
