@@ -87,20 +87,29 @@ The repository includes:
 - controlled synthetic perturbations;
 - real Cell Tracking Challenge association benchmarking.
 
-See **[docs/RESULTS.md](docs/RESULTS.md)** for measured results and the evidence policy.
+See **[docs/RESULTS.md](docs/RESULTS.md)** for the full measured results.
 
 ## Real benchmark
 
-The CTC benchmark currently uses **DIC-C2DH-HeLa sequences 01 and 02**. The evaluation feeds the reference track centroids into the association stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
+The CTC benchmark uses **DIC-C2DH-HeLa sequences 01 and 02**. The evaluation feeds the reference track centroids into the association stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
 
-The active benchmark sweeps:
+The completed physical-unit sweep compared:
 
 - mutual nearest neighbor;
 - Hungarian assignment;
 - constant-velocity Hungarian assignment;
-- physical distance thresholds from 0.8 to 3.0 µm.
+- distance thresholds from 0.8 to 8.0 µm.
 
-Real results are generated in GitHub Actions and stored as artifacts; the repository never commits the dataset itself.
+The best measured configuration is **mutual nearest neighbor at 8.0 µm**, reaching:
+
+**mean precision 0.99135 · mean recall 0.99322 · mean F1 0.99228**
+
+Per sequence:
+
+- sequence 01: F1 0.99308;
+- sequence 02: F1 0.99149.
+
+The benchmark is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
 ## Scientific output
 
@@ -127,12 +136,10 @@ The private BioHub project contains earlier learned temporal-association researc
 
 The intended contribution is a reproducible pipeline that moves from microscopy to **dynamic, interpretable single-cell phenotype**, rather than treating cell tracking as the final objective.
 
-## Validation roadmap
+## Next milestones
 
-1. Complete the CTC method/threshold ablation.
-2. Select the best association configuration using mean F1 across both sequences.
-3. Validate phenotype stability under controlled tracking perturbations.
-4. Add representative real-data visualizations.
-5. Produce the final 5-minute demonstration.
-6. Finalize the technical report and Kaggle Writeup.
-
+1. Validate phenotype stability under controlled tracking perturbations.
+2. Add representative real-data visualizations.
+3. Strengthen lineage/division validation.
+4. Produce the final 5-minute demonstration.
+5. Finalize the Kaggle Writeup and submission package.
