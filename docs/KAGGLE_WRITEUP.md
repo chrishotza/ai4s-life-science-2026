@@ -1,0 +1,120 @@
+# Temporal Cellular Phenotype Engine
+
+## From cell tracking to dynamic phenotype
+
+### Problem
+
+Time-lapse microscopy captures rich cellular behavior, but conventional pipelines often stop at segmentation or tracking. A track ID tells us where a cell went; it does not directly describe how the cell behaved.
+
+The goal of this project is to turn temporal microscopy into an interpretable **single-cell phenotype representation**.
+
+### Approach
+
+The system is organized as an end-to-end pipeline:
+
+1. microscopy frame preprocessing;
+2. cell detection;
+3. temporal association;
+4. 3-D trajectory reconstruction;
+5. lineage and division-event inference;
+6. temporal phenotype extraction;
+7. unsupervised phenotype discovery.
+
+The public implementation is deliberately deterministic and reproducible.
+
+### What is novel about the submission
+
+The main contribution is not another isolated tracker. Tracking is treated as infrastructure for a downstream phenotype layer.
+
+For each trajectory, the engine derives:
+
+- duration;
+- displacement;
+- path geometry;
+- mean speed;
+- directional persistence;
+- parent/child relationships;
+- division events;
+- descendant structure.
+
+These features form a compact temporal phenotype profile that can be clustered into interpretable behavioral groups.
+
+### Real benchmark evidence
+
+The system was evaluated on DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge.
+
+The association benchmark uses the reference centroids as detections, intentionally isolating temporal association from segmentation.
+
+A physical-unit sweep compared mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian association.
+
+The best measured configuration was mutual nearest neighbor with an 8.0 µm gate:
+
+- mean precision: **0.99135**
+- mean recall: **0.99322**
+- mean F1: **0.99228**
+
+Per-sequence F1:
+
+- sequence 01: **0.99308**
+- sequence 02: **0.99149**
+
+The improvement over the initial restrictive-gate baseline was substantial: mean F1 increased from approximately 0.9183 to 0.9923.
+
+### Downstream phenotype preservation
+
+The selected tracker was then evaluated through the phenotype layer on the same real sequences.
+
+For matched trajectories:
+
+- mean trajectory coverage: **0.9451**
+- median trajectory coverage: **1.0000**
+- directional-persistence MAE: **0.0439**
+- mean-speed MAE: **0.1206 µm/frame**
+
+This experiment demonstrates reproducible preservation of trajectory-derived phenotype features.
+
+It does **not** claim biological phenotype classification. That requires independent biological labels or perturbation annotations.
+
+### Why this matters
+
+The practical value of the system is the transition from:
+
+**microscopy → track IDs**
+
+to:
+
+**microscopy → temporal cellular behavior → interpretable phenotype**
+
+That representation can support motility analysis, state characterization, abnormal-behavior screening, lineage-aware studies, and downstream biological investigation.
+
+### Reproducibility
+
+The repository contains:
+
+- complete source code;
+- public benchmark loader;
+- deterministic synthetic tests;
+- quantitative evaluation;
+- Docker support;
+- GitHub Actions CI;
+- reproducible benchmark workflows;
+- technical report;
+- five-minute demo script.
+
+The microscopy datasets are downloaded transiently for evaluation and are not redistributed in the repository.
+
+### Limitations
+
+The current public baseline has transparent limitations:
+
+- threshold-based image segmentation is not universal;
+- association can fail under severe crowding or missing detections;
+- lineage events remain candidate inferences;
+- unsupervised phenotype clusters are descriptive;
+- CTC association results use reference centroids and are not a full image-to-phenotype score.
+
+These limitations are explicitly reported rather than hidden.
+
+### Future direction
+
+The strongest next step is to validate the phenotype layer on an independently labeled biological perturbation dataset and compare temporal phenotype distributions between conditions.
