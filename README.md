@@ -37,7 +37,7 @@ interpretable phenotype report
 
 The public implementation contains explicit reproducible layers:
 
-1. **Microscopy baseline** — threshold + connected-component detection for time-lapse frames.
+1. **Microscopy baseline** — threshold + connected-component detection for 2-D+t or 3-D+t time-lapse volumes.
 2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, constant-velocity Hungarian, and an experimental KD-tree MNN variant.
 3. **Lineage + temporal phenotype** — duration, displacement, path length, speed, directional persistence, temporal-integrity diagnostics, parent/child structure, divisions and descendants.
 4. **Experimental gap branch** — bounded gap-closing Hungarian association for incomplete observations, isolated from the validated baseline.
