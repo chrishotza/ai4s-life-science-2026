@@ -61,6 +61,14 @@ Validation is separated into:
 6. CTC lineage representation validation;
 7. automated submission-claim auditing.
 
+## Auxiliary observation features
+
+The canonical pipeline preserves numeric per-detection attributes through tracking and aggregates them into per-track phenotype metadata using mean, standard deviation, minimum, and maximum summaries.
+
+The default phenotype discovery feature space remains trajectory/lineage-only. This separation is deliberate: morphology and intensity information is now available without silently changing the clustering benchmark or its published scores.
+
+For the current microscopy baseline, this preserves fields such as object area and mean intensity for future multimodal phenotype experiments.
+
 ## Model lifecycle
 
 Phenotype discovery now has an explicit fit/transform boundary. A fitted discovery model stores the scaler, K-Means model, feature schema, transformation policy, and interpretable cluster names.
