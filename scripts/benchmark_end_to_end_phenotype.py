@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from ai4s_core import runtime_metadata
 
 from ai4s_phenotype import analyze, discover_phenotypes
-from ai4s_tracking import TrackingConfig, track_detections
+from ai4s_tracking import TrackingConfig, track_detections, tracking_error_profile
 
 N_FRAMES = 36
 METHODS = ("mutual_nn", "gap_hungarian")
@@ -79,6 +79,23 @@ def perturb(
     return out.sort_values(["t", "truth_track"]).reset_index(drop=True)
 
 
+def observed_truth_edges(nodes: pd.DataFrame, max_frame_gap: int) -> pd.DataFrame:
+    ordered = nodes.sort_values(["truth_track", "t", "z", "y", "x"]).reset_index(drop=True)
+    rows: list[tuple[int, int]] = []
+    for _, group in ordered.groupby("truth_track", sort=False):
+        indices = group.index.to_list()
+        for source_index, target_index in zip(indices, indices[1:]):
+            frame_gap = int(ordered.loc[target_index, "t"]) - int(ordered.loc[source_index, "t"])
+            if 1 <= frame_gap <= max_frame_gap:
+                rows.append(
+                    (
+                        int(ordered.loc[source_index, "node_id"]),
+                        int(ordered.loc[target_index, "node_id"]),
+                    )
+                )
+    return pd.DataFrame(rows, columns=["source_id", "target_id"])
+
+
 def track_purity(nodes: pd.DataFrame) -> tuple[float, float, int]:
     if nodes.empty:
         return 0.0, 0.0, 0
@@ -124,6 +141,14 @@ def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[
     raw_sorted = raw.sort_values(["t", "z", "y", "x"]).reset_index(drop=True)
     nodes["truth_track"] = raw_sorted["truth_track"].to_numpy()
     truth_groups = raw.drop_duplicates("truth_track").set_index("truth_track")["truth_group"].to_dict()
+    truth_nodes = raw_sorted[["t", "z", "y", "x", "truth_track"]].copy()
+    truth_nodes["node_id"] = nodes["node_id"].to_numpy()
+    truth_nodes["track_id"] = truth_nodes["truth_track"].astype(int)
+    truth_edges = observed_truth_edges(
+        truth_nodes,
+        max_frame_gap=2 if method == "gap_hungarian" else 1,
+    )
+
     phenotypes = analyze(nodes, edges)
     discovered = (
         discover_phenotypes(
@@ -172,6 +197,12 @@ def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[
         "stable_track_purity": purity_stable,
         "stable_tracks": stable_tracks,
         "phenotype_group_ARI": float(phenotype_ari),
+        "tracking_error_profile": tracking_error_profile(
+            truth_nodes,
+            nodes[["node_id", "track_id", "t"]],
+            truth_edges,
+            edges[["source_id", "target_id"]],
+        ),
     }
 
 
