@@ -56,7 +56,17 @@ Downstream trajectory preservation gives 0.9451 mean coverage and 0.0439 directi
 
 The same association path was also checked with pinned py-ctcmetrics, producing TRA and LNK values above 0.97 on both sequences. A no-oracle sensitivity control produced the same values."
 
-## 2:15–2:35 — Scientific boundary
+## 2:15–2:35 — Cohort decision layer
+
+**Visual:** synthetic cohort-effect validation card.
+
+**Narration:**
+
+"The same phenotype representation can be compared across experimental cohorts. The comparison layer reports effect sizes and bootstrap confidence intervals, so a change can be quantified rather than described only by cluster membership.
+
+This card is a synthetic method validation, not a biological treatment result."
+
+## 2:35–2:55 — Scientific boundary
 
 **Visual:** limitations card.
 
@@ -66,7 +76,7 @@ The same association path was also checked with pinned py-ctcmetrics, producing 
 
 Image-level validation, association validation, synthetic robustness, and biological interpretation are therefore kept as separate evidence layers."
 
-## 2:35–2:50 — Close
+## 2:55–3:10 — Close
 
 **Visual:** final title and repository.
 
@@ -84,3 +94,4 @@ The next scientific step is independent biological validation against labeled pe
 - Do not call TRA/LNK values official CTC leaderboard scores.
 - Do not call unsupervised clusters biological diagnoses.
 - End on the scientific contribution and evidence boundary.
+- Label the cohort card as synthetic methodological validation.
