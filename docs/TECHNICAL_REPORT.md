@@ -49,11 +49,17 @@ Standardized temporal features are clustered with K-Means to obtain unsupervised
 
 ## 4. Data
 
-The repository supports deterministic synthetic data for regression testing and is prepared for evaluation on public microscopy benchmarks.
+### 4.1 Synthetic benchmark
 
-The Cell Tracking Challenge provides freely downloadable 2D+time and 3D+time datasets with reference annotations. See the repository README for the public benchmark route.
+The repository contains deterministic microscopy-like image generators and trajectory ground truth for regression testing and controlled perturbation experiments.
 
-Dataset licenses and usage conditions must be checked for the exact benchmark selected for the final submission.
+### 4.2 Cell Tracking Challenge
+
+The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time microscopy datasets, including reference tracking annotations and lineage metadata. The repository includes an adapter for `man_track*.tif` and `man_track.txt` data. The exact dataset and sequence used for the final submission must be stated with its conditions of use. 
+
+### 4.3 Organ-on-a-chip validation target
+
+A public Organ-on-a-Chip image dataset contains 3,000+ brightfield microscopy images from multiple cell lines, with sample-quality labels and metadata such as cell type and time after seeding. The dataset is available from Zenodo (DOI 10.5281/zenodo.10203721) under the published dataset terms. A real OoC validation experiment should be added only after the exact files, license terms, and preprocessing route are verified.
 
 ## 5. Experimental design
 
@@ -108,7 +114,7 @@ These limitations are explicit design constraints rather than hidden assumptions
 The repository contains:
 
 - Python package configuration;
-- pinned lower-bound dependencies;
+- lower-bounded scientific dependencies;
 - deterministic synthetic generators;
 - automated tests;
 - Dockerfile;
