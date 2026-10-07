@@ -113,7 +113,7 @@ def render_frame(
     )
     ax.text(
         0.01, 0.02,
-        "Real microscopy + deterministic temporal association (MNN, 8 µm)",
+        "Real microscopy + deterministic association (MNN, 8 µm) | CTC reference centroids as detections",
         transform=ax.transAxes,
         fontsize=9,
         bbox=dict(facecolor="black", alpha=0.60, pad=4),
