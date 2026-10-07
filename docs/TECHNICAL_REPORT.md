@@ -174,6 +174,12 @@ The public lineage layer is now validated separately from the association benchm
 
 This establishes that the phenotype representation faithfully carries annotated lineage structure. It is deliberately not reported as an image-derived division-detection score: the current baseline tracker does not claim biological division inference from microscopy alone.
 
+### Experimental bounded-gap association
+
+In addition to the validated adjacent-frame baseline, the repository now contains an isolated `gap_hungarian` branch that retains unmatched tracks for up to two frames and emits explicit frame-gap metadata.
+
+This branch is evaluated only through the existing A/B protocol and is not part of the published baseline. Its purpose is to test robustness to incomplete observations and align the architecture with linking-oriented benchmark conditions.
+
 ## 7. Baselines and ablations
 
 The final experimental table compares:
