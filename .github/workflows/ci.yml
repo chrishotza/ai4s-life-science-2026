@@ -16,3 +16,5 @@ jobs:
       - run: pip install -e .
       - run: pip install -r requirements-dev.txt
       - run: pytest -q
+      - name: Phenotype stability benchmark
+        run: python scripts/benchmark_phenotype_stability.py
