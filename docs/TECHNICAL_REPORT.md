@@ -202,7 +202,7 @@ The repository contains:
 - benchmark scripts;
 - demo entry point.
 
-The CI test suite passes on Python 3.11.
+The CI workflow is configured for Python 3.11 and includes syntax, dependency, regression, robustness, and submission-claim gates.
 
 ## 10. Scientific impact
 
