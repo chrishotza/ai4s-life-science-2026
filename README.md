@@ -3,13 +3,9 @@
 **Category:** End-to-End System  
 **Impact area:** Single-cell Phenotype Analysis
 
-This project turns time-lapse microscopy tracking into an interpretable cellular phenotype analysis pipeline.
+This project converts time-lapse microscopy into interpretable temporal cellular phenotype analysis.
 
-## Problem
-
-Cell tracking alone produces trajectories. For life-science analysis, the useful output is the behavior of each cell over time: persistence, movement, divisions, lineage structure, and anomalous temporal behavior.
-
-## MVP pipeline
+## System
 
 ```
 3D / time-lapse microscopy
@@ -22,34 +18,62 @@ temporal association
         ↓
 lineage reconstruction
         ↓
-division/event detection
+division / event detection
         ↓
 temporal phenotype extraction
         ↓
 interpretable phenotype report
 ```
 
-The tracking/lineage engine is being extracted from the private BioHub research repository. This public repository contains only the competition-facing, reproducible layer.
+Tracking is the infrastructure; the scientific output is the **dynamic phenotype of each cell and lineage**.
 
-## Current MVP
+## Public MVP
 
-The first public-facing layer accepts a generic node/edge representation of a tracked cell population and computes:
+The repository currently provides a deterministic, reproducible 3-D tracking baseline from frame-wise detections and a phenotype layer over reconstructed trajectories and lineage edges.
 
-- trajectory duration
-- displacement and path length
-- mean speed
-- directional persistence
-- division events
-- lineage depth
-- descendant counts
-- per-cell phenotype flags
+The tracking baseline expects CSV columns:
 
-The interface is deliberately independent of Kaggle-specific paths and services.
+`t,z,y,x`
 
-## Reproducibility
+and produces node-level tracks plus an edge table with:
 
-The competition requires a public repository with core code, environment setup, inference/evaluation/demo entry points, I/O descriptions, and reproduction instructions. The final repository will satisfy those requirements without paid services or proprietary hardware.
+`source_id,target_id,distance_um,edge_type`
 
-## Status
+The phenotype layer extracts trajectory duration, displacement, path length, mean speed, directional persistence, division events, lineage depth, descendant counts, and phenotype flags.
 
-Research extraction in progress. BioHub remains the private source project; this repository is the cleaned competition implementation.
+Run the local demo:
+
+```bash
+python demo.py
+```
+
+## Research provenance
+
+The private BioHub project contains the research tracker and experiment history. Its documented 0.947 baseline uses a learned 3-D temporal association stack. The public competition repository does not silently redistribute private model artifacts or claim those components as reproducible.
+
+The public repository therefore separates:
+
+1. **Reproducible baseline** — available here.
+2. **Research tracker** — private BioHub provenance.
+3. **Phenotype interpretation** — competition-facing scientific layer.
+
+This is deliberate: the competition requires reviewers to reproduce the public repository without paid services, proprietary hardware, or non-public datasets.
+
+## Competition positioning
+
+**Category:** End-to-End System  
+**Impact:** Single-cell Phenotype Analysis
+
+The challenge explicitly accepts cell segmentation, feature extraction and phenotype analysis from microscopy images, and evaluates problem impact, technical innovation, validation, reproducibility and presentation. The final submission will therefore emphasize measurable phenotype information rather than presenting the project as a cell-tracking benchmark alone.
+
+## Next validation target
+
+The next milestone is a public evaluation harness comparing:
+
+- deterministic tracking baseline;
+- lineage reconstruction;
+- phenotype extraction;
+- synthetic perturbation scenarios;
+- quantitative tracking and phenotype metrics.
+
+The learned BioHub components will only be promoted into the public pipeline after their model/code redistribution and reproducibility conditions are verified.
