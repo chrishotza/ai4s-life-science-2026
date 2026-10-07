@@ -72,7 +72,8 @@ class PhenotypeDiscoveryModel:
     feature_names: tuple[str, ...]
     log_transform: bool
     log_columns: tuple[str, ...]
-    cluster_names: dict[int, str>
+    cluster_names: dict[int, str]
+    feature_schema_version: str = FEATURE_SCHEMA_VERSION
 
     @classmethod
     def fit(
