@@ -141,7 +141,7 @@ The selected 8.0 µm mutual-nearest-neighbor path was exported with the CTC refe
 | 01 | **0.997315** | **0.979091** | 34.5 | 12850.0 |
 | 02 | **0.997207** | **0.978239** | 33.0 | 11816.5 |
 
-These measurements are **reference-geometry association-isolation evidence**. They are not segmentation scores, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains separate.
+These measurements are **reference-geometry association-isolation evidence**. They are not segmentation scores, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains separate. A separate no-oracle sensitivity control removed all reference parent edges and produced the same TRA/LNK values, strengthening the interpretation that these metrics are not driven by reference lineage metadata in this benchmark.
 
 ### Downstream temporal phenotype preservation
 
