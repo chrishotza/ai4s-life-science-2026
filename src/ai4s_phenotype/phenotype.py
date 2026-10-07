@@ -77,6 +77,13 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
         speed = float(np.mean(step[valid_dt] / dt[valid_dt])) if valid_dt.any() else 0.0
         displacement = float(np.linalg.norm(xyz[-1] - xyz[0])) if len(g) > 1 else 0.0
         path = float(step.sum())
+        t_start = int(g["t"].min())
+        t_end = int(g["t"].max())
+        temporal_span = max(0, t_end - t_start)
+        observation_fraction = len(g) / max(1, temporal_span + 1)
+        positive_gaps = dt[valid_dt]
+        gap_count = int((positive_gaps > 1).sum()) if len(positive_gaps) else 0
+        max_gap = int(positive_gaps.max()) if len(positive_gaps) else 0
         directional_persistence = (
             displacement / path if len(xyz) > 2 and path > 0
             else (1.0 if len(xyz) > 1 else 0.0)
@@ -89,10 +96,13 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
         out.append(
             {
                 "track_id": int(track_id),
-                "t_start": int(g["t"].min()),
-                "t_end": int(g["t"].max()),
-                "duration": int(g["t"].max() - g["t"].min()),
+                "t_start": t_start,
+                "t_end": t_end,
+                "duration": temporal_span,
                 "observations": int(len(g)),
+                "observation_fraction": float(observation_fraction),
+                "gap_count": gap_count,
+                "max_gap": max_gap,
                 "displacement": displacement,
                 "path_length": path,
                 "mean_speed": speed,
