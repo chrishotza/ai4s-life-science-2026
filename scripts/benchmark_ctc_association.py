@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ai4s_io import load_ctc_tracking
-from ai4s_tracking import TrackingConfig, track_detections
+from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
 
 DATA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
@@ -45,23 +45,19 @@ def score(
     truth: set[tuple[int, int]],
     pred: set[tuple[int, int]],
 ) -> dict[str, float]:
-    tp = len(truth & pred)
-    fp = len(pred - truth)
-    fn = len(truth - pred)
-    precision = tp / (tp + fp) if tp + fp else 1.0
-    recall = tp / (tp + fn) if tp + fn else 1.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    truth_frame = pd.DataFrame(list(truth), columns=["source_id", "target_id"])
+    pred_frame = pd.DataFrame(list(pred), columns=["source_id", "target_id"])
+    metrics = link_metrics(pred_frame, truth_frame)
     return {
-        "true_links": len(truth),
-        "predicted_links": len(pred),
-        "tp": tp,
-        "fp": fp,
-        "fn": fn,
-        "precision": precision,
-        "recall": recall,
-        "f1": f1,
+        "true_links": metrics["true_links"],
+        "predicted_links": metrics["predicted_links"],
+        "tp": metrics["true_positive"],
+        "fp": metrics["false_positive"],
+        "fn": metrics["false_negative"],
+        "precision": metrics["precision"],
+        "recall": metrics["recall"],
+        "f1": metrics["f1"],
     }
-
 
 def main() -> None:
     work = ROOT / ".benchmark_cache"
