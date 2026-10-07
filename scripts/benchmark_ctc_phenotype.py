@@ -9,6 +9,8 @@ from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 
+from ai4s_core import scale_coordinates
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -27,14 +29,6 @@ FEATURES = [
     "mean_speed",
     "directional_persistence",
 ]
-
-
-def scale_nodes(nodes: pd.DataFrame) -> pd.DataFrame:
-    out = nodes.copy()
-    out[["z", "y", "x"]] = out[["z", "y", "x"]].to_numpy(float) * np.asarray(
-        VOXEL_SIZE_UM
-    )
-    return out
 
 
 def match_tracks(
@@ -149,11 +143,11 @@ def main() -> None:
         )
 
         truth_phenotypes = analyze(
-            scale_nodes(truth_nodes),
+            scale_coordinates(truth_nodes, VOXEL_SIZE_UM),
             truth_edges,
         )
         predicted_phenotypes = analyze(
-            scale_nodes(predicted_nodes),
+            scale_coordinates(predicted_nodes, VOXEL_SIZE_UM),
             predicted_edges,
         )
 
