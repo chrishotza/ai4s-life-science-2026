@@ -45,11 +45,7 @@ pip install -r requirements-ctc.txt
 Then evaluate an exported sequence:
 
 ```bash
-python scripts/run_ctcmetrics.py `
-  --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/01_GT `
-  --res ctc_reference_export/01 `
-  --sequence 01 `
-  --output-json results/ctc_metrics_01.json
+python scripts/run_ctcmetrics.py --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/01_GT --res ctc_reference_export/01 --sequence 01 --output-json results/ctc_metrics_01.json
 ```
 
 The evaluator first validates the CTC result directory and then computes `TRA` and `LNK`. It records the `py-ctcmetrics` version and the repository commit SHA in the JSON artifact.
