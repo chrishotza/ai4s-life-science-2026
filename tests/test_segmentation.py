@@ -26,3 +26,10 @@ def test_moving_blobs_supports_small_frames():
 def test_moving_blobs_rejects_nonpositive_radius():
     with pytest.raises(ValueError, match="radius"):
         moving_blobs(radius=0)
+
+def test_segmentation_rejects_nonfinite_threshold():
+    import pytest
+
+    frames = np.zeros((1, 8, 8), dtype=float)
+    with pytest.raises(ValueError, match="finite"):
+        segment_frames(frames, threshold=float("nan"))
