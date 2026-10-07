@@ -65,10 +65,9 @@ def _dic_ridge_mask(frame: np.ndarray) -> np.ndarray:
 
     ridge_max = np.zeros_like(image, dtype=np.float32)
     for sigma in range(5, 11):
-        smooth = ndimage.gaussian_filter(image, sigma=float(sigma))
-        hxx = ndimage.gaussian_filter(smooth, sigma=0.0, order=(0, 2))
-        hyy = ndimage.gaussian_filter(smooth, sigma=0.0, order=(2, 0))
-        hxy = ndimage.gaussian_filter(smooth, sigma=0.0, order=(1, 1))
+        hxx = ndimage.gaussian_filter(image, sigma=float(sigma), order=(0, 2))
+        hyy = ndimage.gaussian_filter(image, sigma=float(sigma), order=(2, 0))
+        hxy = ndimage.gaussian_filter(image, sigma=float(sigma), order=(1, 1))
 
         trace = hxx + hyy
         disc = np.sqrt(np.maximum((hxx - hyy) ** 2 + 4.0 * hxy ** 2, 0.0))
