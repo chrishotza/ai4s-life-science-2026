@@ -65,7 +65,8 @@ Validation is separated into:
 4. CTC association benchmarking;
 5. CTC trajectory-phenotype preservation;
 6. CTC lineage representation validation;
-7. automated submission-claim auditing.
+7. tracking error taxonomy diagnostics;
+8. automated submission-claim auditing.
 
 ## Auxiliary observation features
 
