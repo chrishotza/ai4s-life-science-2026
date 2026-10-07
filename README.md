@@ -148,6 +148,8 @@ The private BioHub project contains earlier learned temporal-association researc
 
 ## Architecture hardening
 
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture.
+
 The public system now has explicit boundaries between:
 
 1. **Data contracts** — node/edge schema validation and a single physical coordinate transform.
