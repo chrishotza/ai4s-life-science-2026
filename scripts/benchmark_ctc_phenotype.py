@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
-import zipfile
 from pathlib import Path
-from urllib.request import urlretrieve
 
 import numpy as np
 import pandas as pd
@@ -14,13 +12,13 @@ from ai4s_core import scale_coordinates
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ai4s_io import load_ctc_tracking
+from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
 from ai4s_phenotype import analyze
 from ai4s_tracking import TrackingConfig, track_detections
 
 
 DATA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
-VOXEL_SIZE_UM = (1.0, 0.19, 0.19)
+VOXEL_SIZE_UM = DIC_C2DH_HELA_VOXEL_SIZE_UM
 FEATURES = [
     "duration",
     "observations",
@@ -105,20 +103,7 @@ def compare_features(
 
 
 def main() -> None:
-    work = ROOT / ".benchmark_cache"
-    work.mkdir(exist_ok=True)
-    archive = work / "DIC-C2DH-HeLa.zip"
-
-    if not archive.exists():
-        print(f"Downloading {DATA_URL}", flush=True)
-        urlretrieve(DATA_URL, archive)
-
-    extract = work / "dataset"
-    dataset_root = extract / "DIC-C2DH-HeLa"
-    if not dataset_root.exists():
-        extract.mkdir(exist_ok=True)
-        with zipfile.ZipFile(archive) as zf:
-            zf.extractall(extract)
+    dataset_root = ensure_ctc_dataset(ROOT / ".benchmark_cache")
 
     sequence_results = []
 
