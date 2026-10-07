@@ -132,6 +132,17 @@ At 3.0 µm, mean F1 was 0.95015, showing that the larger physical gate recovered
 
 These results identify overly restrictive spatial gating as a major source of track fragmentation on this association benchmark.
 
+### External CTC-maintained TRA/LNK validation
+
+The selected 8.0 µm mutual-nearest-neighbor path was exported with the CTC reference object geometry preserved and evaluated using the pinned `py-ctcmetrics==1.3.3` implementation. Both generated result directories passed CTC validation.
+
+| Sequence | TRA | LNK | AOGM | AOGM0 |
+|---|---:|---:|---:|---:|
+| 01 | **0.997315** | **0.979091** | 34.5 | 12850.0 |
+| 02 | **0.997207** | **0.978239** | 33.0 | 11816.5 |
+
+These measurements are **reference-geometry association-isolation evidence**. They are not segmentation scores, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains separate.
+
 ### Downstream temporal phenotype preservation
 
 The selected 8.0 µm tracker was then evaluated at the phenotype layer on the same two real sequences.
