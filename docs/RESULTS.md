@@ -4,7 +4,7 @@
 
 Dataset: **DIC-C2DH-HeLa**, sequences 01 and 02.
 
-The benchmark uses the CTC reference track centroids; therefore this is not an end-to-end segmentation score as the detection input. Therefore these results measure **temporal association**, not image segmentation accuracy.
+The benchmark uses CTC reference track centroids as the detection input. Therefore these results measure **temporal association**, not image segmentation accuracy or end-to-end segmentation performance.
 
 ### Initial measured baseline
 
@@ -84,6 +84,36 @@ This experiment closes an important methodological gap in the earlier phenotype-
 Reproduce with:
 
     python scripts/benchmark_end_to_end_phenotype.py
+
+### Bounded-gap association robustness
+
+A separate controlled synthetic stress test evaluates the experimental `gap_hungarian` branch under coordinate noise and detection dropout. The production baseline remains adjacent-frame mutual nearest neighbor; the gap branch is not used to revise the real-data 0.99228 F1 headline.
+
+| Dropout | MNN fragmented truth tracks | Gap-Hungarian fragmented truth tracks | MNN phenotype ARI | Gap-Hungarian phenotype ARI |
+|---:|---:|---:|---:|---:|
+| 5% | 24 | **1** | -0.0184 | **0.4879** |
+| 10% | 29 | **7** | -0.0102 | **0.3584** |
+| 15% | 30 | **19** | 0.0007 | -0.0114 |
+
+The bounded-gap branch produced 42/42, 87/87, and 93/93 correct-identity gap links at 5%, 10%, and 15% dropout respectively in this synthetic benchmark.
+
+The result is important because the dominant MNN failure mode under missing observations is fragmentation rather than false cross-identity linking. `gap_hungarian` substantially reduces fragmentation in the mild and moderate dropout regimes while exposing explicit `frame_gap` and link-confidence metadata.
+
+This is controlled computational evidence, not real-data biological validation. The branch remains experimental until it demonstrates a benefit under a public linking-oriented evaluation and the frozen A/B acceptance gates.
+
+### Tracking error taxonomy
+
+The robustness benchmark now records a deterministic error profile for each condition, including:
+
+- identity switches;
+- fragmented reference tracks and oversegmentation events;
+- merged predicted tracks and merge events;
+- true-positive, false-positive, and missed links;
+- cross-identity false links;
+- temporally invalid false links;
+- bounded-gap link counts and correct-identity gap links.
+
+This taxonomy is used diagnostically and does not replace the headline association metrics.
 
 ### Lineage and division representation validation
 
