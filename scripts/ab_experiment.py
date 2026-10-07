@@ -3,9 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import zipfile
 from pathlib import Path
-from urllib.request import urlretrieve
 
 import numpy as np
 import pandas as pd
@@ -15,12 +13,12 @@ from ai4s_core import scale_coordinates
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ai4s_io import load_ctc_tracking
+from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
 from ai4s_phenotype import analyze
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
 DATA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
-VOXEL = (1.0, 0.19, 0.19)
+VOXEL = DIC_C2DH_HELA_VOXEL_SIZE_UM
 SEQS = ("01", "02")
 
 # Frozen validated baseline. This is not the official competition score.
@@ -34,18 +32,7 @@ BASELINE = {
 
 
 def dataset_root() -> Path:
-    work = ROOT / ".benchmark_cache"
-    work.mkdir(exist_ok=True)
-    archive = work / "DIC-C2DH-HeLa.zip"
-    if not archive.exists():
-        print(f"Downloading {DATA_URL}", flush=True)
-        urlretrieve(DATA_URL, archive)
-    root = work / "dataset" / "DIC-C2DH-HeLa"
-    if not root.exists():
-        root.parent.mkdir(exist_ok=True)
-        with zipfile.ZipFile(archive) as zf:
-            zf.extractall(root.parent)
-    return root
+    return ensure_ctc_dataset(ROOT / ".benchmark_cache")
 
 
 def truth_links(nodes: pd.DataFrame) -> set[tuple[int, int]]:
