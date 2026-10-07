@@ -17,6 +17,7 @@ FILES = (
     ROOT / "docs" / "RESULTS.md",
     ROOT / "docs" / "KAGGLE_WRITEUP.md",
     ROOT / "docs" / "TECHNICAL_REPORT.md",
+    ROOT / "docs" / "KAGGLE_SUMMARY.md",
 )
 
 REQUIRED_CAVEATS = (
