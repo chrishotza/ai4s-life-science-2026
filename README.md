@@ -120,6 +120,15 @@ The downstream phenotype-preservation experiment on the same reference centroids
 
 These phenotype values measure trajectory-feature preservation under tracking; they are not biological phenotype classification scores.
 
+### External CTC validation track
+
+The same 8.0 µm MNN association path was exported with CTC reference object geometry preserved and evaluated with the pinned `py-ctcmetrics==1.3.3` implementation. The captured reference-geometry association-isolation results were:
+
+- sequence 01: **TRA 0.997315 · LNK 0.979091**
+- sequence 02: **TRA 0.997207 · LNK 0.978239**
+
+These values are independently reproduced CTC-metrics evidence, not end-to-end segmentation or biological phenotype results, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains a separate boundary. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+
 ### Missing-observation stress test
 
 The experimental bounded-gap Hungarian branch was evaluated separately under controlled synthetic dropout. At 5%, 10%, and 15% dropout it reduced fragmented reference tracks from 24/29/30 with the MNN baseline to 1/7/19 respectively, while preserving reference identity for every measured gap link in those runs. The corresponding phenotype-group ARI was 0.4879, 0.3584, and -0.0114 for the gap branch versus -0.0184, -0.0102, and 0.0007 for MNN.
@@ -130,7 +139,7 @@ The repository also validates the lineage representation layer against the CTC r
 
 The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
-The current association F1 is a custom transparent benchmark metric. The official CTC TRA score is intentionally tracked as a separate validation boundary and is not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and is not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
 
 ## Demo video
 
