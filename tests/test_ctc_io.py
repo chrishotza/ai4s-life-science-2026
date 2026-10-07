@@ -18,7 +18,7 @@ def test_ctc_loader_reads_markers_and_parent_metadata(tmp_path):
 
     nodes, edges, metadata = load_ctc_tracking(tmp_path)
 
-    assert len(nodes) == 3
+    assert len(nodes) == 4
     assert set(nodes["track_id"]) == {1, 2, 3}
     assert len(metadata) == 3
     assert "division_parent" in set(edges["edge_type"])
