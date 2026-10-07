@@ -187,6 +187,15 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
                     if temporal_link_confidences.get(int(track_id))
                     else 0.0
                 ),
+                "low_confidence_link_fraction": (
+                    float(
+                        np.mean(
+                            np.asarray(temporal_link_confidences[int(track_id)]) < 0.25
+                        )
+                    )
+                    if temporal_link_confidences.get(int(track_id))
+                    else 0.0
+                ),
                 **_attribute_features(g),
             }
         )
