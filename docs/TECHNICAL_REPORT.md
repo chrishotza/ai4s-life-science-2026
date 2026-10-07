@@ -115,6 +115,38 @@ At 3.0 µm, mean F1 was 0.95015, showing that the larger physical gate recovered
 
 These results identify overly restrictive spatial gating as a major source of track fragmentation on this association benchmark.
 
+### Downstream temporal phenotype preservation
+
+The selected 8.0 µm tracker was then evaluated at the phenotype layer on the same two real sequences.
+
+This experiment uses CTC reference centroids as detections. Consequently it measures **preservation of trajectory-derived phenotype features under tracking**, not segmentation quality or biological phenotype classification.
+
+For matched predicted/reference trajectories, the benchmark measured coverage and absolute error for duration, observations, displacement, path length, mean speed, and directional persistence.
+
+Aggregate results:
+
+| Metric | Result |
+|---|---:|
+| Mean matched tracks per sequence | 27.5 |
+| Mean trajectory coverage | **0.9451** |
+| Median trajectory coverage | **1.0000** |
+| Duration MAE | 6.2184 frames |
+| Displacement MAE | 2.1605 µm |
+| Path-length MAE | 9.9353 µm |
+| Mean-speed MAE | 0.1206 µm/frame |
+| Directional-persistence MAE | **0.0439** |
+
+Per sequence:
+
+| Sequence | Matched tracks | Mean coverage | Median coverage | Speed MAE | Directional-persistence MAE |
+|---|---:|---:|---:|---:|---:|
+| 01 | 31 | 0.9557 | 1.0000 | 0.0615 | 0.0307 |
+| 02 | 24 | 0.9346 | 1.0000 | 0.1797 | 0.0572 |
+
+The median trajectory coverage of 1.0 indicates that at least half of the matched trajectories retain complete frame coverage. Directional persistence is also comparatively stable, with mean absolute error 0.0439 across the two sequences.
+
+This provides downstream evidence that the selected temporal association configuration preserves trajectory-derived phenotype features, while remaining explicit that biological phenotype validity requires independent biological labels or perturbation annotations.
+
 ## 6. Baselines and ablations
 
 The final experimental table compares:
@@ -123,7 +155,8 @@ The final experimental table compares:
 2. Hungarian assignment;
 3. constant-velocity Hungarian assignment;
 4. physical distance/gating sensitivity;
-5. phenotype discovery with and without temporal features.
+5. phenotype preservation under the selected tracker;
+6. phenotype discovery with and without temporal features.
 
 The measured evidence shows that the simple, calibrated mutual-nearest-neighbor baseline currently outperforms the velocity-aware variant on these two sequences. This is preferable to claiming complexity that is not supported by the data.
 
@@ -135,7 +168,8 @@ The transparent public baseline has known limitations:
 - temporal association can fail under crowding, crossing trajectories, missing detections, and rapid motion;
 - lineage inference is candidate-based and should be validated against reference annotations;
 - unsupervised clusters are descriptive rather than biological diagnoses;
-- the CTC association results use reference centroids and therefore do not measure the full image-to-phenotype pipeline.
+- the CTC association and phenotype-preservation experiments use reference centroids and therefore do not measure the full image-to-phenotype pipeline;
+- biological phenotype validity is not established by trajectory agreement alone.
 
 These limitations are explicit design constraints rather than hidden assumptions.
 
@@ -173,6 +207,7 @@ Required evidence before submission:
 
 - at least one real microscopy benchmark;
 - quantitative baseline comparison;
+- downstream phenotype preservation evidence;
 - representative visual results;
 - limitations/failure cases;
 - public code;
