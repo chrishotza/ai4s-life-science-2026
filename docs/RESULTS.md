@@ -4,7 +4,7 @@
 
 Dataset: **DIC-C2DH-HeLa**, sequences 01 and 02.
 
-The benchmark uses the CTC reference track centroids as the detection input. Therefore these results measure **temporal association**, not image segmentation accuracy.
+The benchmark uses the CTC reference track centroids; therefore this is not an end-to-end segmentation score as the detection input. Therefore these results measure **temporal association**, not image segmentation accuracy.
 
 ### Initial measured baseline
 
