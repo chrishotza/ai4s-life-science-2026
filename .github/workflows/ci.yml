@@ -18,6 +18,8 @@ jobs:
       - run: pytest -q
       - name: Phenotype stability benchmark
         run: python scripts/benchmark_phenotype_stability.py
+      - name: End-to-end phenotype robustness benchmark
+        run: python scripts/benchmark_end_to_end_phenotype.py
       - name: CTC lineage validation
         run: python scripts/benchmark_ctc_lineage.py
       - name: Submission claim audit
