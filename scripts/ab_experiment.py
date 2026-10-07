@@ -13,6 +13,8 @@ from ai4s_core import scale_coordinates
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ai4s_core import runtime_metadata
+
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
 from ai4s_phenotype import analyze
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
