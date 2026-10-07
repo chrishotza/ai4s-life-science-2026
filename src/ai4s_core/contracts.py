@@ -40,6 +40,7 @@ def validate_edges(
     *,
     require_unique: bool = True,
     require_consecutive: bool = False,
+    require_forward_time: bool = False,
 ) -> None:
     missing = [column for column in EDGE_COLUMNS if column not in edges.columns]
     if missing:
@@ -51,6 +52,8 @@ def validate_edges(
     pairs = edges[["source_id", "target_id"]].astype(int)
     if require_unique and pairs.duplicated().any():
         raise ValueError("duplicate source-target edges are not allowed")
+    if (pairs["source_id"] == pairs["target_id"]).any():
+        raise ValueError("self-edges are not allowed")
 
     if nodes is None:
         return
@@ -61,13 +64,14 @@ def validate_edges(
     if not set(pairs["target_id"]).issubset(node_ids):
         raise ValueError("edge target_id references an unknown node")
 
-    if require_consecutive:
-        indexed = nodes.set_index("node_id")
-        dt = indexed.loc[pairs["target_id"].to_numpy(), "t"].to_numpy() - indexed.loc[
-            pairs["source_id"].to_numpy(), "t"
-        ].to_numpy()
-        if not np.all(dt == 1):
-            raise ValueError("temporal edges must connect consecutive frames")
+    indexed = nodes.set_index("node_id")
+    dt = indexed.loc[pairs["target_id"].to_numpy(), "t"].to_numpy() - indexed.loc[
+        pairs["source_id"].to_numpy(), "t"
+    ].to_numpy()
+    if require_forward_time and not np.all(dt > 0):
+        raise ValueError("edges must point forward in time")
+    if require_consecutive and not np.all(dt == 1):
+        raise ValueError("temporal edges must connect consecutive frames")
 
 
 def scale_coordinates(
