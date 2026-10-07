@@ -28,7 +28,7 @@ The submission implementation exposes a canonical TemporalPhenotypeEngine that c
 
 ### 3.1 Microscopy preprocessing
 
-The public baseline uses transparent thresholding and connected components to convert 2-D+t frames or 3-D+t volumes into object centroids and basic intensity/area measurements.
+The submission retains a transparent generic threshold/connected-component baseline, but the DIC-C2DH-HeLa validation also includes a dataset-specific deterministic ridge segmenter. The latter is a faithful implementation of the public KTH-SE DIC ridge methodology: multi-scale Gaussian smoothing at sigma 5–10 px, Hessian eigenvalue ridge response, ridge normalization/thresholding, and local-variance filtering. It is treated as a classical image-processing baseline rather than a pretrained model.
 
 ### 3.2 Temporal association
 
@@ -277,6 +277,7 @@ The public pipeline uses standard scientific Python packages declared in `pyproj
 
 - **Cell Tracking Challenge dataset:** DIC-C2DH-HeLa training data and reference annotations are obtained from the official CTC dataset repository. CTC permits use for challenge preparation, participation, and reporting without additional consent, while prohibiting cloning/redistribution of the datasets or annotations. Any publication resulting from CTC data use should acknowledge the CTC and cite its Nature Methods paper.
 - **CTC methodology reference:** Maška et al., *The Cell Tracking Challenge: 10 years of objective benchmarking*, Nature Methods 20, 1010–1020 (2023), DOI 10.1038/s41592-023-01879-y.
+- **DIC segmentation method reference:** KTH-SE, public Cell Tracking Challenge participant description of the DIC-C2DH-HeLa multi-scale Hessian-ridge segmentation method (sigma 5–10 px, gamma=1, beta=10, threshold 0.75 and local-variance filtering).
 - **CTC metrics:** `py-ctcmetrics==1.3.3`, CellTrackingChallenge, BSD 2-Clause License.
 - **Core scientific software:** NumPy, pandas, SciPy, scikit-learn, tifffile, imagecodecs, and matplotlib are declared through the repository dependency files and should retain their upstream license/attribution notices. Development dependencies include pytest and ruff.
 - **Development AI tooling:** OpenAI ChatGPT was used as an AI-assisted development and reasoning tool during implementation and documentation. No external AI service is required at runtime, and no third-party model weights are required or redistributed by the submitted system.
