@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ai4s_io import ensure_ctc_dataset, load_ctc_tracking
+from ai4s_imaging import segment_frames
 from ai4s_phenotype import analyze, discover_phenotypes
 from ai4s_tracking import TrackingConfig, track_detections
 
@@ -74,6 +75,43 @@ def render_title(path: Path) -> None:
         0.05, 0.22,
         "Real DIC-C2DH-HeLa microscopy with a deterministic, reproducible baseline.",
         fontsize=10,
+    )
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+
+def render_detection(image: np.ndarray, path: Path) -> None:
+    detections = segment_frames(
+        np.asarray(image)[None, ...],
+        threshold=None,
+        min_area=12,
+    )
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=120)
+    ax.imshow(normalize(image), cmap="gray")
+    if not detections.empty:
+        ax.scatter(
+            detections["x"],
+            detections["y"],
+            s=24,
+            facecolors="none",
+            edgecolors="white",
+            linewidth=0.8,
+        )
+    ax.set_axis_off()
+    ax.set_title(
+        "Stage 1 | Real microscopy → transparent baseline detection",
+        fontsize=13,
+    )
+    ax.text(
+        0.01,
+        0.02,
+        "Global percentile threshold + connected components | no reference centroids",
+        transform=ax.transAxes,
+        fontsize=9,
+        bbox=dict(facecolor="black", alpha=0.65, pad=4),
+        color="white",
     )
     fig.tight_layout()
     fig.savefig(path)
@@ -182,7 +220,7 @@ def render_phenotype(path: Path, tracks, edges) -> None:
         y -= 0.12
 
     fig.suptitle(
-        "Temporal phenotype layer  |  derived from tracked trajectories",
+        "Stage 3 | Temporal phenotype layer  |  derived from tracked trajectories",
         fontsize=15,
     )
     fig.tight_layout()
@@ -201,6 +239,7 @@ def render_summary(path: Path) -> None:
         ("Recall", "0.99322"),
         ("Trajectory coverage", "0.9451"),
         ("Persistence MAE", "0.0439"),
+        ("CTC TRA / LNK", "0.997315 / 0.979091"),
     ]
     y = 0.63
     for label, value in metrics:
@@ -252,6 +291,10 @@ def main() -> None:
 
         title_path = tmp_path / "title.png"
         render_title(title_path)
+        detection_path = tmp_path / "detection.png"
+        mid_image = np.squeeze(tifffile.imread(images[min(len(images) - 1, len(images) // 2)]))
+        render_detection(mid_image, detection_path)
+
         phenotype_path = tmp_path / "phenotype.png"
         render_phenotype(phenotype_path, predicted, predicted_edges)
         summary_path = tmp_path / "summary.png"
@@ -266,12 +309,15 @@ def main() -> None:
             "-framerate", str(FPS),
             "-i", str(frame_dir / "frame_%04d.png"),
             "-loop", "1",
+            "-t", str(4),
+            "-i", str(detection_path),
+            "-loop", "1",
             "-t", str(6),
             "-i", str(phenotype_path),
             "-loop", "1",
             "-t", str(5),
             "-i", str(summary_path),
-            "-filter_complex", "[0:v]fps=6[title];[2:v]fps=6[phenotype];[3:v]fps=6[summary];[title][1:v][phenotype][summary]concat=n=4:v=1:a=0[v]",
+            "-filter_complex", "[0:v]fps=6[title];[1:v]fps=6[track];[2:v]fps=6[detection];[3:v]fps=6[phenotype];[4:v]fps=6[summary];[title][track][detection][phenotype][summary]concat=n=5:v=1:a=0[v]",
             "-map", "[v]",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
