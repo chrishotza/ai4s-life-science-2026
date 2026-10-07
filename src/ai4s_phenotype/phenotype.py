@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
 
 
-NODE_COLUMNS = ["node_id", "t", "z", "y", "x"]
+DETECTION_COLUMNS = ["node_id", "track_id", "t", "z", "y", "x"]
 EDGE_COLUMNS = ["source_id", "target_id"]
 
 
 def _validate(nodes: pd.DataFrame, edges: pd.DataFrame) -> None:
-    missing_nodes = [c for c in NODE_COLUMNS if c not in nodes.columns]
+    missing_nodes = [c for c in DETECTION_COLUMNS if c not in nodes.columns]
     missing_edges = [c for c in EDGE_COLUMNS if c not in edges.columns]
     if missing_nodes:
         raise ValueError(f"nodes missing columns: {missing_nodes}")
@@ -35,27 +34,37 @@ def _descendants(root: int, children: dict[int, list[int]]) -> set[int]:
 def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     """Extract interpretable temporal phenotypes from tracked cells.
 
-    Nodes require: node_id, t, z, y, x.
-    Edges require: source_id, target_id.
-
-    One row is returned per node with trajectory, lineage and event features.
+    One row is returned per track_id. Detection-level edges are converted to
+    track-level lineage edges before lineage/event features are calculated.
     """
     _validate(nodes, edges)
 
     n = nodes.copy()
     n["node_id"] = n["node_id"].astype(int)
+    n["track_id"] = n["track_id"].astype(int)
     n["t"] = n["t"].astype(int)
-    n = n.sort_values(["node_id", "t"]).reset_index(drop=True)
+    n = n.sort_values(["track_id", "t", "node_id"]).reset_index(drop=True)
 
+    node_to_track = dict(zip(n["node_id"], n["track_id"]))
     children: dict[int, list[int]] = defaultdict(list)
     parents: dict[int, list[int]] = defaultdict(list)
+
     for row in edges[["source_id", "target_id"]].itertuples(index=False):
-        s, d = int(row.source_id), int(row.target_id)
-        children[s].append(d)
-        parents[d].append(s)
+        s = int(row.source_id)
+        d = int(row.target_id)
+        if s not in node_to_track or d not in node_to_track:
+            continue
+        parent_track = int(node_to_track[s])
+        child_track = int(node_to_track[d])
+        if parent_track == child_track:
+            continue
+        if child_track not in children[parent_track]:
+            children[parent_track].append(child_track)
+        if parent_track not in parents[child_track]:
+            parents[child_track].append(parent_track)
 
     out = []
-    for node_id, g in n.groupby("node_id", sort=False):
+    for track_id, g in n.groupby("track_id", sort=False):
         g = g.sort_values("t")
         xyz = g[["z", "y", "x"]].to_numpy(float)
         dt = np.diff(g["t"].to_numpy(float))
@@ -64,19 +73,18 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
         speed = float(np.mean(step[valid_dt] / dt[valid_dt])) if valid_dt.any() else 0.0
         displacement = float(np.linalg.norm(xyz[-1] - xyz[0])) if len(g) > 1 else 0.0
         path = float(step.sum())
+        directional_persistence = (
+            displacement / path if len(xyz) > 2 and path > 0
+            else (1.0 if len(xyz) > 1 else 0.0)
+        )
 
-        if len(xyz) > 2 and path > 0:
-            directional_persistence = displacement / path
-        else:
-            directional_persistence = 1.0 if len(xyz) > 1 else 0.0
-
-        child_ids = children.get(int(node_id), [])
+        child_ids = children.get(int(track_id), [])
         division_event = len(child_ids) >= 2
-        descendants = _descendants(int(node_id), children)
+        descendants = _descendants(int(track_id), children)
 
         out.append(
             {
-                "node_id": int(node_id),
+                "track_id": int(track_id),
                 "t_start": int(g["t"].min()),
                 "t_end": int(g["t"].max()),
                 "duration": int(g["t"].max() - g["t"].min()),
@@ -85,7 +93,7 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
                 "path_length": path,
                 "mean_speed": speed,
                 "directional_persistence": float(directional_persistence),
-                "parent_count": int(len(parents.get(int(node_id), []))),
+                "parent_count": int(len(parents.get(int(track_id), []))),
                 "child_count": int(len(child_ids)),
                 "division_event": bool(division_event),
                 "descendant_count": int(len(descendants)),
