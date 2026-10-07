@@ -24,11 +24,13 @@ The public baseline uses transparent thresholding and connected components to co
 
 ### 3.2 Temporal association
 
-The tracker supports three deterministic association strategies:
+The tracker supports deterministic association strategies including the validated adjacent-frame baseline and experimental variants:
 
 1. mutual-nearest-neighbor;
 2. globally optimal Hungarian assignment;
-3. constant-velocity prediction followed by Hungarian assignment.
+3. constant-velocity prediction followed by Hungarian assignment;
+4. mutual nearest neighbor with KD-tree candidate search;
+5. bounded-gap Hungarian association for incomplete temporal observations.
 
 Distances can be computed in physical units using sequence-specific voxel sizes.
 
@@ -167,6 +169,22 @@ This provides downstream evidence that the selected temporal association configu
 A controlled synthetic benchmark now perturbs detection coordinates and introduces missing observations before re-running the tracker and phenotype pipeline. This produces a stricter end-to-end robustness test than perturbing completed trajectories, because association errors can propagate into the phenotype representation.
 
 The benchmark reports track purity and phenotype-group adjusted Rand index against the known synthetic behavioral groups. It is explicitly treated as controlled computational evidence rather than biological validation.
+
+## 6.1 Bounded-gap robustness and error diagnostics
+
+The experimental `gap_hungarian` branch retains unmatched tracks for a bounded number of frames and emits an explicit `frame_gap` field. A controlled synthetic stress test evaluates this branch against the production mutual-nearest-neighbor baseline after coordinate noise and detection dropout.
+
+| Dropout | MNN fragmented truth tracks | Gap-Hungarian fragmented truth tracks | MNN phenotype ARI | Gap-Hungarian phenotype ARI |
+|---:|---:|---:|---:|---:|
+| 5% | 24 | **1** | -0.0184 | **0.4879** |
+| 10% | 29 | **7** | -0.0102 | **0.3584** |
+| 15% | 30 | **19** | 0.0007 | -0.0114 |
+
+The gap branch preserved reference identity for 42/42, 87/87, and 93/93 gap links in the 5%, 10%, and 15% conditions respectively.
+
+The benchmark also reports a deterministic tracking-error taxonomy covering identity switches, fragmentation, oversegmentation, merges, false and missed links, cross-identity false links, temporally invalid links, and gap-link correctness. This makes failure diagnosis explicit instead of collapsing every error into a single F1 value.
+
+The gap branch remains experimental. It is not used to replace the validated 8.0 µm MNN real-data headline, and promotion requires passing the repository A/B gates plus an appropriate linking-oriented external evaluation.
 
 ## 7. Lineage validation
 

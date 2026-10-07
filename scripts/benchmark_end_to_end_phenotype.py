@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from ai4s_core import runtime_metadata
 
 from ai4s_phenotype import analyze, discover_phenotypes
-from ai4s_tracking import TrackingConfig, track_detections
+from ai4s_tracking import TrackingConfig, track_detections, tracking_error_profile
 
 N_FRAMES = 36
 METHODS = ("mutual_nn", "gap_hungarian")
@@ -68,7 +68,7 @@ def perturb(
 ) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
     out = detections.copy()
-    xyz = out[["z", "y", "x"]].to_numpy(float)
+    xyz = out[["z", "y", "x"]].to_numpy(float, copy=True)
     xyz += rng.normal(0.0, noise_um, size=xyz.shape)
     out[["z", "y", "x"]] = xyz
 
@@ -77,6 +77,23 @@ def perturb(
         out = out.loc[keep].copy()
 
     return out.sort_values(["t", "truth_track"]).reset_index(drop=True)
+
+
+def observed_truth_edges(nodes: pd.DataFrame, max_frame_gap: int) -> pd.DataFrame:
+    ordered = nodes.sort_values(["truth_track", "t", "z", "y", "x"]).reset_index(drop=True)
+    rows: list[tuple[int, int]] = []
+    for _, group in ordered.groupby("truth_track", sort=False):
+        indices = group.index.to_list()
+        for source_index, target_index in zip(indices, indices[1:]):
+            frame_gap = int(ordered.loc[target_index, "t"]) - int(ordered.loc[source_index, "t"])
+            if 1 <= frame_gap <= max_frame_gap:
+                rows.append(
+                    (
+                        int(ordered.loc[source_index, "node_id"]),
+                        int(ordered.loc[target_index, "node_id"]),
+                    )
+                )
+    return pd.DataFrame(rows, columns=["source_id", "target_id"])
 
 
 def track_purity(nodes: pd.DataFrame) -> tuple[float, float, int]:
@@ -124,6 +141,14 @@ def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[
     raw_sorted = raw.sort_values(["t", "z", "y", "x"]).reset_index(drop=True)
     nodes["truth_track"] = raw_sorted["truth_track"].to_numpy()
     truth_groups = raw.drop_duplicates("truth_track").set_index("truth_track")["truth_group"].to_dict()
+    truth_nodes = raw_sorted[["t", "z", "y", "x", "truth_track"]].copy()
+    truth_nodes["node_id"] = nodes["node_id"].to_numpy()
+    truth_nodes["track_id"] = truth_nodes["truth_track"].astype(int)
+    truth_edges = observed_truth_edges(
+        truth_nodes,
+        max_frame_gap=2 if method == "gap_hungarian" else 1,
+    )
+
     phenotypes = analyze(nodes, edges)
     discovered = (
         discover_phenotypes(
@@ -172,6 +197,12 @@ def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[
         "stable_track_purity": purity_stable,
         "stable_tracks": stable_tracks,
         "phenotype_group_ARI": float(phenotype_ari),
+        "tracking_error_profile": tracking_error_profile(
+            truth_nodes,
+            nodes[["node_id", "track_id", "t"]],
+            truth_edges,
+            edges[["source_id", "target_id"]],
+        ),
     }
 
 
@@ -198,10 +229,53 @@ def main() -> None:
         "synthetic_groups": list(GROUPS),
         "cases": rows,
         "method_summary": (
-            frame.groupby("method")[["mean_track_purity", "phenotype_group_ARI"]]
-            .mean()
-            .reset_index()
-            .to_dict(orient="records")
+            frame.groupby("method")
+        .apply(
+            lambda group: pd.Series(
+                {
+                    "mean_track_purity": float(group["mean_track_purity"].mean()),
+                    "phenotype_group_ARI": float(group["phenotype_group_ARI"].mean()),
+                    "mean_fragmented_truth_tracks": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["fragmented_truth_tracks"])
+                        .mean()
+                    ),
+                    "mean_oversegmentation_events": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["oversegmentation_events"])
+                        .mean()
+                    ),
+                    "mean_merge_events": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["merge_events"])
+                        .mean()
+                    ),
+                    "mean_missed_link_rate": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["missed_link_rate"])
+                        .mean()
+                    ),
+                    "gap_link_identity_rate": (
+                        float(
+                            group["tracking_error_profile"]
+                            .map(lambda profile: profile["gap_link_correct_identity"])
+                            .sum()
+                        )
+                        / float(
+                            max(
+                                1.0,
+                                group["tracking_error_profile"]
+                                .map(lambda profile: profile["gap_link_count"])
+                                .sum(),
+                            )
+                        )
+                    ),
+                }
+            ),
+            include_groups=False,
+        )
+        .reset_index()
+        .to_dict(orient="records")
         ),
     }
     (ROOT / "end_to_end_phenotype_results.json").write_text(

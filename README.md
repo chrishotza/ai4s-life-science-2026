@@ -88,6 +88,7 @@ The repository includes:
 - phenotype discovery tests;
 - controlled synthetic perturbations;
 - end-to-end tracking-to-phenotype robustness under perturbed detections;
+- deterministic tracking-error taxonomy (identity switches, fragmentation, merges, missed/false links and temporal-gap diagnostics);
 - real Cell Tracking Challenge association benchmarking;
 - downstream temporal phenotype preservation benchmarking.
 
@@ -118,6 +119,12 @@ The downstream phenotype-preservation experiment on the same reference centroids
 **mean trajectory coverage 0.9451 · median coverage 1.0000 · directional-persistence MAE 0.0439**
 
 These phenotype values measure trajectory-feature preservation under tracking; they are not biological phenotype classification scores.
+
+### Missing-observation stress test
+
+The experimental bounded-gap Hungarian branch was evaluated separately under controlled synthetic dropout. At 5%, 10%, and 15% dropout it reduced fragmented reference tracks from 24/29/30 with the MNN baseline to 1/7/19 respectively, while preserving reference identity for every measured gap link in those runs. The corresponding phenotype-group ARI was 0.4879, 0.3584, and -0.0114 for the gap branch versus -0.0184, -0.0102, and 0.0007 for MNN.
+
+This is computational stress-test evidence only; the bounded-gap branch remains experimental and does not replace the validated 8.0 µm MNN real-data result.
 
 The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.
 

@@ -190,6 +190,7 @@ def _track_gap_hungarian(
 
         active = next_active
 
+    validate_nodes(df)
     edge_df = pd.DataFrame(
         edges,
         columns=[
@@ -245,7 +246,6 @@ def track_detections(
     df["track_id"] = -1
 
     if config.method == "gap_hungarian":
-        validate_nodes(df)
         return _track_gap_hungarian(df, config)
 
     scale = np.asarray(config.voxel_size_um, dtype=float)
