@@ -13,6 +13,7 @@ dependencies = [
   "scipy>=1.11",
   "scikit-learn>=1.4",
   "tifffile>=2024.2",
+  "imagecodecs>=2024.1",
 ]
 
 [tool.setuptools.packages.find]
