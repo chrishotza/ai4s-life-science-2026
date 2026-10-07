@@ -75,7 +75,7 @@ pytest -q
 python demo.py
 ```
 
-The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups.
+The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups. For exact reproduction of the verified Python 3.11 environment, use `requirements-lock-py311.txt` and `requirements-dev-lock-py311.txt`.
 
 ## Quantitative validation
 
