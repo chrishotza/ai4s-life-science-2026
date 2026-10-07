@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
+from scipy.spatial import cKDTree
 
 from ai4s_core import validate_nodes
 
@@ -18,7 +19,7 @@ class TrackingConfig:
     def __post_init__(self) -> None:
         if self.max_distance_um <= 0:
             raise ValueError("max_distance_um must be positive")
-        if self.method not in {"mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian"}:
+        if self.method not in {"mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian"}:
             raise ValueError("unknown tracking method")
         if len(self.voxel_size_um) != 3 or any(value <= 0 for value in self.voxel_size_um):
             raise ValueError("voxel_size_um must contain three positive values")
@@ -40,6 +41,24 @@ def _mutual_pairs(a: np.ndarray, b: np.ndarray, max_distance: float):
         for i, j in enumerate(forward)
         if reverse[j] == i and d[i, j] <= max_distance
     ]
+
+
+def _mutual_tree_pairs(
+    a: np.ndarray,
+    b: np.ndarray,
+    max_distance: float,
+) -> list[tuple[int, int, float]]:
+    if len(a) == 0 or len(b) == 0:
+        return []
+
+    forward_dist, forward = cKDTree(b).query(a, k=1)
+    reverse_dist, reverse = cKDTree(a).query(b, k=1)
+    pairs = []
+    for i, (distance, j) in enumerate(zip(forward_dist, forward)):
+        j = int(j)
+        if reverse[j] == i and float(distance) <= max_distance:
+            pairs.append((i, j, float(distance)))
+    return pairs
 
 
 def _mutual_rescue_pairs(
@@ -95,6 +114,8 @@ def _assign_pairs(
 ) -> list[tuple[int, int, float]]:
     if method == "mutual_nn":
         return _mutual_pairs(previous, current, max_distance)
+    if method == "mutual_nn_tree":
+        return _mutual_tree_pairs(previous, current, max_distance)
     if method == "mutual_rescue":
         return _mutual_rescue_pairs(previous, current, max_distance)
     return _hungarian_pairs(previous, current, max_distance)
@@ -109,7 +130,8 @@ def track_detections(
     Distances are computed in physical units using voxel_size_um=(z,y,x).
 
     Methods:
-    - mutual_nn: mutually nearest detections.
+    - mutual_nn: mutually nearest detections using an exact distance matrix.
+    - mutual_nn_tree: mutually nearest detections using KD-tree nearest-neighbor queries.
     - mutual_rescue: protect mutual matches, then solve remaining ambiguity globally.
     - hungarian: globally optimal one-to-one distance assignment.
     - velocity_hungarian: Hungarian assignment to constant-velocity predictions.
