@@ -29,12 +29,12 @@ FEATURES = [
 ]
 
 
-def build_truth_phenotypes(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
-    scaled = nodes.copy()
-    scaled[["z", "y", "x"]] = scaled[["z", "y", "x"]].to_numpy(float) * np.asarray(
+def scale_nodes(nodes: pd.DataFrame) -> pd.DataFrame:
+    out = nodes.copy()
+    out[["z", "y", "x"]] = out[["z", "y", "x"]].to_numpy(float) * np.asarray(
         VOXEL_SIZE_UM
     )
-    return analyze(scaled, edges)
+    return out
 
 
 def match_tracks(
@@ -54,9 +54,8 @@ def match_tracks(
         return []
 
     gt_sizes = gt.groupby("track_id").size().to_dict()
-    pred_sizes = pred.groupby("track_id").size().to_dict()
-
     overlap = overlap.sort_values("overlap", ascending=False)
+
     used_gt: set[int] = set()
     used_pred: set[int] = set()
     matches = []
@@ -89,16 +88,16 @@ def compare_features(
             continue
         g = gt_by_id.loc[gt_id]
         p = pred_by_id.loc[pred_id]
-        row = {"coverage": coverage, "shared": shared}
+        row = {
+            "coverage": coverage,
+            "shared": shared,
+        }
         for feature in FEATURES:
             row[f"{feature}_abs_error"] = abs(float(p[feature]) - float(g[feature]))
         rows.append(row)
 
     if not rows:
-        return {
-            "matched_tracks": 0,
-            "mean_coverage": 0.0,
-        }
+        return {"matched_tracks": 0.0, "mean_coverage": 0.0}
 
     frame = pd.DataFrame(rows)
     result: dict[str, float] = {
@@ -133,14 +132,15 @@ def main() -> None:
         truth_dir = dataset_root / f"{sequence}_GT" / "TRA"
         truth_nodes, truth_edges, _ = load_ctc_tracking(truth_dir)
 
-        ordered_truth = (
+        truth_for_matching = (
             truth_nodes[["t", "z", "y", "x", "track_id"]]
             .sort_values(["t", "z", "y", "x"])
             .reset_index(drop=True)
         )
+        truth_for_matching["node_id"] = np.arange(len(truth_for_matching))
 
         predicted_nodes, predicted_edges = track_detections(
-            ordered_truth[["t", "z", "y", "x"]],
+            truth_for_matching[["t", "z", "y", "x"]],
             TrackingConfig(
                 max_distance_um=8.0,
                 method="mutual_nn",
@@ -148,21 +148,21 @@ def main() -> None:
             ),
         )
 
-        truth_phenotypes = build_truth_phenotypes(
-            ordered_truth.assign(node_id=np.arange(len(ordered_truth))),
+        truth_phenotypes = analyze(
+            scale_nodes(truth_nodes),
             truth_edges,
         )
-        predicted_scaled = predicted_nodes.copy()
-        predicted_scaled[["z", "y", "x"]] = predicted_scaled[["z", "y", "x"]].to_numpy(float) * np.asarray(
-            VOXEL_SIZE_UM
+        predicted_phenotypes = analyze(
+            scale_nodes(predicted_nodes),
+            predicted_edges,
         )
-        predicted_phenotypes = analyze(predicted_scaled, predicted_edges)
 
-        matches = match_tracks(
-            ordered_truth.assign(node_id=np.arange(len(ordered_truth))),
-            predicted_nodes,
+        matches = match_tracks(truth_for_matching, predicted_nodes)
+        metrics = compare_features(
+            truth_phenotypes,
+            predicted_phenotypes,
+            matches,
         )
-        metrics = compare_features(truth_phenotypes, predicted_phenotypes, matches)
         metrics.update(
             {
                 "dataset": "DIC-C2DH-HeLa",
@@ -189,7 +189,9 @@ def main() -> None:
         "aggregate": aggregate,
     }
 
-    (ROOT / "ctc_phenotype_results.json").write_text(json.dumps(output, indent=2))
+    (ROOT / "ctc_phenotype_results.json").write_text(
+        json.dumps(output, indent=2)
+    )
     print(json.dumps(output, indent=2))
 
 
