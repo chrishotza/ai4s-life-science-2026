@@ -52,7 +52,7 @@ def _mutual_tree_pairs(
         return []
 
     forward_dist, forward = cKDTree(b).query(a, k=1)
-    reverse_dist, reverse = cKDTree(a).query(b, k=1)
+    _, reverse = cKDTree(a).query(b, k=1)
     pairs = []
     for i, (distance, j) in enumerate(zip(forward_dist, forward)):
         j = int(j)
