@@ -29,23 +29,46 @@ Tracking is the infrastructure; the scientific output is the **dynamic phenotype
 
 ## Public MVP
 
-The repository currently provides a deterministic, reproducible 3-D tracking baseline from frame-wise detections and a phenotype layer over reconstructed trajectories and lineage edges.
+The repository provides a deterministic, reproducible 3-D tracking baseline from frame-wise detections and a phenotype layer over reconstructed trajectories and lineage edges.
 
-The tracking baseline expects CSV columns:
+Tracking input:
 
 `t,z,y,x`
 
-and produces node-level tracks plus an edge table with:
+Tracking output:
+
+`node_id,track_id,t,z,y,x`
+
+and an edge table:
 
 `source_id,target_id,distance_um,edge_type`
 
-The phenotype layer extracts trajectory duration, displacement, path length, mean speed, directional persistence, division events, lineage depth, descendant counts, and phenotype flags.
+The phenotype layer extracts trajectory duration, displacement, path length, mean speed, directional persistence, division events, parent/child counts, descendant counts, and phenotype flags.
 
-Run the local demo:
+## Reproducible setup
+
+Requires Python 3.10+.
 
 ```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+
+pip install -e .
+pip install -r requirements-dev.txt
+pytest -q
 python demo.py
 ```
+
+The test suite includes deterministic pipeline checks, quantitative link precision/recall/F1, and a synthetic 3-D tracking benchmark.
+
+## Synthetic benchmark
+
+The repository contains a deterministic generator for controlled trajectory experiments. It produces known 3-D cell trajectories and exact consecutive-frame ground-truth links, allowing tracking performance to be measured without hidden assumptions.
+
+This benchmark is intended for regression testing and controlled perturbation experiments before evaluation on public microscopy data.
 
 ## Research provenance
 
@@ -57,23 +80,21 @@ The public repository therefore separates:
 2. **Research tracker** — private BioHub provenance.
 3. **Phenotype interpretation** — competition-facing scientific layer.
 
-This is deliberate: the competition requires reviewers to reproduce the public repository without paid services, proprietary hardware, or non-public datasets.
-
 ## Competition positioning
 
 **Category:** End-to-End System  
 **Impact:** Single-cell Phenotype Analysis
 
-The challenge explicitly accepts cell segmentation, feature extraction and phenotype analysis from microscopy images, and evaluates problem impact, technical innovation, validation, reproducibility and presentation. The final submission will therefore emphasize measurable phenotype information rather than presenting the project as a cell-tracking benchmark alone.
+The project is intentionally framed around measurable temporal phenotype information rather than presenting cell tracking as the final scientific objective.
 
-## Next validation target
-
-The next milestone is a public evaluation harness comparing:
+## Validation roadmap
 
 - deterministic tracking baseline;
-- lineage reconstruction;
-- phenotype extraction;
-- synthetic perturbation scenarios;
-- quantitative tracking and phenotype metrics.
+- synthetic perturbation benchmark;
+- quantitative tracking metrics;
+- public microscopy dataset evaluation;
+- lineage/division validation;
+- temporal phenotype validation;
+- comparison against stronger association methods.
 
 The learned BioHub components will only be promoted into the public pipeline after their model/code redistribution and reproducibility conditions are verified.
