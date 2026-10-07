@@ -46,6 +46,28 @@ jobs:
           --threads 1
           --output-json results/ctc_metrics_02.json
           --repository-root .
+      - name: Export sequence 01 without oracle lineage
+        run: python scripts/export_ctc_reference.py --sequence 01 --distance 8.0 --lineage-mode none --output ctc_reference_export_no_oracle
+      - name: Evaluate sequence 01 TRA/LNK without oracle lineage
+        run: >-
+          python scripts/run_ctcmetrics.py
+          --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/01_GT
+          --res ctc_reference_export_no_oracle/01
+          --sequence 01
+          --threads 1
+          --output-json results/ctc_metrics_01_no_oracle.json
+          --repository-root .
+      - name: Export sequence 02 without oracle lineage
+        run: python scripts/export_ctc_reference.py --sequence 02 --distance 8.0 --lineage-mode none --output ctc_reference_export_no_oracle
+      - name: Evaluate sequence 02 TRA/LNK without oracle lineage
+        run: >-
+          python scripts/run_ctcmetrics.py
+          --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/02_GT
+          --res ctc_reference_export_no_oracle/02
+          --sequence 02
+          --threads 1
+          --output-json results/ctc_metrics_02_no_oracle.json
+          --repository-root .
       - name: Upload CTC evidence
         uses: actions/upload-artifact@v4
         with:
@@ -53,6 +75,10 @@ jobs:
           path: |
             results/ctc_metrics_01.json
             results/ctc_metrics_02.json
+            results/ctc_metrics_01_no_oracle.json
+            results/ctc_metrics_02_no_oracle.json
             ctc_reference_export/01/res_track.txt
             ctc_reference_export/02/res_track.txt
+            ctc_reference_export_no_oracle/01/res_track.txt
+            ctc_reference_export_no_oracle/02/res_track.txt
           if-no-files-found: error
