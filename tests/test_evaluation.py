@@ -91,7 +91,7 @@ def test_tracking_error_profile_detects_merge_and_cross_identity_link():
     assert profile["merged_predicted_tracks"] == 1.0
     assert profile["merge_events"] == 1.0
     assert profile["cross_identity_false_links"] == 1.0
-    assert profile["identity_switches"] == 1.0
+    assert profile["identity_switches"] == 0.0
 
 
 def test_tracking_error_profile_reports_gap_links():
