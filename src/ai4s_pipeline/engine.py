@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from ai4s_imaging import segment_frames
-from ai4s_phenotype import PhenotypeDiscoveryModel, analyze
+from ai4s_phenotype import FEATURE_SCHEMA_VERSION, PhenotypeDiscoveryModel, analyze
 from ai4s_tracking import TrackingConfig, infer_divisions, track_detections
 
 
@@ -60,7 +60,7 @@ class PipelineResult:
             "phenotype_schema_version": (
                 self.discovery_model.feature_schema_version
                 if self.discovery_model is not None
-                else None
+                else FEATURE_SCHEMA_VERSION
             ),
             "mean_link_confidence": (
                 float(self.phenotypes["mean_link_confidence"].mean())
