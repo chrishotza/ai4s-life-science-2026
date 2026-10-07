@@ -93,3 +93,21 @@ def test_discovery_model_preserves_log_transform_policy_at_fit_time():
 
     with pytest.raises(ValueError, match="requires log1p"):
         model.transform(query)
+
+def test_discovery_reports_cluster_distance_and_margin():
+    from ai4s_phenotype import discover_phenotypes
+
+    result = discover_phenotypes(
+        pd.DataFrame(
+            [
+                {"track_id": 0, "duration": 10, "observations": 11, "displacement": 1.0, "path_length": 1.2, "mean_speed": 0.1, "directional_persistence": 0.9, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+                {"track_id": 1, "duration": 10, "observations": 11, "displacement": 8.0, "path_length": 8.5, "mean_speed": 0.8, "directional_persistence": 0.9, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+                {"track_id": 2, "duration": 10, "observations": 11, "displacement": 3.0, "path_length": 12.0, "mean_speed": 0.4, "directional_persistence": 0.25, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+            ]
+        ),
+        n_clusters=3,
+    )
+    assert "phenotype_cluster_distance" in result.columns
+    assert "phenotype_cluster_margin" in result.columns
+    assert (result["phenotype_cluster_distance"] >= 0).all()
+    assert (result["phenotype_cluster_margin"] >= 0).all()
