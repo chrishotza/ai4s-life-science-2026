@@ -44,3 +44,10 @@ The repository can now export the reference-centroid association result into CTC
     python scripts/export_ctc_tracking.py --sequence 01 --distance 8.0
 
 This produces a deterministic result directory suitable as the input artifact for a future official evaluator invocation. The exporter intentionally does not claim an official TRA/LNK score by itself.
+
+
+## External evaluator adapter
+
+The repository also includes `scripts/run_ctc_tra.py`. It accepts an externally installed official TRA evaluator through the `CTC_TRA_EXECUTABLE` environment variable and records the exact command invocation at runtime.
+
+The evaluator binary is deliberately not bundled into the competition repository.
