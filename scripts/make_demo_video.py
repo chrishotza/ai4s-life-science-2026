@@ -118,7 +118,7 @@ def render_phenotype(path: Path, tracks, edges) -> None:
             phenotype_cluster_name="insufficient_cells",
         )
 
-    fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(12, 7), dpi=120)
+    fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(10, 7), dpi=120)
     cmap = plt.get_cmap("turbo")
 
     for cluster in sorted(discovered["phenotype_cluster"].unique()):
