@@ -33,6 +33,32 @@ def _descendants(root: int, children: dict[int, list[int]]) -> set[int]:
     return seen
 
 
+def _attribute_features(group: pd.DataFrame) -> dict[str, float]:
+    excluded = {
+        "node_id",
+        "track_id",
+        "t",
+        "z",
+        "y",
+        "x",
+    }
+    out: dict[str, float] = {}
+    for column in group.columns:
+        if column in excluded:
+            continue
+        if not pd.api.types.is_numeric_dtype(group[column]):
+            continue
+        values = group[column].to_numpy(float)
+        finite = values[np.isfinite(values)]
+        if finite.size == 0:
+            continue
+        out[f"mean_{column}"] = float(np.mean(finite))
+        out[f"std_{column}"] = float(np.std(finite))
+        out[f"min_{column}"] = float(np.min(finite))
+        out[f"max_{column}"] = float(np.max(finite))
+    return out
+
+
 def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     """Extract interpretable temporal phenotypes from tracked cells.
 
@@ -111,6 +137,7 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
                 "child_count": int(len(child_ids)),
                 "division_event": bool(division_event),
                 "descendant_count": int(len(descendants)),
+                **_attribute_features(g),
             }
         )
 
