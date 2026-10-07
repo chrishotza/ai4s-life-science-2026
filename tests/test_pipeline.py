@@ -87,3 +87,26 @@ def test_phenotype_attribute_summary_excludes_truth_and_identifier_columns():
     assert row["mean_area"] == 11.0
     assert "mean_truth_track" not in row
     assert "mean_object_id" not in row
+
+def test_pipeline_result_summary_is_machine_readable():
+    detections = pd.DataFrame(
+        [
+            (0, 0.0, 0.0, 0.0),
+            (1, 0.0, 0.5, 0.0),
+            (2, 0.0, 1.0, 0.0),
+        ],
+        columns=["t", "z", "y", "x"],
+    )
+    result = TemporalPhenotypeEngine(
+        PipelineConfig(
+            tracking=TrackingConfig(max_distance_um=2.0),
+            phenotype_clusters=2,
+        )
+    ).run(detections)
+
+    summary = result.summary()
+
+    assert summary["detections"] == 3
+    assert summary["tracks"] == 1
+    assert summary["temporal_links"] == 2
+    assert summary["phenotype_rows"] == 1
