@@ -33,15 +33,7 @@ class DetectorSpec:
 CANDIDATES = (
     DetectorSpec("dic_ridge_kth", "ridge", 0.0),
     DetectorSpec("dic_ridge_kth_inverted", "ridge_inverted", 0.0),
-    DetectorSpec("raw_high_p90", "high", 90.0),
     DetectorSpec("raw_high_p95", "high", 95.0),
-    DetectorSpec("raw_high_p97", "high", 97.0),
-    DetectorSpec("raw_low_p10", "low", 10.0),
-    DetectorSpec("raw_low_p5", "low", 5.0),
-    DetectorSpec("residual_pos_p90", "high_residual", 90.0, 5.0),
-    DetectorSpec("residual_pos_p95", "high_residual", 95.0, 5.0),
-    DetectorSpec("residual_neg_p10", "low_residual", 10.0, 5.0),
-    DetectorSpec("residual_neg_p5", "low_residual", 5.0, 5.0),
     DetectorSpec("residual_abs_p95", "abs_residual", 95.0, 5.0),
 )
 
