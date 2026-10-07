@@ -9,6 +9,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ai4s_core import runtime_metadata
+
 from ai4s_io import ensure_ctc_dataset, load_ctc_tracking
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
@@ -111,6 +113,7 @@ def main() -> None:
     best = summary.iloc[0].to_dict() if not summary.empty else {}
 
     output = {
+        "runtime": runtime_metadata(),
         "benchmark": {
             "dataset": "DIC-C2DH-HeLa",
             "sequences": ["01", "02"],
