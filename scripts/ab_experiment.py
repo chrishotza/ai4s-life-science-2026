@@ -170,7 +170,7 @@ def compare(metrics: dict[str, float]) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", default="mutual_nn", choices=["mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian"])
+    parser.add_argument("--method", default="mutual_nn", choices=["mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian"])
     parser.add_argument("--distance", type=float, default=8.0)
     parser.add_argument("--sweep", action="store_true")
     parser.add_argument("--output", default="ab_experiment_results.json")
