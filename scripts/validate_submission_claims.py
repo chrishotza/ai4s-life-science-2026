@@ -10,6 +10,10 @@ CRITICAL_VALUES = (
     "0.99228",
     "0.9451",
     "0.0439",
+    "0.997315",
+    "0.979091",
+    "0.997207",
+    "0.978239",
 )
 
 FILES = (
@@ -23,6 +27,7 @@ FILES = (
 REQUIRED_CAVEATS = (
     "reference centroids",
     "biological phenotype classification",
+    "not official Cell Tracking Challenge leaderboard scores",
 )
 
 def main() -> None:
@@ -33,15 +38,10 @@ def main() -> None:
             if value not in text:
                 missing.append(f"{path.relative_to(ROOT)} missing {value}")
         lowered = text.lower()
-        if "reference centroids" not in lowered:
-            missing.append(f"{path.relative_to(ROOT)} missing reference-centroid evidence boundary")
-
-    for path in FILES:
-        text = path.read_text(encoding="utf-8").lower()
-        for caveat in REQUIRED_CAVEATS:
-            if caveat not in text:
+        for required_phrase in REQUIRED_CAVEATS:
+            if required_phrase not in lowered:
                 missing.append(
-                    f"{path.relative_to(ROOT)} missing required evidence boundary: {caveat}"
+                    f"{path.relative_to(ROOT)} missing required evidence boundary: {required_phrase}"
                 )
 
     if missing:
