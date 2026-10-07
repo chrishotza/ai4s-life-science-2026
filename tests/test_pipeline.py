@@ -29,3 +29,4 @@ def test_pipeline_exposes_all_temporal_layers():
     assert not result.temporal_edges.empty
     assert set(result.phenotypes["track_id"]) == set(result.nodes["track_id"])
     assert "phenotype_cluster" in result.discovered.columns
+    assert result.discovery_model is not None
