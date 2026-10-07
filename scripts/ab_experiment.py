@@ -219,3 +219,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# Experiment protocol v1: sweep calibrated methods before changing scientific logic.
