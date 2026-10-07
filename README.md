@@ -40,8 +40,9 @@ The public implementation contains explicit reproducible layers:
 1. **Microscopy baseline** — threshold + connected-component detection for time-lapse frames.
 2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, constant-velocity Hungarian, and an experimental KD-tree MNN variant.
 3. **Lineage + temporal phenotype** — duration, displacement, path length, speed, directional persistence, temporal-integrity diagnostics, parent/child structure, divisions and descendants.
-4. **Phenotype discovery** — standardized trajectory features clustered with K-Means, with a reusable fit/transform model for cross-cohort application.
-5. **Canonical orchestration + validation** — TemporalPhenotypeEngine, data contracts, benchmark harnesses, and CI quality gates.
+4. **Experimental gap branch** — bounded gap-closing Hungarian association for incomplete observations, isolated from the validated baseline.
+5. **Phenotype discovery** — standardized trajectory features clustered with K-Means, with a reusable fit/transform model for cross-cohort application.
+6. **Canonical orchestration + validation** — TemporalPhenotypeEngine, data contracts, benchmark harnesses, and CI quality gates.
 
 Tracking tables use:
 
