@@ -35,3 +35,24 @@ def test_gap_hungarian_default_constraint_rejects_gap_setting_on_other_methods()
             method="mutual_nn",
             max_frame_gap=2,
         )
+
+def test_gap_hungarian_does_not_bridge_beyond_configured_gap():
+    detections = pd.DataFrame(
+        [
+            (0, 0.0, 0.0, 0.0),
+            (3, 0.0, 1.5, 0.0),
+        ],
+        columns=["t", "z", "y", "x"],
+    )
+
+    nodes, edges = track_detections(
+        detections,
+        TrackingConfig(
+            max_distance_um=2.0,
+            method="gap_hungarian",
+            max_frame_gap=2,
+        ),
+    )
+
+    assert nodes["track_id"].nunique() == 2
+    assert edges.empty
