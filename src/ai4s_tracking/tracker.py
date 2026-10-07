@@ -15,14 +15,19 @@ class TrackingConfig:
     max_distance_um: float = 8.0
     method: str = "mutual_nn"
     voxel_size_um: tuple[float, float, float] = (1.0, 1.0, 1.0)
+    max_frame_gap: int = 1
 
     def __post_init__(self) -> None:
         if self.max_distance_um <= 0:
             raise ValueError("max_distance_um must be positive")
-        if self.method not in {"mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian"}:
+        if self.method not in {"mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian", "gap_hungarian"}:
             raise ValueError("unknown tracking method")
         if len(self.voxel_size_um) != 3 or any(value <= 0 for value in self.voxel_size_um):
             raise ValueError("voxel_size_um must contain three positive values")
+        if self.max_frame_gap < 1:
+            raise ValueError("max_frame_gap must be >= 1")
+        if self.method != "gap_hungarian" and self.max_frame_gap != 1:
+            raise ValueError("max_frame_gap > 1 requires gap_hungarian")
 
 
 def _distance(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -121,6 +126,95 @@ def _assign_pairs(
     return _hungarian_pairs(previous, current, max_distance)
 
 
+def _track_gap_hungarian(
+    df: pd.DataFrame,
+    config: TrackingConfig,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Track while retaining unmatched tracks for a bounded temporal gap."""
+    scale = np.asarray(config.voxel_size_um, dtype=float)
+    edges = []
+    next_track = 0
+    active: dict[int, tuple[int, int]] = {}
+    last_position: dict[int, np.ndarray] = {}
+
+    for t in sorted(df["t"].unique()):
+        cur_idx = df.index[df["t"].eq(t)].to_numpy()
+        cur_xyz = df.loc[cur_idx, ["z", "y", "x"]].to_numpy(float) * scale
+
+        eligible = [
+            tr
+            for tr, (_, last_t) in active.items()
+            if 0 < int(t) - last_t <= config.max_frame_gap
+        ]
+
+        assigned_current: set[int] = set()
+        next_active: dict[int, tuple[int, int]] = {}
+
+        if eligible and len(cur_idx):
+            track_positions = np.asarray([last_position[tr] for tr in eligible], dtype=float)
+            last_times = np.asarray([active[tr][1] for tr in eligible], dtype=int)
+            frame_gaps = int(t) - last_times
+            distances = _distance(track_positions, cur_xyz)
+            normalized = distances / np.maximum(1, frame_gaps)[:, None]
+            rows, cols = linear_sum_assignment(normalized)
+
+            for row_idx, col_idx in zip(rows, cols):
+                frame_gap = int(frame_gaps[row_idx])
+                distance = float(distances[row_idx, col_idx])
+                allowed = config.max_distance_um * frame_gap
+                if distance > allowed:
+                    continue
+
+                tr = eligible[row_idx]
+                src = int(active[tr][0])
+                dst = int(cur_idx[col_idx])
+                confidence = max(0.0, 1.0 - distance / allowed)
+                df.loc[dst, "track_id"] = tr
+                assigned_current.add(int(col_idx))
+                next_active[tr] = (dst, int(t))
+                last_position[tr] = cur_xyz[col_idx]
+                edges.append((src, dst, distance, confidence, frame_gap, "link"))
+
+        for col_idx, dst in enumerate(cur_idx):
+            if col_idx in assigned_current:
+                continue
+            tr = next_track
+            next_track += 1
+            df.loc[dst, "track_id"] = tr
+            next_active[tr] = (int(dst), int(t))
+            last_position[tr] = cur_xyz[col_idx]
+
+        for tr, (last_idx, last_t) in active.items():
+            if tr not in next_active and int(t) - last_t < config.max_frame_gap:
+                next_active[tr] = (last_idx, last_t)
+
+        active = next_active
+
+    edge_df = pd.DataFrame(
+        edges,
+        columns=[
+            "source_id",
+            "target_id",
+            "distance_um",
+            "link_confidence",
+            "frame_gap",
+            "edge_type",
+        ],
+    )
+    if edge_df.empty:
+        edge_df = pd.DataFrame(
+            columns=[
+                "source_id",
+                "target_id",
+                "distance_um",
+                "link_confidence",
+                "frame_gap",
+                "edge_type",
+            ]
+        )
+    return df, edge_df
+
+
 def track_detections(
     detections: pd.DataFrame,
     config: TrackingConfig = TrackingConfig(),
@@ -135,6 +229,7 @@ def track_detections(
     - mutual_rescue: protect mutual matches, then solve remaining ambiguity globally.
     - hungarian: globally optimal one-to-one distance assignment.
     - velocity_hungarian: Hungarian assignment to constant-velocity predictions.
+    - gap_hungarian: retain tracks for a bounded number of missing frames.
     """
     required = {"t", "z", "y", "x"}
     missing = required - set(detections.columns)
@@ -148,6 +243,10 @@ def track_detections(
     )
     df["node_id"] = np.arange(len(df), dtype=int)
     df["track_id"] = -1
+
+    if config.method == "gap_hungarian":
+        validate_nodes(df)
+        return _track_gap_hungarian(df, config)
 
     scale = np.asarray(config.voxel_size_um, dtype=float)
     edges = []
