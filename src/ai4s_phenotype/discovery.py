@@ -149,14 +149,17 @@ class PhenotypeDiscoveryModel:
             -distances[np.arange(len(out)), labels]
             / max(self.assignment_distance_scale, 1e-9)
         )
-        separation_quality = (
-            out["phenotype_cluster_margin"].to_numpy(float)
-            / (
+        if distances.shape[1] > 1:
+            separation_quality = (
                 out["phenotype_cluster_margin"].to_numpy(float)
-                + distances[np.arange(len(out)), labels]
-                + 1e-9
+                / (
+                    out["phenotype_cluster_margin"].to_numpy(float)
+                    + distances[np.arange(len(out)), labels]
+                    + 1e-9
+                )
             )
-        )
+        else:
+            separation_quality = np.ones(len(out), dtype=float)
         out["phenotype_assignment_quality"] = np.clip(
             np.sqrt(distance_quality * np.clip(separation_quality, 0.0, 1.0)),
             0.0,
