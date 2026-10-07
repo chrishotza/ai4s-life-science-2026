@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 
+from ai4s_imaging import segment_frames
 from ai4s_phenotype import PhenotypeDiscoveryModel, analyze
 from ai4s_tracking import TrackingConfig, infer_divisions, track_detections
 
@@ -11,6 +13,9 @@ from ai4s_tracking import TrackingConfig, infer_divisions, track_detections
 @dataclass(frozen=True)
 class PipelineConfig:
     tracking: TrackingConfig = field(default_factory=TrackingConfig)
+    detection_threshold: float | None = None
+    detection_min_area: int = 12
+    detection_z: float = 0.0
     division_radius_um: float = 5.0
     phenotype_clusters: int = 3
     phenotype_random_state: int = 17
@@ -18,6 +23,8 @@ class PipelineConfig:
     phenotype_log_transform: bool = False
 
     def __post_init__(self) -> None:
+        if self.detection_min_area < 1:
+            raise ValueError("detection_min_area must be >= 1")
         if self.division_radius_um <= 0:
             raise ValueError("division_radius_um must be positive")
         if self.phenotype_clusters < 2:
@@ -39,6 +46,15 @@ class TemporalPhenotypeEngine:
 
     def __init__(self, config: PipelineConfig | None = None) -> None:
         self.config = config or PipelineConfig()
+
+    def run_frames(self, frames: np.ndarray) -> PipelineResult:
+        detections = segment_frames(
+            frames,
+            threshold=self.config.detection_threshold,
+            min_area=self.config.detection_min_area,
+            z=self.config.detection_z,
+        )
+        return self.run(detections)
 
     def run(self, detections: pd.DataFrame) -> PipelineResult:
         nodes, temporal_edges = track_detections(
