@@ -80,6 +80,8 @@ The repository contains deterministic microscopy-like image generators and traje
 
 The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time microscopy datasets, including reference tracking annotations and lineage metadata. The repository includes an adapter for `man_track*.tif` and `man_track.txt` data.
 
+**Data provenance and use conditions:** the DIC-C2DH-HeLa training archive used here is distributed through the official Cell Tracking Challenge dataset repository: https://celltrackingchallenge.net/2d-datasets/ . The repository downloads the training archive transiently for reproduction and does not redistribute the microscopy data or reference annotations. The Cell Tracking Challenge instructs users to review its image-use conditions before download or reuse; the final submission should preserve that provenance and comply with those conditions.
+
 ### 4.3 Organ-on-a-chip validation target
 
 A public Organ-on-a-Chip image dataset is identified as a candidate secondary validation source. The exact files, license terms, and preprocessing route must be verified before using it in the final submission.
