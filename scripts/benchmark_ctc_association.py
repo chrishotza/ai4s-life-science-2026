@@ -60,6 +60,7 @@ def score(
     }
 
 def main() -> None:
+    all_results = []
     dataset_root = ensure_ctc_dataset(ROOT / ".benchmark_cache")
 
 
