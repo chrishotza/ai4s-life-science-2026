@@ -10,7 +10,11 @@ The system therefore combines image-to-detection preprocessing, temporal associa
 
 ## 1.1 Team information
 
-**Primary contributor / repository owner:** Chris Hotza. The final team roster and team-lead designation must match the official Kaggle registration exactly at submission time.
+**Team:** Chris Hotza  
+**Team leader:** Chris Hotza  
+**Role:** primary researcher, system architect, implementation, benchmarking, and submission lead.
+
+The final team roster and team-lead designation must match the official Kaggle registration exactly at submission time.
 
 ## 2. Problem
 
@@ -269,7 +273,8 @@ The public pipeline uses standard scientific Python packages declared in `pyproj
 - **CTC methodology reference:** Maška et al., *The Cell Tracking Challenge: 10 years of objective benchmarking*, Nature Methods 20, 1010–1020 (2023), DOI 10.1038/s41592-023-01879-y.
 - **CTC metrics:** `py-ctcmetrics==1.3.3`, CellTrackingChallenge, BSD 2-Clause License.
 - **Core scientific software:** NumPy, pandas, SciPy, scikit-learn, tifffile, imagecodecs, and matplotlib are declared through the repository dependency files and should retain their upstream license/attribution notices. Development dependencies include pytest and ruff.
-- **External AI services:** none are required to run the submitted baseline, benchmarks, or demo renderer.
+- **Development AI tooling:** OpenAI ChatGPT was used as an AI-assisted development and reasoning tool during implementation and documentation. No external AI service is required at runtime, and no third-party model weights are required or redistributed by the submitted system.
+- **External AI services at runtime:** none are required to run the submitted baseline, benchmarks, or demo renderer.
 
 ## 11. Scientific impact
 
