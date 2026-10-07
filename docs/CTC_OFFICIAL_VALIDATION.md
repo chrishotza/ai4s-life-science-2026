@@ -89,7 +89,7 @@ The evaluator binary is deliberately not bundled into the competition repository
 - external evaluator log or JSON result;
 - repository commit SHA.
 
-Until an external evaluator is executed, the public quantitative claim remains the custom association F1 already documented in `docs/RESULTS.md`.
+The custom association F1 remains the primary public real-data association headline. The captured CTC-maintained TRA/LNK values are reported separately as reference-geometry association-isolation evidence. Official Cell Tracking Challenge scores are not claimed.
 
 ## Current status
 
