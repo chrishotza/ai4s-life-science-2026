@@ -39,8 +39,11 @@ def main() -> None:
 
     for path in FILES:
         text = path.read_text(encoding="utf-8").lower()
-        if "biological phenotype classification" not in text and "biological phenotype" not in text:
-            missing.append(f"{path.relative_to(ROOT)} missing biological-phenotype limitation")
+        for caveat in REQUIRED_CAVEATS:
+            if caveat not in text:
+                missing.append(
+                    f"{path.relative_to(ROOT)} missing required evidence boundary: {caveat}"
+                )
 
     if missing:
         raise SystemExit("\n".join(missing))
