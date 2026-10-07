@@ -36,6 +36,17 @@ Per-sequence results:
 
 Compared with the initial mean F1 of 0.9183, the calibrated physical-unit configuration reaches **0.9923 mean F1** while retaining approximately **0.991 precision**.
 
+### External CTC TRA/LNK association-isolation validation
+
+The same 8.0 µm mutual-nearest-neighbor association path was exported with the **reference CTC object geometry preserved** and evaluated with the pinned `py-ctcmetrics==1.3.3` implementation. This is a controlled association-isolation result, not an image-segmentation or biological-lineage score.
+
+| Sequence | TRA | LNK | AOGM | AOGM0 | Result validation |
+|---|---:|---:|---:|---:|---:|
+| 01 | **0.997315** | **0.979091** | 34.5 | 12850.0 | Valid |
+| 02 | **0.997207** | **0.978239** | 33.0 | 11816.5 | Valid |
+
+Captured in GitHub Actions run **37662335395**, with evidence artifact **ctc-tra-lnk-evidence (11501247207)**. These values are reported separately from the custom **0.99228 F1** because the metrics are not interchangeable. The exported protocol carries reference lineage only where parent/child frame ranges remain compatible; the official Cell Tracking Challenge submission evaluator was not used.
+
 The 3.0 µm point produced mean F1 0.95015. The larger physical gate therefore recovered substantially more true links without collapsing precision.
 
 ### Downstream temporal phenotype preservation
