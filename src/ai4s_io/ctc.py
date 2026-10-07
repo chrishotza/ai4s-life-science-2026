@@ -121,5 +121,5 @@ def load_ctc_tracking(sequence_dir: str | Path) -> tuple[pd.DataFrame, pd.DataFr
         columns=["track_id", "start_frame", "end_frame", "parent_id"],
     )
     validate_nodes(nodes)
-    validate_edges(edge_df, nodes)
+    validate_edges(edge_df, nodes, require_forward_time=True)
     return nodes, edge_df, metadata
