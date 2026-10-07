@@ -111,3 +111,17 @@ def test_discovery_reports_cluster_distance_and_margin():
     assert "phenotype_cluster_margin" in result.columns
     assert (result["phenotype_cluster_distance"] >= 0).all()
     assert (result["phenotype_cluster_margin"] >= 0).all()
+
+def test_discovery_model_exposes_feature_schema_version():
+    from ai4s_phenotype import FEATURE_SCHEMA_VERSION, fit_phenotype_model
+
+    base = pd.DataFrame(
+        [
+            {"track_id": 0, "duration": 1, "observations": 2, "displacement": 0.1, "path_length": 0.2, "mean_speed": 0.1, "directional_persistence": 0.9, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+            {"track_id": 1, "duration": 2, "observations": 3, "displacement": 0.2, "path_length": 0.4, "mean_speed": 0.2, "directional_persistence": 0.8, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+            {"track_id": 2, "duration": 3, "observations": 4, "displacement": 0.3, "path_length": 0.6, "mean_speed": 0.3, "directional_persistence": 0.7, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+        ]
+    )
+    model = fit_phenotype_model(base, n_clusters=3, random_state=17)
+
+    assert model.feature_schema_version == FEATURE_SCHEMA_VERSION
