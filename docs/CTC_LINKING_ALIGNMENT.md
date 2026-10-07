@@ -26,3 +26,9 @@ It is not part of the published baseline until it demonstrates an improvement un
 A detection dropout should not automatically force a cell identity reset. A bounded temporal-gap layer gives the architecture a place to test that hypothesis without contaminating the current MNN baseline.
 
 The benchmark protocol also gives us a principled future route to compare this branch against a recognized linking-oriented evaluation instead of relying only on custom F1.
+
+## Output boundary
+
+The repository now includes a deterministic CTC result writer at `ai4s_io.write_ctc_tracking`. It maps internal track IDs to positive contiguous labels and rejects centroid collisions instead of silently overwriting them.
+
+This creates a reproducible artifact boundary for future CTC TRA/LNK evaluation without changing the current benchmark semantics.
