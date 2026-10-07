@@ -11,7 +11,7 @@ Most pipelines stop at segmentation or tracking. This system treats tracking as 
 
 > **What phenotype is a cell expressing over time, and how does that phenotype change across trajectories and lineages?**
 
-The engine combines transparent image preprocessing, temporal association, 3-D trajectory analysis, and unsupervised phenotype discovery.
+The engine combines transparent image preprocessing, temporal association, 3-D trajectory analysis, lineage/event inference, and unsupervised phenotype discovery.
 
 ## System
 
@@ -38,7 +38,7 @@ interpretable phenotype report
 The public implementation contains four reproducible layers:
 
 1. **Microscopy baseline** — threshold + connected-component detection for time-lapse frames.
-2. **Tracking baseline** — deterministic mutual-nearest-neighbor 3-D temporal association.
+2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, and constant-velocity Hungarian methods.
 3. **Temporal phenotype engine** — duration, displacement, path length, speed, directional persistence, parent/child structure, divisions and descendants.
 4. **Phenotype discovery** — standardized trajectory features clustered with K-Means into interpretable behavioral groups.
 
@@ -53,6 +53,8 @@ and produce:
 plus:
 
 `source_id,target_id,distance_um,edge_type`
+
+Distances can be evaluated in physical units through `voxel_size_um=(z,y,x)`.
 
 ## Reproducible setup
 
@@ -71,7 +73,7 @@ pytest -q
 python demo.py
 ```
 
-The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, temporal phenotypes, and discovered phenotype groups.
+The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups.
 
 ## Quantitative validation
 
@@ -82,13 +84,23 @@ The repository includes:
 - exact synthetic trajectory ground truth;
 - microscopy-to-detection tests;
 - phenotype discovery tests;
-- controlled synthetic perturbations for stress testing.
+- controlled synthetic perturbations;
+- real Cell Tracking Challenge association benchmarking.
 
-The next evaluation target is a public microscopy benchmark with reference annotations.
+See **[docs/RESULTS.md](docs/RESULTS.md)** for measured results and the evidence policy.
 
-## Public benchmark target
+## Real benchmark
 
-The Cell Tracking Challenge provides freely downloadable 2D+time and 3D+time microscopy datasets with reference annotations. The repository is designed so the same detection/tracking/phenotype pipeline can be evaluated against those public references. Real benchmark results will be reported only after an actual run, not inferred from synthetic tests.
+The CTC benchmark currently uses **DIC-C2DH-HeLa sequences 01 and 02**. The evaluation feeds the reference track centroids into the association stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
+
+The active benchmark sweeps:
+
+- mutual nearest neighbor;
+- Hungarian assignment;
+- constant-velocity Hungarian assignment;
+- physical distance thresholds from 0.8 to 3.0 µm.
+
+Real results are generated in GitHub Actions and stored as artifacts; the repository never commits the dataset itself.
 
 ## Scientific output
 
@@ -117,10 +129,10 @@ The intended contribution is a reproducible pipeline that moves from microscopy 
 
 ## Validation roadmap
 
-1. Public microscopy benchmark evaluation.
-2. Baseline comparison against stronger association methods.
-3. Division/lineage validation.
-4. Phenotype-discovery stability analysis.
-5. Real experimental perturbation case study.
-6. 5-minute demonstration and 15–20 page technical report.
+1. Complete the CTC method/threshold ablation.
+2. Select the best association configuration using mean F1 across both sequences.
+3. Validate phenotype stability under controlled tracking perturbations.
+4. Add representative real-data visualizations.
+5. Produce the final 5-minute demonstration.
+6. Finalize the technical report and Kaggle Writeup.
 
