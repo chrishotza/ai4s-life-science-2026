@@ -52,6 +52,12 @@ For each track, the engine computes:
 - division-event flag;
 - observation fraction and temporal-gap diagnostics.
 
+### 3.6 Auxiliary observation features
+
+When detections contain numeric measurements beyond coordinates and identifiers, the phenotype layer now preserves per-track summaries of those observations. The current microscopy baseline exposes area and mean intensity, so these measurements are retained for future morphology-and-motion analyses.
+
+The published discovery benchmark remains trajectory/lineage-only. Auxiliary features are therefore additive metadata, not a silent change to the validated clustering feature space.
+
 ### 3.5 Phenotype discovery
 
 Standardized temporal features are clustered with K-Means to obtain unsupervised behavioral groups. The clusters are reported together with interpretable feature summaries rather than opaque class IDs alone.
