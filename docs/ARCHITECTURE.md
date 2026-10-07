@@ -83,7 +83,7 @@ The production discovery feature space remains unchanged. The diagnostics make a
 
 ## Model lifecycle
 
-Phenotype discovery now has an explicit fit/transform boundary. A fitted discovery model stores the scaler, K-Means model, feature schema, transformation policy, and interpretable cluster names.
+Phenotype discovery now has an explicit fit/transform boundary. A fitted discovery model stores the scaler, K-Means model, versioned feature schema, transformation policy, and interpretable cluster names.
 
 This makes it possible to fit phenotype states on a reference cohort and transform a new cohort without silently re-fitting the clustering model. It is a prerequisite for scientifically meaningful cross-condition comparisons.
 
