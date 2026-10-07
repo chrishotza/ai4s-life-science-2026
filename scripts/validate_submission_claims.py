@@ -66,6 +66,11 @@ FORMAL_REQUIREMENTS = {
         "reference centroids",
         "biological phenotype score",
     ),
+    ROOT / "docs" / "TECHNICAL_REPORT.md": (
+        "track_integrity_score",
+        "phenotype_assignment_quality",
+        "phenotype_reliability_score",
+    ),
     ROOT / "requirements-lock-py311.txt": (
         "numpy==2.4.6",
         "pandas==3.0.6",
