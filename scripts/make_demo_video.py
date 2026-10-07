@@ -63,6 +63,37 @@ def normalize(image: np.ndarray) -> np.ndarray:
     return np.clip((image - lo) / (hi - lo), 0, 1)
 
 
+
+def render_title(path: Path) -> None:
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=120)
+    ax.set_axis_off()
+    ax.text(
+        0.05, 0.80,
+        "Temporal Cellular\nPhenotype Engine",
+        fontsize=31,
+        weight="bold",
+        va="top",
+    )
+    ax.text(
+        0.05, 0.51,
+        "Microscopy  →  Tracking  →  Temporal phenotype  →  Discovery",
+        fontsize=15,
+    )
+    ax.text(
+        0.05, 0.38,
+        "AI4S Life Science 2026  |  End-to-End System",
+        fontsize=12,
+    )
+    ax.text(
+        0.05, 0.22,
+        "Real DIC-C2DH-HeLa microscopy with a deterministic, reproducible baseline.",
+        fontsize=10,
+    )
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
 def render_frame(
     image: np.ndarray,
     tracks,
@@ -233,6 +264,8 @@ def main() -> None:
                     frame = frame[0]
             render_frame(frame, predicted, i, len(images), frame_dir / f"frame_{i:04d}.png")
 
+        title_path = tmp_path / "title.png"
+        render_title(title_path)
         phenotype_path = tmp_path / "phenotype.png"
         render_phenotype(phenotype_path, predicted, predicted_edges)
         summary_path = tmp_path / "summary.png"
@@ -241,15 +274,18 @@ def main() -> None:
         output = ROOT / "ai4s_demo_video.mp4"
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
+            "-loop", "1",
+            "-t", str(3),
+            "-i", str(title_path),
             "-framerate", str(FPS),
             "-i", str(frame_dir / "frame_%04d.png"),
             "-loop", "1",
-            "-t", str(5),
+            "-t", str(6),
             "-i", str(phenotype_path),
             "-loop", "1",
-            "-t", str(4),
+            "-t", str(5),
             "-i", str(summary_path),
-            "-filter_complex", "[1:v]fps=6[phenotype];[2:v]fps=6[summary];[0:v][phenotype][summary]concat=n=3:v=1:a=0[v]",
+            "-filter_complex", "[0:v]fps=6[title];[2:v]fps=6[phenotype];[3:v]fps=6[summary];[title][1:v][phenotype][summary]concat=n=4:v=1:a=0[v]",
             "-map", "[v]",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
@@ -264,4 +300,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# Render protocol v4: isolate timeline frames from static phenotype/summary panels.
+# Render protocol v5: intro card + real microscopy + phenotype discovery + validation summary.
