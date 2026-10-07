@@ -110,14 +110,13 @@ def run_case(noise_um: float, drop_rate: float, seed: int) -> dict[str, float | 
         seed=seed,
     )
     nodes, edges = track_detections(
-        raw[["t", "z", "y", "x"]],
+        raw[["t", "z", "y", "x", "truth_track", "truth_group"]],
         TrackingConfig(
             max_distance_um=2.5,
             method="mutual_nn",
             voxel_size_um=(1.0, 1.0, 1.0),
         ),
     )
-    nodes["truth_track"] = raw["truth_track"].to_numpy()
     truth_groups = raw.drop_duplicates("truth_track").set_index("truth_track")["truth_group"].to_dict()
     phenotypes = analyze(nodes, edges)
     discovered = (
