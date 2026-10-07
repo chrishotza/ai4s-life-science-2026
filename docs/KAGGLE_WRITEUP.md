@@ -39,6 +39,10 @@ For each trajectory, the engine derives:
 
 These features form a compact temporal phenotype profile that can be clustered into interpretable behavioral groups.
 
+### End-to-end implementation boundary
+
+The public engine provides a canonical image-to-phenotype path through baseline detection, while the real CTC experiment intentionally bypasses segmentation by using reference centroids. This separation makes the quantitative association result interpretable instead of presenting a centroid benchmark as an image-segmentation score.
+
 ### Real benchmark evidence
 
 The system was evaluated on DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge.
