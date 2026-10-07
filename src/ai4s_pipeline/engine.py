@@ -40,6 +40,31 @@ class PipelineResult:
     discovered: pd.DataFrame
     discovery_model: PhenotypeDiscoveryModel | None
 
+    def summary(self) -> dict[str, float | int | None]:
+        summary: dict[str, float | int | None] = {
+            "detections": int(len(self.nodes)),
+            "tracks": int(self.nodes["track_id"].nunique()) if not self.nodes.empty else 0,
+            "temporal_links": int(len(self.temporal_edges)),
+            "lineage_edges": int(len(self.lineage_edges)),
+            "phenotype_rows": int(len(self.phenotypes)),
+            "discovered_clusters": (
+                int(self.discovered["phenotype_cluster"].nunique())
+                if "phenotype_cluster" in self.discovered.columns
+                else 0
+            ),
+            "mean_link_confidence": (
+                float(self.phenotypes["mean_link_confidence"].mean())
+                if "mean_link_confidence" in self.phenotypes.columns and len(self.phenotypes)
+                else None
+            ),
+            "mean_observation_fraction": (
+                float(self.phenotypes["observation_fraction"].mean())
+                if "observation_fraction" in self.phenotypes.columns and len(self.phenotypes)
+                else None
+            ),
+        }
+        return summary
+
 
 class TemporalPhenotypeEngine:
     """Single orchestration boundary from detections to temporal phenotype."""
