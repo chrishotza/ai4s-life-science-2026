@@ -22,10 +22,11 @@
 - [ ] Re-run CI on the final public commit
 - [ ] Confirm all benchmark scripts reproduce their published numbers
 - [x] Add representative real-data visualization artifact
-- [x] Produce final demo video renderer
+- [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup
 - [ ] Submit final technical report
 - [ ] Add independent biological phenotype validation if time permits
+- [ ] Produce final narrated demo video (max 5 minutes)
 - [ ] Final consistency check: no claim exceeds measured evidence
 
 ## Claims policy
