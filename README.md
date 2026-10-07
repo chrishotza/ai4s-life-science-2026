@@ -88,6 +88,7 @@ The repository includes:
 - phenotype discovery tests;
 - controlled synthetic perturbations;
 - end-to-end tracking-to-phenotype robustness under perturbed detections;
+- deterministic tracking-error taxonomy (identity switches, fragmentation, merges, missed/false links and temporal-gap diagnostics);
 - real Cell Tracking Challenge association benchmarking;
 - downstream temporal phenotype preservation benchmarking.
 
