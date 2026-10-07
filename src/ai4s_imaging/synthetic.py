@@ -16,10 +16,18 @@ def moving_blobs(
     """Create a deterministic microscopy-like stack of moving bright cells."""
     if min(frames, height, width, cells) < 1:
         raise ValueError("dimensions must be positive")
+    if radius <= 0:
+        raise ValueError("radius must be positive")
 
     rng = np.random.default_rng(seed)
     yy, xx = np.mgrid[0:height, 0:width]
-    start = rng.uniform(12, min(height, width) - 12, size=(cells, 2))
+    margin = min(12.0, max(1.0, min(height, width) / 4.0))
+    low = margin
+    high = min(height, width) - margin
+    if high <= low:
+        low = 0.5
+        high = max(low + 1.0, min(height, width) - 0.5)
+    start = rng.uniform(low, high, size=(cells, 2))
     velocity = rng.normal(0, 0.8, size=(cells, 2))
 
     stack = np.zeros((frames, height, width), dtype=np.float32)
