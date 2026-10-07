@@ -33,6 +33,7 @@ jobs:
           --res ctc_reference_export/01
           --sequence 01
           --threads 1
+          --lineage-mode oracle-compatible
           --output-json results/ctc_metrics_01.json
           --repository-root .
       - name: Export sequence 02
@@ -44,6 +45,7 @@ jobs:
           --res ctc_reference_export/02
           --sequence 02
           --threads 1
+          --lineage-mode oracle-compatible
           --output-json results/ctc_metrics_02.json
           --repository-root .
       - name: Export sequence 01 without oracle lineage
@@ -55,6 +57,7 @@ jobs:
           --res ctc_reference_export_no_oracle/01
           --sequence 01
           --threads 1
+          --lineage-mode none
           --output-json results/ctc_metrics_01_no_oracle.json
           --repository-root .
       - name: Export sequence 02 without oracle lineage
@@ -66,6 +69,7 @@ jobs:
           --res ctc_reference_export_no_oracle/02
           --sequence 02
           --threads 1
+          --lineage-mode none
           --output-json results/ctc_metrics_02_no_oracle.json
           --repository-root .
       - name: Upload CTC evidence
