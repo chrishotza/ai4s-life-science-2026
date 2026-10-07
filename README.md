@@ -158,6 +158,7 @@ The final output is not merely a track ID. For each cell trajectory the engine p
 - division events;
 - descendant structure;
 - temporal integrity and tracking-link confidence diagnostics;
+- bounded trajectory-integrity and phenotype-reliability scores;
 - unsupervised phenotype group.
 
 This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments. The intended scientific unit is the cell trajectory: the engine converts temporal motion, persistence, gaps, and lineage context into reproducible per-cell features that can be compared across cohorts and experimental conditions.
