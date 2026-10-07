@@ -53,7 +53,7 @@ TemporalPhenotypeEngine is the canonical production path from detections to:
 - phenotype table;
 - discovered phenotype groups.
 
-Benchmark scripts are intentionally outside this production boundary.
+Benchmark scripts are intentionally outside this production boundary. PipelineResult also exposes a machine-readable summary so demos and future service/API layers can consume the same execution state without reconstructing metrics from raw tables.
 
 ## Evaluation boundary
 
