@@ -86,9 +86,9 @@ The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time mi
 
 **Data provenance and use conditions:** the DIC-C2DH-HeLa training archive used here is distributed through the official Cell Tracking Challenge dataset repository: https://celltrackingchallenge.net/2d-datasets/ . The repository downloads the training archive transiently for reproduction and does not redistribute the microscopy data or reference annotations. The Cell Tracking Challenge instructs users to review its image-use conditions before download or reuse; the final submission should preserve that provenance and comply with those conditions.
 
-### 4.3 Organ-on-a-chip validation target
+### 4.3 Secondary validation scope
 
-A public Organ-on-a-Chip image dataset is identified as a candidate secondary validation source. The exact files, license terms, and preprocessing route must be verified before using it in the final submission.
+No secondary Organ-on-a-Chip dataset is used in the reported quantitative results. The validated real-data evidence in this submission is based on the DIC-C2DH-HeLa sequences described above.
 
 ## 5. Experimental design
 
@@ -263,6 +263,14 @@ The CI workflow is configured for Python 3.11 and includes syntax, dependency, r
 
 The public pipeline uses standard scientific Python packages declared in `pyproject.toml` and the requirements files. Core dependencies are specified by minimum versions for the general pipeline; the CTC validation dependency is pinned to **py-ctcmetrics==1.3.3**. `py-ctcmetrics` is released under the BSD 2-Clause License and is maintained by the Cell Tracking Challenge project. The final submission should preserve the corresponding upstream attribution and citation. The technical report should also retain the official CTC dataset provenance and Nature Methods citation described in Section 4.
 
+## 10.2 Sources and licenses
+
+- **Cell Tracking Challenge dataset:** DIC-C2DH-HeLa training data and reference annotations are obtained from the official CTC dataset repository. CTC permits use for challenge preparation, participation, and reporting without additional consent, while prohibiting cloning/redistribution of the datasets or annotations. Any publication resulting from CTC data use should acknowledge the CTC and cite its Nature Methods paper.
+- **CTC methodology reference:** Maška et al., *The Cell Tracking Challenge: 10 years of objective benchmarking*, Nature Methods 20, 1010–1020 (2023), DOI 10.1038/s41592-023-01879-y.
+- **CTC metrics:** `py-ctcmetrics==1.3.3`, CellTrackingChallenge, BSD 2-Clause License.
+- **Core scientific software:** NumPy, pandas, SciPy, scikit-learn, tifffile, imagecodecs, and matplotlib are declared through the repository dependency files and should retain their upstream license/attribution notices. Development dependencies include pytest and ruff.
+- **External AI services:** none are required to run the submitted baseline, benchmarks, or demo renderer.
+
 ## 11. Scientific impact
 
 The intended output is a dynamic phenotype representation that can support:
@@ -275,7 +283,7 @@ The intended output is a dynamic phenotype representation that can support:
 
 ## 12. Final submission evidence
 
-The final Kaggle submission should only claim quantitative performance that is directly reproduced by the submission repository once public.
+The final Kaggle submission should only claim quantitative performance that is directly reproduced by the submitted repository.
 
 Required evidence before submission:
 
