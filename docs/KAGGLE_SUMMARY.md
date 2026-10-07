@@ -12,6 +12,6 @@ On DIC-C2DH-HeLa sequences 01 and 02, mutual-nearest-neighbor association with a
 
 The same association path was independently evaluated with pinned **py-ctcmetrics==1.3.3** using preserved reference object geometry: **sequence 01 TRA 0.997315 / LNK 0.979091; sequence 02 TRA 0.997207 / LNK 0.978239**.
 
-These are reference-geometry association-isolation results, not end-to-end segmentation or biological phenotype classification and **not official Cell Tracking Challenge leaderboard scores**. Biological phenotype validity still requires independent biological labels or perturbation annotations.
+These are reference-geometry association-isolation results, not end-to-end segmentation or biological phenotype classification and **not official Cell Tracking Challenge leaderboard scores**. Biological phenotype validity still requires independent biological labels or perturbation annotations. A no-oracle sensitivity control produced identical TRA/LNK values on both sequences.
 
 The contribution is a reproducible bridge from **microscopy → trajectories → interpretable temporal phenotype**.
