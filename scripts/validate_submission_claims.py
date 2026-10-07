@@ -71,6 +71,12 @@ FORMAL_REQUIREMENTS = {
         "phenotype_assignment_quality",
         "phenotype_reliability_score",
     ),
+    ROOT / "docs" / "ABLATION_AND_FAILURES.md": (
+        "Generic percentile thresholding",
+        "Classical DIC ridge segmentation",
+        "Lightweight supervised pixel/region model",
+        "No image-level method is promoted into the headline benchmark",
+    ),
     ROOT / "requirements-lock-py311.txt": (
         "numpy==2.4.6",
         "pandas==3.0.6",
