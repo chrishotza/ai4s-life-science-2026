@@ -4,9 +4,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import zipfile
 from pathlib import Path
-from urllib.request import urlretrieve
 
 import matplotlib
 matplotlib.use("Agg")
@@ -17,7 +15,7 @@ import tifffile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ai4s_io import load_ctc_tracking
+from ai4s_io import ensure_ctc_dataset, load_ctc_tracking
 from ai4s_phenotype import analyze, discover_phenotypes
 from ai4s_tracking import TrackingConfig, track_detections
 
@@ -29,18 +27,7 @@ FPS = 6
 
 
 def prepare_dataset() -> Path:
-    work = ROOT / ".benchmark_cache"
-    work.mkdir(exist_ok=True)
-    archive = work / "DIC-C2DH-HeLa.zip"
-    if not archive.exists():
-        print(f"Downloading {DATA_URL}", flush=True)
-        urlretrieve(DATA_URL, archive)
-    root = work / "dataset" / "DIC-C2DH-HeLa"
-    if not root.exists():
-        root.parent.mkdir(exist_ok=True)
-        with zipfile.ZipFile(archive) as zf:
-            zf.extractall(root.parent)
-    return root
+    return ensure_ctc_dataset(ROOT / ".benchmark_cache")
 
 
 def image_files(root: Path) -> list[Path]:
