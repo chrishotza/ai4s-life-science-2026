@@ -12,6 +12,7 @@ dependencies = [
   "pandas>=2.2",
   "scipy>=1.11",
   "scikit-learn>=1.4",
+  "tifffile>=2024.2",
 ]
 
 [tool.setuptools.packages.find]
