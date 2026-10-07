@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import tifffile
 
-from ai4s_core import validate_edges, validate_nodes
+from ai4s_core import validate_edges, validate_lineage_graph, validate_nodes
 
 CTC_DIC_C2DH_HELA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
 DIC_C2DH_HELA_VOXEL_SIZE_UM = (1.0, 0.19, 0.19)
@@ -140,4 +140,7 @@ def load_ctc_tracking(sequence_dir: str | Path) -> tuple[pd.DataFrame, pd.DataFr
             raise ValueError(f"metadata references unknown parent_id {parent_id}")
     validate_nodes(nodes)
     validate_edges(edge_df, nodes, require_forward_time=True)
+    division_edges = edge_df[edge_df["edge_type"].eq("division_parent")][["source_id", "target_id"]]
+    if not division_edges.empty:
+        validate_lineage_graph(nodes, division_edges)
     return nodes, edge_df, metadata
