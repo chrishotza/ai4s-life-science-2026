@@ -17,6 +17,7 @@ from ai4s_phenotype import analyze, discover_phenotypes
 from ai4s_tracking import TrackingConfig, track_detections
 
 N_FRAMES = 36
+METHODS = ("mutual_nn", "gap_hungarian")
 GROUPS = {
     "persistent_slow": {"speed": 0.45, "turn": 0.02},
     "persistent_fast": {"speed": 1.05, "turn": 0.02},
@@ -104,7 +105,7 @@ def track_purity(nodes: pd.DataFrame) -> tuple[float, float, int]:
     )
 
 
-def run_case(noise_um: float, drop_rate: float, seed: int) -> dict[str, float | int]:
+def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[str, float | int | str]:
     raw = perturb(
         make_detections(),
         noise_um=noise_um,
@@ -115,8 +116,9 @@ def run_case(noise_um: float, drop_rate: float, seed: int) -> dict[str, float | 
         raw[["t", "z", "y", "x"]],
         TrackingConfig(
             max_distance_um=2.5,
-            method="mutual_nn",
+            method=method,
             voxel_size_um=(1.0, 1.0, 1.0),
+            max_frame_gap=2 if method == "gap_hungarian" else 1,
         ),
     )
     raw_sorted = raw.sort_values(["t", "z", "y", "x"]).reset_index(drop=True)
@@ -167,6 +169,7 @@ def run_case(noise_um: float, drop_rate: float, seed: int) -> dict[str, float | 
     )
 
     return {
+        "method": method,
         "noise_um": noise_um,
         "drop_rate": drop_rate,
         "tracks_predicted": int(nodes["track_id"].nunique()),
@@ -185,7 +188,8 @@ def main() -> None:
         (0.35, 0.15),
     ]
     rows = [
-        run_case(noise, drop, 500 + index)
+        run_case(noise, drop, 500 + index, method)
+        for method in METHODS
         for index, (noise, drop) in enumerate(cases)
     ]
     frame = pd.DataFrame(rows)
