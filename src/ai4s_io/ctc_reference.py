@@ -137,6 +137,6 @@ def write_ctc_reference_geometry(
             prediction_id = int(row.track_id)
             label = label_map[prediction_id]
             parent = parent_map[prediction_id]
-            handle.write(f"{label} {int(row.start_frame)} {int(row.end_frame)} {parent}\\n")
+            handle.write(f"{label} {int(row.start_frame)} {int(row.end_frame)} {parent}\n")
 
     return label_map
