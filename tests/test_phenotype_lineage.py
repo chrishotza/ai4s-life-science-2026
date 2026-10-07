@@ -36,3 +36,21 @@ def test_division_event_and_descendants_are_extracted_from_lineage_edges():
     assert int(result.loc[1, "parent_count"]) == 1
     assert int(result.loc[2, "parent_count"]) == 1
     assert result.loc[0, "phenotype_flag"] == "division"
+
+def test_phenotype_reports_temporal_integrity():
+    nodes = pd.DataFrame(
+        [
+            (0, 0, 0, 0.0, 0.0, 0.0),
+            (1, 0, 2, 0.0, 1.0, 0.0),
+            (2, 0, 3, 0.0, 2.0, 0.0),
+        ],
+        columns=["node_id", "track_id", "t", "z", "y", "x"],
+    )
+    edges = pd.DataFrame([(0, 1), (1, 2)], columns=["source_id", "target_id"])
+    result = analyze(nodes, edges).iloc[0]
+
+    assert result["duration"] == 3
+    assert result["observations"] == 3
+    assert result["observation_fraction"] == 0.75
+    assert result["gap_count"] == 1
+    assert result["max_gap"] == 2
