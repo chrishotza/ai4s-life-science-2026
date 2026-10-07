@@ -11,6 +11,9 @@
 - [x] End-to-end tracking-to-phenotype robustness benchmark
 - [x] Explicit architecture/data-contract layer
 - [x] CTC lineage/division representation validation
+- [x] CTC-maintained TRA/LNK external validation on sequences 01 and 02
+- [x] Reproducible CTC TRA/LNK evidence artifact captured
+- [x] Submission claim audit synchronized with CTC TRA/LNK values
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
 - [x] Five-minute demo script
@@ -29,7 +32,14 @@
 - [ ] Submit final technical report
 - [ ] Add independent biological phenotype validation if time permits
 - [ ] Produce final narrated demo video (max 5 minutes)
-- [ ] Final consistency check: no claim exceeds measured evidence
+- [x] Final consistency check: no claim exceeds measured evidence
+
+## Current verified state
+
+- `main` contains the merged external CTC validation bridge.
+- Captured `py-ctcmetrics==1.3.3` results are documented for sequences 01 and 02.
+- Official Cell Tracking Challenge leaderboard scores remain explicitly unclaimed.
+- Repository visibility is still **private**; making it public is a separate submission action and has not been changed automatically.
 
 ## Claims policy
 
