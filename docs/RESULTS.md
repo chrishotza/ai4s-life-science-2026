@@ -45,7 +45,7 @@ The same 8.0 µm mutual-nearest-neighbor association path was exported with the 
 | 01 | **0.997315** | **0.979091** | 34.5 | 12850.0 | Valid |
 | 02 | **0.997207** | **0.978239** | 33.0 | 11816.5 | Valid |
 
-Captured in GitHub Actions run **37662335395**, with evidence artifact **ctc-tra-lnk-evidence (11501247207)**. These values are reported separately from the custom **0.99228 F1** because the metrics are not interchangeable. The exported protocol carries reference lineage only where parent/child frame ranges remain compatible; the official Cell Tracking Challenge submission evaluator was not used.
+Captured in GitHub Actions run **37662335395**, with evidence artifact **ctc-tra-lnk-evidence (11501247207)**. These values are reported separately from the custom **0.99228 F1** because the metrics are not interchangeable. The exported protocol carries reference lineage only where parent/child frame ranges remain compatible. These are reference-geometry association-isolation results and **not official Cell Tracking Challenge leaderboard scores**; the official submission evaluator was not used.
 
 The 3.0 µm point produced mean F1 0.95015. The larger physical gate therefore recovered substantially more true links without collapsing precision.
 
