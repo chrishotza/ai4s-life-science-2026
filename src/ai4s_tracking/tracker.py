@@ -206,7 +206,8 @@ def track_detections(
             position = df.loc[dst, ["z", "y", "x"]].to_numpy(float) * scale
             history.setdefault(tr, []).append((int(t), position))
             history[tr] = history[tr][-3:]
-            edges.append((src, dst, dist, "link"))
+            link_confidence = max(0.0, 1.0 - dist / config.max_distance_um)
+            edges.append((src, dst, dist, link_confidence, "link"))
 
         for ci, dst in enumerate(cur_idx):
             if ci not in used:
@@ -223,10 +224,22 @@ def track_detections(
 
     edge_df = pd.DataFrame(
         edges,
-        columns=["source_id", "target_id", "distance_um", "edge_type"],
+        columns=[
+            "source_id",
+            "target_id",
+            "distance_um",
+            "link_confidence",
+            "edge_type",
+        ],
     )
     if edge_df.empty:
         edge_df = pd.DataFrame(
-            columns=["source_id", "target_id", "distance_um", "edge_type"]
+            columns=[
+                "source_id",
+                "target_id",
+                "distance_um",
+                "link_confidence",
+                "edge_type",
+            ]
         )
     return df, edge_df
