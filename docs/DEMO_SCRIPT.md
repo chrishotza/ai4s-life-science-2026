@@ -1,6 +1,10 @@
 # 5-Minute Demo Script
 
+The repository renderer produces a concise proof clip of the core system. The final submission can use that clip as the visual backbone while the 5-minute narration follows the sections below.
+
 ## 0:00–0:30 — Problem
+
+Use the rendered intro card and first real-microscopy frames as the visual hook.
 
 "Microscopy produces huge volumes of cell observations, but segmentation or tracking alone does not answer the biological question. We want to recover how each cell behaves over time."
 
