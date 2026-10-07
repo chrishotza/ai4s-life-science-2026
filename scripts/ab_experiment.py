@@ -198,8 +198,9 @@ def main() -> None:
         json.dumps(
             {
                 "official_competition_score": False,
-                "baseline_commit": "07830adddf77fa61af8c7c05b2533f289c767a8b",
+                "baseline_source": "docs/RESULTS.md | DIC-C2DH-HeLa 01/02 | mutual_nn | 8.0 µm",
                 "frozen_baseline": BASELINE,
+
                 "reports": reports,
             },
             indent=2,
