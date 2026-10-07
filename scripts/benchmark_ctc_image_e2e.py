@@ -19,8 +19,8 @@ from ai4s_tracking import link_metrics, TrackingConfig, track_detections
 
 VOXEL_SIZE_UM = DIC_C2DH_HELA_VOXEL_SIZE_UM
 MATCH_RADIUS_PX = 6.0
-MIN_AREA = 20
-MAX_AREA = 5000
+MIN_AREA = 200
+MAX_AREA = 30000
 GATES_UM = (8.0,)
 
 @dataclass(frozen=True)
@@ -31,6 +31,7 @@ class DetectorSpec:
     sigma: float = 0.0
 
 CANDIDATES = (
+    DetectorSpec("dic_ridge_kth", "ridge", 0.0),
     DetectorSpec("raw_high_p90", "high", 90.0),
     DetectorSpec("raw_high_p95", "high", 95.0),
     DetectorSpec("raw_high_p97", "high", 97.0),
@@ -49,7 +50,68 @@ def image_files(root: Path, sequence: str) -> list[Path]:
         raise FileNotFoundError(f"No microscopy TIFF frames found for sequence {sequence}")
     return candidates
 
+
+def _dic_ridge_mask(frame: np.ndarray) -> np.ndarray:
+    image = np.asarray(frame, dtype=np.float32)
+    finite = np.isfinite(image)
+    if not finite.any():
+        return np.zeros_like(image, dtype=bool)
+
+    values = image[finite]
+    lo, hi = np.percentile(values, (1.0, 99.0))
+    if hi <= lo:
+        return np.zeros_like(image, dtype=bool)
+    image = np.clip((image - lo) / (hi - lo), 0.0, 1.0)
+
+    ridge_max = np.zeros_like(image, dtype=np.float32)
+    for sigma in range(5, 11):
+        smooth = ndimage.gaussian_filter(image, sigma=float(sigma))
+        hxx = ndimage.gaussian_filter(smooth, sigma=0.0, order=(0, 2))
+        hyy = ndimage.gaussian_filter(smooth, sigma=0.0, order=(2, 0))
+        hxy = ndimage.gaussian_filter(smooth, sigma=0.0, order=(1, 1))
+
+        trace = hxx + hyy
+        disc = np.sqrt(np.maximum((hxx - hyy) ** 2 + 4.0 * hxy ** 2, 0.0))
+        lambda1 = 0.5 * (trace - disc)
+        lambda2 = 0.5 * (trace + disc)
+
+        denominator = np.maximum(np.abs(lambda1), 1e-12)
+        rb = np.abs(lambda2) / denominator
+        s_value = lambda1 ** 2 + lambda2 ** 2
+        response = np.exp(-(rb ** 2)) * (1.0 - np.exp(-s_value / 100.0))
+        response[lambda1 > 0] = 0.0
+        ridge_max = np.maximum(ridge_max, response.astype(np.float32))
+
+    ridge = ndimage.gaussian_filter(ridge_max, sigma=1.0)
+    transformed = np.arcsinh(20.0 * ridge)
+    mean_value = float(np.mean(transformed))
+    if mean_value <= 0:
+        return np.zeros_like(image, dtype=bool)
+
+    transformed = transformed / mean_value
+    boundary = transformed >= 0.75
+    boundary = ndimage.binary_closing(boundary, structure=np.ones((3, 3), dtype=bool))
+    boundary = ndimage.binary_dilation(boundary, iterations=1)
+
+    local_mean = ndimage.uniform_filter(image, size=9, mode="nearest")
+    local_sq = ndimage.uniform_filter(image ** 2, size=9, mode="nearest")
+    local_variance = np.maximum(local_sq - local_mean ** 2, 0.0)
+
+    regions, count = ndimage.label(~boundary)
+    mask = np.zeros_like(boundary, dtype=bool)
+    for label_id in range(1, count + 1):
+        region = regions == label_id
+        area = int(region.sum())
+        if area < MIN_AREA or area > MAX_AREA:
+            continue
+        if float(local_variance[region].mean()) > 0.0005:
+            mask[region] = True
+    return mask
+
 def _mask_from_spec(frame: np.ndarray, spec: DetectorSpec) -> np.ndarray:
+    if spec.polarity == "ridge":
+        return _dic_ridge_mask(frame)
+
     image = np.asarray(frame, dtype=np.float32)
     finite = np.isfinite(image)
     if not finite.any():
