@@ -17,7 +17,7 @@ class TrackingConfig:
     def __post_init__(self) -> None:
         if self.max_distance_um <= 0:
             raise ValueError("max_distance_um must be positive")
-        if self.method not in {"mutual_nn", "hungarian", "velocity_hungarian"}:
+        if self.method not in {"mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian"}:
             raise ValueError("unknown tracking method")
         if len(self.voxel_size_um) != 3 or any(value <= 0 for value in self.voxel_size_um):
             raise ValueError("voxel_size_um must contain three positive values")
@@ -39,6 +39,35 @@ def _mutual_pairs(a: np.ndarray, b: np.ndarray, max_distance: float):
         for i, j in enumerate(forward)
         if reverse[j] == i and d[i, j] <= max_distance
     ]
+
+
+def _mutual_rescue_pairs(
+    a: np.ndarray,
+    b: np.ndarray,
+    max_distance: float,
+) -> list[tuple[int, int, float]]:
+    if len(a) == 0 or len(b) == 0:
+        return []
+
+    protected = _mutual_pairs(a, b, max_distance)
+    used_a = {i for i, _, _ in protected}
+    used_b = {j for _, j, _ in protected}
+    remaining_a = [i for i in range(len(a)) if i not in used_a]
+    remaining_b = [j for j in range(len(b)) if j not in used_b]
+
+    if not remaining_a or not remaining_b:
+        return protected
+
+    d = _distance(a[remaining_a], b[remaining_b])
+    rows, cols = linear_sum_assignment(d)
+    rescued = list(protected)
+    for ri, ci in zip(rows, cols):
+        distance = float(d[ri, ci])
+        if distance <= max_distance:
+            rescued.append((int(remaining_a[ri]), int(remaining_b[ci]), distance))
+
+    rescued.sort(key=lambda item: (item[0], item[1]))
+    return rescued
 
 
 def _hungarian_pairs(
@@ -65,6 +94,8 @@ def _assign_pairs(
 ) -> list[tuple[int, int, float]]:
     if method == "mutual_nn":
         return _mutual_pairs(previous, current, max_distance)
+    if method == "mutual_rescue":
+        return _mutual_rescue_pairs(previous, current, max_distance)
     return _hungarian_pairs(previous, current, max_distance)
 
 
@@ -78,6 +109,7 @@ def track_detections(
 
     Methods:
     - mutual_nn: mutually nearest detections.
+    - mutual_rescue: protect mutual matches, then solve remaining ambiguity globally.
     - hungarian: globally optimal one-to-one distance assignment.
     - velocity_hungarian: Hungarian assignment to constant-velocity predictions.
     """
