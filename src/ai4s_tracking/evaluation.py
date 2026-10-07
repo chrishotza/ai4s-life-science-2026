@@ -81,21 +81,16 @@ def tracking_error_profile(
     false_negative_edges = truth_edge_set - pred_edge_set
 
     identity_switches = 0
-    ordered = predicted_nodes.sort_values(["track_id", "t", "node_id"])
-    for _, group in ordered.groupby("track_id", sort=False):
-        records = group[["node_id", "t"]].to_numpy()
-        if len(records) <= 1:
-            continue
-        previous_truth = int(truth.loc[int(records[0, 0]), "track_id"])
-        previous_t = int(records[0, 1])
-        for node_id, current_t in records[1:]:
-            current_t = int(current_t)
-            current_truth = int(truth.loc[int(node_id), "track_id"])
-            if current_t > previous_t:
-                if current_t == previous_t + 1 and current_truth != previous_truth:
-                    identity_switches += 1
-                previous_truth = current_truth
-                previous_t = current_t
+    for _, group in predicted_nodes.groupby("track_id", sort=False):
+        frame_labels = []
+        for _, frame in group.groupby("t", sort=True):
+            labels = truth.loc[frame["node_id"], "track_id"]
+            frame_labels.append(int(labels.value_counts().index[0]))
+        if len(frame_labels) > 1:
+            identity_switches += sum(
+                current != previous
+                for previous, current in zip(frame_labels, frame_labels[1:])
+            )
 
     predicted_for_truth = (
         predicted_nodes.set_index("node_id")["track_id"]
