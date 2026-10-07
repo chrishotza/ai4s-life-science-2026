@@ -7,12 +7,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ai4s_core import greedy_track_overlap, scale_coordinates
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ai4s_core import runtime_metadata
+from ai4s_core import greedy_track_overlap, runtime_metadata, scale_coordinates
 
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
 from ai4s_phenotype import analyze
