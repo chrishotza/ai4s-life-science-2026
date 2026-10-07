@@ -278,11 +278,12 @@ The public pipeline uses standard scientific Python packages declared in `pyproj
 
 ## 10.3 Exact reproduction recipe
 
-The following commands reproduce the principal public evidence from a clean Python 3.11 environment:
+The following commands reproduce the principal public evidence from a clean Python 3.11 environment. For an exact environment snapshot, the repository provides `requirements-lock-py311.txt` and `requirements-dev-lock-py311.txt`, generated from the verified CI environment used for submission validation:
 
 ```bash
+pip install -r requirements-lock-py311.txt
 pip install -e .
-pip install -r requirements-dev.txt
+pip install -r requirements-dev-lock-py311.txt
 python scripts/benchmark_ctc_association.py
 python scripts/benchmark_ctc_phenotype.py
 python scripts/benchmark_ctc_lineage.py
@@ -304,7 +305,7 @@ python scripts/run_ctcmetrics.py --gt .benchmark_cache/dataset/DIC-C2DH-HeLa/02_
 
 The no-oracle lineage sensitivity protocol uses the same commands with `--lineage-mode none`.
 
-The demo-video renderer additionally requires `ffmpeg`; its GitHub Actions workflow installs it on a standard Ubuntu runner. No paid API, proprietary hardware, pretrained model download, or private dataset is required for the submitted baseline or its reported benchmarks.
+The exact-lock path is also used by the `Final Reproducibility` workflow and the Docker image. The demo-video renderer additionally requires `ffmpeg`; its GitHub Actions workflow installs it on a standard Ubuntu runner. No paid API, proprietary hardware, pretrained model download, or private dataset is required for the submitted baseline or its reported benchmarks.
 
 ## 11. Scientific impact
 
