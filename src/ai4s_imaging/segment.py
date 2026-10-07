@@ -23,6 +23,8 @@ def segment_frames(
         raise ValueError("frames must have shape (t, y, x)")
     if min_area < 1:
         raise ValueError("min_area must be >= 1")
+    if threshold is not None and not np.isfinite(threshold):
+        raise ValueError("threshold must be finite when provided")
 
     positive = arr[np.isfinite(arr)]
     if positive.size == 0:
