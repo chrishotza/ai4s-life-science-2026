@@ -36,3 +36,11 @@ That mode should preserve the reference object geometry while replacing track id
 - repository commit SHA.
 
 Until this bridge is executed, the public quantitative claim remains the custom association F1 already documented in docs/RESULTS.md.
+
+## Current export path
+
+The repository can now export the reference-centroid association result into CTC-compatible label images:
+
+    python scripts/export_ctc_tracking.py --sequence 01 --distance 8.0
+
+This produces a deterministic result directory suitable as the input artifact for a future official evaluator invocation. The exporter intentionally does not claim an official TRA/LNK score by itself.
