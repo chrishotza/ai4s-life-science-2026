@@ -144,6 +144,21 @@ This makes the system directly usable as a phenotype-analysis layer on top of mi
 
 The private BioHub project contains earlier learned temporal-association research. This public competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
 
+## Architecture hardening
+
+The public system now has explicit boundaries between:
+
+1. **Data contracts** — node/edge schema validation and a single physical coordinate transform.
+2. **Detection** — microscopy-to-centroid preprocessing.
+3. **Tracking** — deterministic temporal association with physical-unit gating.
+4. **Lineage** — candidate division inference using the same physical coordinate system.
+5. **Phenotype** — trajectory and lineage-derived feature extraction.
+6. **Discovery** — reproducible unsupervised phenotype clustering.
+7. **Orchestration** — TemporalPhenotypeEngine exposes one canonical path from detections to the complete phenotype result.
+8. **Evaluation** — regression tests and benchmark protocols remain separate from the production pipeline.
+
+This separation prevents benchmark-specific scaling, duplicate scoring logic, and demo-specific orchestration from silently becoming part of the scientific method.
+
 ## Competition positioning
 
 **Category:** End-to-End System  
