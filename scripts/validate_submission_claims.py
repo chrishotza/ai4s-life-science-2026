@@ -22,7 +22,8 @@ FILES = (
 
 REQUIRED_CAVEATS = (
     "reference centroids",
-    "not",
+    "not an end-to-end segmentation score",
+    "biological phenotype classification",
 )
 
 def main() -> None:
