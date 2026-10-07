@@ -11,6 +11,8 @@ from sklearn.metrics import adjusted_rand_score
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ai4s_core import runtime_metadata
+
 from ai4s_phenotype import analyze, discover_phenotypes
 from ai4s_tracking import TrackingConfig, track_detections
 
@@ -189,6 +191,7 @@ def main() -> None:
     print(frame.to_string(index=False))
 
     output = {
+        "runtime": runtime_metadata(),
         "benchmark": "end-to-end tracking to phenotype robustness",
         "purpose": "evaluate temporal phenotype discovery after re-tracking perturbed synthetic detections",
         "synthetic_groups": list(GROUPS),
