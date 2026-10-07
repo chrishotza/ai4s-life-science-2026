@@ -1,0 +1,9 @@
+.benchmark_cache/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*_results.json
+*_summary.csv
+ab_experiment_results.json
+ai4s_demo_video.mp4
