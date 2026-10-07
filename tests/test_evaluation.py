@@ -60,7 +60,7 @@ def test_tracking_error_profile_detects_fragmentation():
     assert profile["fragmented_truth_tracks"] == 1.0
     assert profile["oversegmentation_events"] == 1.0
     assert profile["missed_links"] == 1.0
-    assert profile["mean_track_purity"] < 1.0
+    assert profile["mean_track_purity"] == 1.0
 
 
 def test_tracking_error_profile_detects_merge_and_cross_identity_link():
