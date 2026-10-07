@@ -44,12 +44,12 @@ jobs:
       - name: Run experiment
         shell: bash
         run: |
-          if [ "\${{ github.event_name }}" = "push" ]; then
+          if [ "${{ github.event_name }}" = "push" ]; then
             python scripts/ab_experiment.py --sweep
-          elif [ "\${{ inputs.sweep }}" = "true" ]; then
+          elif [ "${{ inputs.sweep }}" = "true" ]; then
             python scripts/ab_experiment.py --sweep
           else
-            python scripts/ab_experiment.py --method "\${{ inputs.method }}" --distance "\${{ inputs.distance }}"
+            python scripts/ab_experiment.py --method "${{ inputs.method }}" --distance "${{ inputs.distance }}"
           fi
       - uses: actions/upload-artifact@v4
         with:
