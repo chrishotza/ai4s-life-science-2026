@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -18,6 +20,103 @@ FEATURES = [
 ]
 
 
+def _feature_matrix(phenotypes: pd.DataFrame, log_transform: bool) -> pd.DataFrame:
+    missing = [column for column in FEATURES if column not in phenotypes.columns]
+    if missing:
+        raise ValueError(f"phenotypes missing columns: {missing}")
+
+    x = phenotypes[FEATURES].astype(float).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    if log_transform:
+        positive = [column for column in FEATURES if (x[column] >= 0).all()]
+        x[positive] = np.log1p(x[positive])
+    return x
+
+
+def _make_scaler(name: str):
+    if name == "standard":
+        return StandardScaler()
+    if name == "robust":
+        return RobustScaler()
+    raise ValueError("scaler must be standard or robust")
+
+
+def _cluster_names(model: KMeans) -> dict[int, str]:
+    centers = pd.DataFrame(model.cluster_centers_, columns=FEATURES)
+    speed_rank = centers["mean_speed"].rank(method="first", ascending=False)
+    persistence_rank = centers["directional_persistence"].rank(method="first")
+
+    fastest = int(speed_rank.idxmin())
+    least_persistent = int(persistence_rank.idxmin())
+    names: dict[int, str] = {}
+    for cluster in range(model.n_clusters):
+        if cluster == fastest:
+            names[cluster] = "high_motility"
+        elif cluster == least_persistent:
+            names[cluster] = "exploratory_motion"
+        else:
+            names[cluster] = "persistent_or_stable"
+    return names
+
+
+@dataclass
+class PhenotypeDiscoveryModel:
+    scaler: StandardScaler | RobustScaler
+    model: KMeans
+    feature_names: tuple[str, ...]
+    log_transform: bool
+    cluster_names: dict[int, str]
+
+    @classmethod
+    def fit(
+        cls,
+        phenotypes: pd.DataFrame,
+        *,
+        n_clusters: int = 3,
+        random_state: int = 17,
+        scaler: str = "standard",
+        log_transform: bool = False,
+    ) -> "PhenotypeDiscoveryModel":
+        if n_clusters < 2 or len(phenotypes) < n_clusters:
+            raise ValueError("invalid n_clusters for phenotype table")
+
+        x = _feature_matrix(phenotypes, log_transform)
+        transformer = _make_scaler(scaler)
+        scaled = transformer.fit_transform(x)
+        model = KMeans(
+            n_clusters=n_clusters,
+            n_init=30,
+            random_state=random_state,
+        )
+        model.fit(scaled)
+
+        return cls(
+            scaler=transformer,
+            model=model,
+            feature_names=tuple(FEATURES),
+            log_transform=log_transform,
+            cluster_names=_cluster_names(model),
+        )
+
+    def transform(self, phenotypes: pd.DataFrame) -> pd.DataFrame:
+        x = _feature_matrix(phenotypes, self.log_transform)
+        if tuple(x.columns) != self.feature_names:
+            raise ValueError("phenotype feature schema does not match fitted model")
+
+        out = phenotypes.copy()
+        scaled = self.scaler.transform(x)
+        labels = self.model.predict(scaled).astype(int)
+        out["phenotype_cluster"] = labels
+        out["phenotype_cluster_name"] = out["phenotype_cluster"].map(self.cluster_names)
+        return out
+
+
+def fit_phenotype_model(
+    phenotypes: pd.DataFrame,
+    **kwargs,
+) -> PhenotypeDiscoveryModel:
+    return PhenotypeDiscoveryModel.fit(phenotypes, **kwargs)
+
+
 def discover_phenotypes(
     phenotypes: pd.DataFrame,
     n_clusters: int = 3,
@@ -25,42 +124,11 @@ def discover_phenotypes(
     scaler: str = "standard",
     log_transform: bool = False,
 ) -> pd.DataFrame:
-    missing = [c for c in FEATURES if c not in phenotypes.columns]
-    if missing:
-        raise ValueError(f"phenotypes missing columns: {missing}")
-    if n_clusters < 2 or len(phenotypes) < n_clusters:
-        raise ValueError("invalid n_clusters for phenotype table")
-
-    out = phenotypes.copy()
-    x = out[FEATURES].astype(float).replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    if log_transform:
-        positive = [c for c in FEATURES if (x[c] >= 0).all()]
-        x[positive] = np.log1p(x[positive])
-    if scaler == "standard":
-        transformer = StandardScaler()
-    elif scaler == "robust":
-        transformer = RobustScaler()
-    else:
-        raise ValueError("scaler must be standard or robust")
-    scaled = transformer.fit_transform(x)
-
-    model = KMeans(n_clusters=n_clusters, n_init=30, random_state=random_state)
-    out["phenotype_cluster"] = model.fit_predict(scaled).astype(int)
-
-    centers = pd.DataFrame(model.cluster_centers_, columns=FEATURES)
-    speed_rank = centers["mean_speed"].rank(method="first", ascending=False)
-    persistence_rank = centers["directional_persistence"].rank(method="first")
-
-    names = {}
-    fastest = int(speed_rank.idxmin())
-    least_persistent = int(persistence_rank.idxmin())
-    for cluster in range(n_clusters):
-        if cluster == fastest:
-            names[cluster] = "high_motility"
-        elif cluster == least_persistent:
-            names[cluster] = "exploratory_motion"
-        else:
-            names[cluster] = "persistent_or_stable"
-
-    out["phenotype_cluster_name"] = out["phenotype_cluster"].map(names)
-    return out
+    model = PhenotypeDiscoveryModel.fit(
+        phenotypes,
+        n_clusters=n_clusters,
+        random_state=random_state,
+        scaler=scaler,
+        log_transform=log_transform,
+    )
+    return model.transform(phenotypes)
