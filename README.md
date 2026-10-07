@@ -149,10 +149,6 @@ The GitHub Actions workflow `.github/workflows/demo-video.yml` produces the MP4 
 
 ## Scientific output
 
-> **Submission visibility:** the repository is currently private during final preparation. The competition requires a publicly accessible repository at submission time; the visibility change is intentionally a separate final submission action.
-
-## Scientific output
-
 The final output is not merely a track ID. For each cell trajectory the engine produces an interpretable temporal phenotype profile, including:
 
 - persistence and motility;
@@ -164,7 +160,9 @@ The final output is not merely a track ID. For each cell trajectory the engine p
 - temporal integrity and tracking-link confidence diagnostics;
 - unsupervised phenotype group.
 
-This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments.
+This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments. The intended scientific unit is the cell trajectory: the engine converts temporal motion, persistence, gaps, and lineage context into reproducible per-cell features that can be compared across cohorts and experimental conditions.
+
+The current submission deliberately stops short of claiming clinical diagnosis or biologically named phenotypes without independent labels. Its value proposition is a transparent analysis substrate that turns image sequences into quantitative, inspectable behavioral representations that downstream biological studies can test.
 
 ## Research provenance
 
