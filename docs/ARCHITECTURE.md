@@ -2,7 +2,7 @@
 
 ## Pipeline boundary
 
-The public system is organized as explicit scientific layers:
+The public system is organized as explicit scientific layers. The canonical engine can start from raw time-lapse frames or from precomputed detections:
 
 microscopy
 → detection
@@ -11,6 +11,10 @@ microscopy
 → temporal phenotype
 → unsupervised phenotype discovery
 → validation/reporting
+
+## End-to-end entry points
+
+TemporalPhenotypeEngine.run_frames performs baseline detection and then enters the same tracking, lineage, phenotype, and discovery path as TemporalPhenotypeEngine.run. This prevents the demo path and the scientific pipeline from silently diverging.
 
 ## Contract boundary
 
