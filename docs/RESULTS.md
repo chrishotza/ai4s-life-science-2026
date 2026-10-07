@@ -75,6 +75,18 @@ Per sequence:
 
 The important result is that the downstream temporal phenotype is comparatively stable for matched tracks: the median track coverage is 100%, and directional persistence has a mean absolute error of only 0.0439 across the two sequences.
 
+### Lineage and division representation validation
+
+A dedicated benchmark now evaluates the lineage layer against the CTC reference parent/child annotations for sequences 01 and 02. It checks division-parent recovery as well as exact child-count and descendant-count reconstruction.
+
+This result is intentionally classified as **lineage representation validation**. The current baseline tracker creates temporal links but does not claim image-derived biological division detection. The benchmark therefore strengthens the evidence that the phenotype layer correctly consumes and represents lineage structure without inflating the end-to-end tracking claim.
+
+Reproduce with:
+
+    python scripts/benchmark_ctc_lineage.py
+
+The raw benchmark output is generated locally as ctc_lineage_results.json and is not treated as a committed dataset.
+
 ### Interpretation
 
 The initial failure mode was track fragmentation caused by an overly restrictive distance gate. Physical calibration corrected most of that association loss.
