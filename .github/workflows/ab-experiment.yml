@@ -20,6 +20,7 @@ on:
           - mutual_rescue
           - hungarian
           - velocity_hungarian
+          - gap_hungarian
       distance:
         description: Maximum association distance in micrometers
         required: true
