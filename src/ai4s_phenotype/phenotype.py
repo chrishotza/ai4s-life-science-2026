@@ -85,6 +85,14 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     node_to_track = dict(zip(n["node_id"], n["track_id"]))
     children: dict[int, list[int]] = defaultdict(list)
     parents: dict[int, list[int]] = defaultdict(list)
+    temporal_link_stats: dict[int, list[float]] = defaultdict(list)
+
+    temporal_edge_mask = (
+        edges["edge_type"].eq("link")
+        if "edge_type" in edges.columns
+        else pd.Series(True, index=edges.index)
+    )
+    temporal_edges = edges.loc[temporal_edge_mask].copy()
 
     for row in edges[["source_id", "target_id"]].itertuples(index=False):
         s = int(row.source_id)
@@ -99,6 +107,11 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
             children[parent_track].append(child_track)
         if parent_track not in parents[child_track]:
             parents[child_track].append(parent_track)
+
+    if not temporal_edges.empty and "distance_um" in temporal_edges.columns:
+        for row in temporal_edges[["source_id", "distance_um"]].itertuples(index=False):
+            source_track = int(node_to_track[int(row.source_id)])
+            temporal_link_stats[source_track].append(float(row.distance_um))
 
     out = []
     for track_id, g in n.groupby("track_id", sort=False):
@@ -144,6 +157,17 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
                 "child_count": int(len(child_ids)),
                 "division_event": bool(division_event),
                 "descendant_count": int(len(descendants)),
+                "link_count": int(len(temporal_link_stats.get(int(track_id), []))),
+                "mean_link_distance_um": (
+                    float(np.mean(temporal_link_stats[int(track_id)]))
+                    if temporal_link_stats.get(int(track_id))
+                    else 0.0
+                ),
+                "max_link_distance_um": (
+                    float(np.max(temporal_link_stats[int(track_id)]))
+                    if temporal_link_stats.get(int(track_id))
+                    else 0.0
+                ),
                 **_attribute_features(g),
             }
         )
