@@ -75,6 +75,16 @@ Per sequence:
 
 The important result is that the downstream temporal phenotype is comparatively stable for matched tracks: the median track coverage is 100%, and directional persistence has a mean absolute error of only 0.0439 across the two sequences.
 
+### End-to-end tracking-to-phenotype robustness
+
+A controlled synthetic benchmark now re-runs the temporal association stage after injecting coordinate noise and detection dropout, then carries those predictions through temporal phenotype extraction and unsupervised phenotype discovery. It reports predicted track count, mean track purity, and phenotype-group ARI against the known synthetic behavioral groups.
+
+This experiment closes an important methodological gap in the earlier phenotype-stability test: the earlier test perturbed already-known tracks, while this benchmark perturbs detections and **reconstructs tracks before phenotype analysis**. It remains a controlled synthetic validation and is not a biological phenotype result.
+
+Reproduce with:
+
+    python scripts/benchmark_end_to_end_phenotype.py
+
 ### Lineage and division representation validation
 
 A dedicated benchmark now evaluates the lineage layer against the CTC reference parent/child annotations for sequences 01 and 02. It checks division-parent recovery as well as exact child-count and descendant-count reconstruction.
