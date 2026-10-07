@@ -110,3 +110,7 @@ def test_pipeline_result_summary_is_machine_readable():
     assert summary["tracks"] == 1
     assert summary["temporal_links"] == 2
     assert summary["phenotype_rows"] == 1
+    assert summary["tracking_method"] == "mutual_nn"
+    assert summary["max_distance_um"] == 2.0
+    assert summary["phenotype_schema_version"] == "trajectory-lineage-v1"
+    assert result.config.tracking.max_distance_um == 2.0
