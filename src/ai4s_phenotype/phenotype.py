@@ -5,7 +5,7 @@ from collections import defaultdict, deque
 import numpy as np
 import pandas as pd
 
-from ai4s_core import validate_edges, validate_nodes
+from ai4s_core import validate_edges, validate_lineage_graph, validate_nodes
 
 
 DETECTION_COLUMNS = ["node_id", "track_id", "t", "z", "y", "x"]
@@ -71,6 +71,10 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     _validate(nodes, edges)
     validate_nodes(nodes)
     validate_edges(edges, nodes, require_forward_time=True)
+    if "edge_type" in edges.columns:
+        lineage_edges = edges[edges["edge_type"].eq("division_parent")][["source_id", "target_id"]]
+        if not lineage_edges.empty:
+            validate_lineage_graph(nodes, lineage_edges)
 
     n = nodes.copy()
     n["node_id"] = n["node_id"].astype(int)
