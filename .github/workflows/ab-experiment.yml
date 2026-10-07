@@ -1,0 +1,49 @@
+name: A-B Experiment
+
+on:
+  workflow_dispatch:
+    inputs:
+      method:
+        description: Tracking method
+        required: true
+        default: mutual_nn
+        type: choice
+        options:
+          - mutual_nn
+          - hungarian
+          - velocity_hungarian
+      distance:
+        description: Maximum association distance in micrometers
+        required: true
+        default: "8.0"
+        type: string
+      sweep:
+        description: Sweep principal methods and gates
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install -r requirements-dev.txt
+      - name: Run experiment
+        shell: bash
+        run: |
+          if [ "${{ inputs.sweep }}" = "true" ]; then
+            python scripts/ab_experiment.py --sweep
+          else
+            python scripts/ab_experiment.py --method "${{ inputs.method }}" --distance "${{ inputs.distance }}"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ab-experiment-report
+          path: ab_experiment_results.json
