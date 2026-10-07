@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from ai4s_phenotype import analyze, discover_phenotypes
+from ai4s_phenotype import PhenotypeDiscoveryModel, analyze
 from ai4s_tracking import TrackingConfig, infer_divisions, track_detections
 
 
@@ -31,6 +31,7 @@ class PipelineResult:
     lineage_edges: pd.DataFrame
     phenotypes: pd.DataFrame
     discovered: pd.DataFrame
+    discovery_model: PhenotypeDiscoveryModel | None
 
 
 class TemporalPhenotypeEngine:
@@ -55,14 +56,16 @@ class TemporalPhenotypeEngine:
             ignore_index=True,
         )
         phenotypes = analyze(nodes, edges)
+        discovery_model = None
         if len(phenotypes) >= self.config.phenotype_clusters:
-            discovered = discover_phenotypes(
+            discovery_model = PhenotypeDiscoveryModel.fit(
                 phenotypes,
                 n_clusters=self.config.phenotype_clusters,
                 random_state=self.config.phenotype_random_state,
                 scaler=self.config.phenotype_scaler,
                 log_transform=self.config.phenotype_log_transform,
             )
+            discovered = discovery_model.transform(phenotypes)
         else:
             discovered = phenotypes.assign(
                 phenotype_cluster=-1,
@@ -74,4 +77,5 @@ class TemporalPhenotypeEngine:
             lineage_edges=lineage_edges,
             phenotypes=phenotypes,
             discovered=discovered,
+            discovery_model=discovery_model,
         )
