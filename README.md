@@ -122,6 +122,8 @@ The repository also validates the lineage representation layer against the CTC r
 
 The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
+The current association F1 is a custom transparent benchmark metric. The official CTC TRA score is intentionally tracked as a separate validation boundary and is not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+
 ## Demo video
 
 A reproducible demo-video renderer is included in `scripts/make_demo_video.py`. It downloads the public DIC-C2DH-HeLa sequence, overlays the deterministic tracking trajectories on real microscopy frames, and appends a measured validation summary card.
