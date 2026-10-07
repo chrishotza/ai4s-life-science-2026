@@ -188,7 +188,11 @@ def association_score(
 
 def evaluate(root: Path, sequence: str, spec: DetectorSpec) -> dict[str, object]:
     truth_nodes, _, metadata = load_ctc_tracking(root / f"{sequence}_GT" / "TRA")
-    detections = (\n        segment_sequence(root, sequence, spec)\n        .sort_values(["t", "z", "y", "x"])\n        .reset_index(drop=True)\n    )
+    detections = (
+        segment_sequence(root, sequence, spec)
+        .sort_values(["t", "z", "y", "x"])
+        .reset_index(drop=True)
+    )
     detections["node_id"] = np.arange(len(detections), dtype=int)
 
     tp, fp, fn, mean_distance, pred_to_truth = framewise_match(
