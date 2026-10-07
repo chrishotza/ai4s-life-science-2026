@@ -6,6 +6,8 @@ Time-lapse microscopy contains information about how individual cells move, pers
 
 The system integrates microscopy preprocessing, cell detection, deterministic 3-D temporal association, lineage/event inference, trajectory feature extraction, and unsupervised phenotype discovery. For each tracked cell it derives duration, displacement, path length, mean speed, directional persistence, parent/child structure, division events, and descendants. Tracking is treated as infrastructure; the scientific output is dynamic cellular behavior.
 
+The canonical engine can start from microscopy frames and execute the public baseline detection-to-phenotype path. For rigorous real-data measurement, the CTC experiment intentionally uses reference centroids as detections to isolate temporal association.
+
 The public MVP is fully reproducible and includes tests, benchmark scripts, environment configuration, GitHub Actions, and dataset adapters.
 
 On the real DIC-C2DH-HeLa microscopy benchmark from the Cell Tracking Challenge, a physical-unit sweep across two sequences found mutual-nearest-neighbor association with an 8.0 µm gate to be the strongest measured baseline: **0.99135 mean precision, 0.99322 mean recall, and 0.99228 mean F1**. A downstream phenotype-preservation experiment on the same reference centroids achieved **0.9451 mean trajectory coverage, 1.0000 median coverage, and 0.0439 directional-persistence MAE**.
