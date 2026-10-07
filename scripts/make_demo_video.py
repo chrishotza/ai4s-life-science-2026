@@ -223,24 +223,26 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory(prefix="ai4s_demo_") as tmp:
         tmp_path = Path(tmp)
+        frame_dir = tmp_path / "frames"
+        frame_dir.mkdir()
         for i, image_path in enumerate(images):
             frame = tifffile.imread(image_path)
             if frame.ndim > 2:
                 frame = np.squeeze(frame)
                 while frame.ndim > 2:
                     frame = frame[0]
-            render_frame(frame, predicted, i, len(images), tmp_path / f"frame_{i:04d}.png")
+            render_frame(frame, predicted, i, len(images), frame_dir / f"frame_{i:04d}.png")
 
-        phenotype_path = tmp_path / f"frame_{len(images):04d}.png"
+        phenotype_path = tmp_path / "phenotype.png"
         render_phenotype(phenotype_path, predicted, predicted_edges)
-        summary_path = tmp_path / f"frame_{len(images)+1:04d}.png"
+        summary_path = tmp_path / "summary.png"
         render_summary(summary_path)
 
         output = ROOT / "ai4s_demo_video.mp4"
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
             "-framerate", str(FPS),
-            "-i", str(tmp_path / "frame_%04d.png"),
+            "-i", str(frame_dir / "frame_%04d.png"),
             "-loop", "1",
             "-t", str(5),
             "-i", str(phenotype_path),
@@ -262,4 +264,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# Render protocol v3: real microscopy -> tracking -> phenotype discovery -> validation summary.
+# Render protocol v4: isolate timeline frames from static phenotype/summary panels.
