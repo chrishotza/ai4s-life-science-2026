@@ -33,7 +33,7 @@ unsupervised phenotype discovery
 interpretable phenotype report
 ```
 
-## Public MVP
+## Competition MVP
 
 The public implementation contains explicit reproducible layers:
 
