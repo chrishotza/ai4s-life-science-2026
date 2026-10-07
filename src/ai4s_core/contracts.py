@@ -26,6 +26,12 @@ def validate_nodes(
     if require_track_ids and nodes["track_id"].isna().any():
         raise ValueError("track_id values must not be missing")
 
+    if not pd.api.types.is_numeric_dtype(nodes["t"]):
+        raise ValueError("t values must be numeric")
+    t_values = nodes["t"].to_numpy(float)
+    if not np.isfinite(t_values).all() or not np.all(t_values == np.floor(t_values)):
+        raise ValueError("t values must be finite frame indices")
+
     if require_unique_track_time and nodes.duplicated(["track_id", "t"]).any():
         raise ValueError("a track cannot contain multiple observations at the same frame")
 
