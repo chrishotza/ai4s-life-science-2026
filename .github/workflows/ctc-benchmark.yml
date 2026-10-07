@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/ctc-benchmark.yml"
+      - "pyproject.toml"
       - "scripts/benchmark_ctc_association.py"
       - "src/ai4s_io/**"
       - "src/ai4s_tracking/**"
