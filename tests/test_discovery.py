@@ -125,3 +125,19 @@ def test_discovery_model_exposes_feature_schema_version():
     model = fit_phenotype_model(base, n_clusters=3, random_state=17)
 
     assert model.feature_schema_version == FEATURE_SCHEMA_VERSION
+
+
+def test_discovery_reports_assignment_and_reliability_quality():
+    result = discover_phenotypes(
+        pd.DataFrame(
+            [
+                {"track_id": 0, "duration": 10, "observations": 11, "displacement": 1.0, "path_length": 1.2, "mean_speed": 0.1, "directional_persistence": 0.9, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+                {"track_id": 1, "duration": 10, "observations": 11, "displacement": 8.0, "path_length": 8.5, "mean_speed": 0.8, "directional_persistence": 0.9, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+                {"track_id": 2, "duration": 10, "observations": 11, "displacement": 3.0, "path_length": 12.0, "mean_speed": 0.4, "directional_persistence": 0.25, "parent_count": 0, "child_count": 0, "descendant_count": 0},
+            ]
+        ),
+        n_clusters=3,
+    )
+    assert "phenotype_assignment_quality" in result.columns
+    assert "phenotype_reliability_score" not in result.columns
+    assert result["phenotype_assignment_quality"].between(0.0, 1.0).all()
