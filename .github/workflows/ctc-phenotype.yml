@@ -1,0 +1,36 @@
+name: CTC Phenotype Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/ctc-phenotype.yml"
+      - "scripts/benchmark_ctc_phenotype.py"
+      - "src/ai4s_io/**"
+      - "src/ai4s_phenotype/**"
+      - "src/ai4s_tracking/**"
+      - "pyproject.toml"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run phenotype benchmark
+        run: python scripts/benchmark_ctc_phenotype.py
+
+      - name: Publish phenotype results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctc-phenotype-results
+          path: ctc_phenotype_results.json
