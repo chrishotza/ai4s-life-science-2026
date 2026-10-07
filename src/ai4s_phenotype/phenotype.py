@@ -41,7 +41,7 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     """
     _validate(nodes, edges)
     validate_nodes(nodes)
-    validate_edges(edges, nodes)
+    validate_edges(edges, nodes, require_forward_time=True)
 
     n = nodes.copy()
     n["node_id"] = n["node_id"].astype(int)
