@@ -158,14 +158,16 @@ class PhenotypeDiscoveryModel:
             )
         )
         out["phenotype_assignment_quality"] = np.clip(
-            0.5 * distance_quality + 0.5 * separation_quality,
+            np.sqrt(distance_quality * np.clip(separation_quality, 0.0, 1.0)),
             0.0,
             1.0,
         )
         if "track_integrity_score" in out.columns:
             out["phenotype_reliability_score"] = np.clip(
-                0.5 * out["track_integrity_score"].to_numpy(float)
-                + 0.5 * out["phenotype_assignment_quality"].to_numpy(float),
+                np.sqrt(
+                    np.clip(out["track_integrity_score"].to_numpy(float), 0.0, 1.0)
+                    * out["phenotype_assignment_quality"].to_numpy(float)
+                ),
                 0.0,
                 1.0,
             )
