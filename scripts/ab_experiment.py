@@ -115,7 +115,17 @@ def evaluate(method: str, distance: float, root: Path) -> dict[str, float]:
         )
         predicted_set = {(int(r.source_id), int(r.target_id)) for r in predicted_edges.itertuples()}
         rows.append({
-            **{k: v for k, v in link_metrics(\n                pd.DataFrame(list(predicted_set), columns=["source_id", "target_id"]),\n                pd.DataFrame(list(truth_links(detections)), columns=["source_id", "target_id"]),\n            ).items() if k in {"precision", "recall", "f1"}},
+            **{
+                k: v
+                for k, v in link_metrics(
+                    pd.DataFrame(list(predicted_set), columns=["source_id", "target_id"]),
+                    pd.DataFrame(
+                        list(truth_links(detections)),
+                        columns=["source_id", "target_id"],
+                    ),
+                ).items()
+                if k in {"precision", "recall", "f1"}
+            },
             **phenotype_score(truth, truth_edges, predicted, predicted_edges),
         })
 
