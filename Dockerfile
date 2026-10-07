@@ -6,6 +6,8 @@ COPY pyproject.toml requirements.txt requirements-dev.txt ./
 COPY src ./src
 COPY tests ./tests
 COPY examples ./examples
+COPY scripts ./scripts
+COPY docs ./docs
 COPY demo.py README.md ./
 
 RUN pip install --no-cache-dir --upgrade pip && \
