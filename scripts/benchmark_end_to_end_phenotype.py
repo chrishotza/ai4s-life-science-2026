@@ -197,6 +197,17 @@ def run_case(noise_um: float, drop_rate: float, seed: int, method: str) -> dict[
         "stable_track_purity": purity_stable,
         "stable_tracks": stable_tracks,
         "phenotype_group_ARI": float(phenotype_ari),
+        "mean_track_integrity_score": float(phenotypes["track_integrity_score"].mean()),
+        "mean_assignment_quality": float(
+            discovered["phenotype_assignment_quality"].mean()
+            if "phenotype_assignment_quality" in discovered.columns
+            else 0.0
+        ),
+        "mean_reliability_score": float(
+            discovered["phenotype_reliability_score"].mean()
+            if "phenotype_reliability_score" in discovered.columns
+            else 0.0
+        ),
         "tracking_error_profile": tracking_error_profile(
             truth_nodes,
             nodes[["node_id", "track_id", "t"]],
@@ -235,6 +246,9 @@ def main() -> None:
                 {
                     "mean_track_purity": float(group["mean_track_purity"].mean()),
                     "phenotype_group_ARI": float(group["phenotype_group_ARI"].mean()),
+                    "mean_track_integrity_score": float(group["mean_track_integrity_score"].mean()),
+                    "mean_assignment_quality": float(group["mean_assignment_quality"].mean()),
+                    "mean_reliability_score": float(group["mean_reliability_score"].mean()),
                     "mean_fragmented_truth_tracks": float(
                         group["tracking_error_profile"]
                         .map(lambda profile: profile["fragmented_truth_tracks"])
