@@ -229,10 +229,53 @@ def main() -> None:
         "synthetic_groups": list(GROUPS),
         "cases": rows,
         "method_summary": (
-            frame.groupby("method")[["mean_track_purity", "phenotype_group_ARI"]]
-            .mean()
-            .reset_index()
-            .to_dict(orient="records")
+            frame.groupby("method")
+        .apply(
+            lambda group: pd.Series(
+                {
+                    "mean_track_purity": float(group["mean_track_purity"].mean()),
+                    "phenotype_group_ARI": float(group["phenotype_group_ARI"].mean()),
+                    "mean_fragmented_truth_tracks": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["fragmented_truth_tracks"])
+                        .mean()
+                    ),
+                    "mean_oversegmentation_events": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["oversegmentation_events"])
+                        .mean()
+                    ),
+                    "mean_merge_events": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["merge_events"])
+                        .mean()
+                    ),
+                    "mean_missed_link_rate": float(
+                        group["tracking_error_profile"]
+                        .map(lambda profile: profile["missed_link_rate"])
+                        .mean()
+                    ),
+                    "gap_link_identity_rate": (
+                        float(
+                            group["tracking_error_profile"]
+                            .map(lambda profile: profile["gap_link_correct_identity"])
+                            .sum()
+                        )
+                        / float(
+                            max(
+                                1.0,
+                                group["tracking_error_profile"]
+                                .map(lambda profile: profile["gap_link_count"])
+                                .sum(),
+                            )
+                        )
+                    ),
+                }
+            ),
+            include_groups=False,
+        )
+        .reset_index()
+        .to_dict(orient="records")
         ),
     }
     (ROOT / "end_to_end_phenotype_results.json").write_text(
