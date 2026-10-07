@@ -5,6 +5,8 @@ from collections import defaultdict, deque
 import numpy as np
 import pandas as pd
 
+from ai4s_core import validate_edges, validate_nodes
+
 
 DETECTION_COLUMNS = ["node_id", "track_id", "t", "z", "y", "x"]
 EDGE_COLUMNS = ["source_id", "target_id"]
@@ -38,6 +40,8 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     track-level lineage edges before lineage/event features are calculated.
     """
     _validate(nodes, edges)
+    validate_nodes(nodes)
+    validate_edges(edges, nodes)
 
     n = nodes.copy()
     n["node_id"] = n["node_id"].astype(int)
