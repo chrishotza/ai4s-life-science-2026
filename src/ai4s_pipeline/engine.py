@@ -39,6 +39,7 @@ class PipelineResult:
     phenotypes: pd.DataFrame
     discovered: pd.DataFrame
     discovery_model: PhenotypeDiscoveryModel | None
+    config: PipelineConfig
 
     def summary(self) -> dict[str, float | int | None]:
         summary: dict[str, float | int | None] = {
@@ -51,6 +52,15 @@ class PipelineResult:
                 int(self.discovered["phenotype_cluster"].nunique())
                 if "phenotype_cluster" in self.discovered.columns
                 else 0
+            ),
+            "tracking_method": self.config.tracking.method,
+            "max_distance_um": float(self.config.tracking.max_distance_um),
+            "max_frame_gap": int(self.config.tracking.max_frame_gap),
+            "voxel_size_um": tuple(float(v) for v in self.config.tracking.voxel_size_um),
+            "phenotype_schema_version": (
+                self.discovery_model.feature_schema_version
+                if self.discovery_model is not None
+                else None
             ),
             "mean_link_confidence": (
                 float(self.phenotypes["mean_link_confidence"].mean())
@@ -123,4 +133,5 @@ class TemporalPhenotypeEngine:
             phenotypes=phenotypes,
             discovered=discovered,
             discovery_model=discovery_model,
+            config=self.config,
         )
