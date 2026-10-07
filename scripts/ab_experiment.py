@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from ai4s_core import scale_coordinates
+from ai4s_core import greedy_track_overlap, scale_coordinates
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -61,22 +61,11 @@ def phenotype_score(
     gt = analyze(scale_coordinates(gt_nodes, VOXEL), pd.DataFrame(columns=["source_id", "target_id"]))
     pr = analyze(scale_coordinates(pred_nodes, VOXEL), pred_edges)
 
-    left = gt_nodes[["node_id", "track_id", "t"]]
-    right = pred_nodes[["node_id", "track_id", "t"]]
-    aligned = left.merge(right, on=["node_id", "t"], suffixes=("_gt", "_pred"))
-    overlap = aligned.groupby(["track_id_gt", "track_id_pred"]).size().reset_index(name="n")
-    gt_sizes = left.groupby("track_id").size().to_dict()
-
-    used_gt: set[int] = set()
-    used_pred: set[int] = set()
-    rows: list[tuple[int, int, float]] = []
-    for row in overlap.sort_values("n", ascending=False).itertuples(index=False):
-        g, p = int(row.track_id_gt), int(row.track_id_pred)
-        if g in used_gt or p in used_pred:
-            continue
-        rows.append((g, p, int(row.n) / max(1, int(gt_sizes[g]))))
-        used_gt.add(g)
-        used_pred.add(p)
+    matches = greedy_track_overlap(gt_nodes, pred_nodes)
+    rows: list[tuple[int, int, float]] = [
+        (g, p, coverage)
+        for g, p, _shared, coverage in matches
+    ]
 
     if not rows:
         return {"coverage": 0.0, "persistence_mae": 1.0}
