@@ -16,8 +16,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from ai4s_io import ensure_ctc_dataset
 from benchmark_ctc_image_e2e import CANDIDATES, DetectorSpec, _mask_from_spec, image_files
 
-MIN_AREA = 20
-MAX_AREA = 5000
+MIN_AREA = 200
+MAX_AREA = 30000
 IOU_MATCH_THRESHOLD = 0.5
 
 
