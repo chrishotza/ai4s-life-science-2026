@@ -35,12 +35,13 @@ interpretable phenotype report
 
 ## Public MVP
 
-The public implementation contains four reproducible layers:
+The public implementation contains explicit reproducible layers:
 
 1. **Microscopy baseline** — threshold + connected-component detection for time-lapse frames.
-2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, and constant-velocity Hungarian methods.
-3. **Temporal phenotype engine** — duration, displacement, path length, speed, directional persistence, parent/child structure, divisions and descendants.
-4. **Phenotype discovery** — standardized trajectory features clustered with K-Means into interpretable behavioral groups.
+2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, constant-velocity Hungarian, and an experimental KD-tree MNN variant.
+3. **Lineage + temporal phenotype** — duration, displacement, path length, speed, directional persistence, temporal-integrity diagnostics, parent/child structure, divisions and descendants.
+4. **Phenotype discovery** — standardized trajectory features clustered with K-Means, with a reusable fit/transform model for cross-cohort application.
+5. **Canonical orchestration + validation** — TemporalPhenotypeEngine, data contracts, benchmark harnesses, and CI quality gates.
 
 Tracking tables use:
 
@@ -171,6 +172,6 @@ The intended contribution is a reproducible pipeline that moves from microscopy 
 
 1. Phenotype stability stress test: completed.
 2. Real-data phenotype visualization: integrated into the demo renderer.
-3. Lineage/division representation validation: added and wired into CI.
+3. Lineage/division representation validation: added as a dedicated GitHub Actions benchmark.
 4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
 5. Remaining submission blockers: public repository visibility, final public-URL check, Kaggle upload, and final claim consistency review.
