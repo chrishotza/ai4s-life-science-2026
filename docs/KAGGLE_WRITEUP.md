@@ -1,5 +1,15 @@
 # Temporal Cellular Phenotype Engine
 
+## Submission Links
+
+**Category: End-to-End System**
+
+**Code repository:** https://github.com/chrishotza/ai4s-life-science-2026
+
+**Demo video:** The final public demo video link is inserted in the Kaggle Writeup at submission time; the reproducible renderer is `scripts/make_demo_video.py`.
+
+**Technical report:** This Writeup contains the submission report sections; the full technical report is also maintained at `docs/TECHNICAL_REPORT.md`.
+
 ## Category Declaration
 
 **Category: End-to-End System**
