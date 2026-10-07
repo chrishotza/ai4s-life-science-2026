@@ -35,7 +35,7 @@ interpretable phenotype report
 
 ## Competition MVP
 
-The public implementation contains explicit reproducible layers:
+The submission implementation contains explicit reproducible layers:
 
 1. **Microscopy baseline** — threshold + connected-component detection for 2-D+t or 3-D+t time-lapse volumes.
 2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, constant-velocity Hungarian, and an experimental KD-tree MNN variant.
@@ -146,6 +146,10 @@ The current association F1 is a custom transparent benchmark metric. The officia
 A reproducible demo-video renderer is included in `scripts/make_demo_video.py`. It downloads the public DIC-C2DH-HeLa sequence, overlays the deterministic tracking trajectories on real microscopy frames, and appends a measured validation summary card.
 
 The GitHub Actions workflow `.github/workflows/demo-video.yml` produces the MP4 as a workflow artifact. The rendered sequence now shows real microscopy with tracks, an unsupervised temporal-phenotype view, and the measured validation summary.
+
+## Scientific output
+
+> **Submission visibility:** the repository is currently private during final preparation. The competition requires a publicly accessible repository at submission time; the visibility change is intentionally a separate final submission action.
 
 ## Scientific output
 
