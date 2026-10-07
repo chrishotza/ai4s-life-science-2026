@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy.spatial import cKDTree
 
 from ai4s_core import validate_edges, validate_nodes
 
@@ -36,22 +37,34 @@ def infer_divisions(
         cur = n[n["t"] == t]
         nxt = n[n["t"] == t + 1]
         new_tracks = nxt[~nxt["node_id"].astype(int).isin(incoming)]
+        if new_tracks.empty:
+            continue
+
+        child_records = list(
+            new_tracks[["node_id", "track_id", "z", "y", "x"]].itertuples(index=False)
+        )
+        child_xyz = np.asarray(
+            [[row.z, row.y, row.x] for row in child_records],
+            dtype=float,
+        ) * scale
+        tree = cKDTree(child_xyz)
 
         for parent in cur.groupby("track_id").tail(1).itertuples(index=False):
-            candidates = []
             pxyz = np.array([parent.z, parent.y, parent.x], dtype=float) * scale
-            for child in new_tracks.itertuples(index=False):
+            candidate_indices = tree.query_ball_point(pxyz, division_radius_um)
+            candidates = []
+            for index in candidate_indices:
+                child = child_records[index]
                 if int(child.track_id) == int(parent.track_id):
                     continue
-                cxyz = np.array([child.z, child.y, child.x], dtype=float) * scale
+                cxyz = child_xyz[index]
                 dist = float(np.linalg.norm(pxyz - cxyz))
-                if dist <= division_radius_um:
-                    candidates.append((dist, int(child.node_id)))
+                candidates.append((dist, int(child.node_id)))
 
             if len(candidates) < 2:
                 continue
 
-            for dist, child_node in sorted(candidates)[:2]:
+            for dist, child_node in sorted(candidates, key=lambda item: (item[0], item[1]))[:2]:
                 events.append(
                     (
                         int(parent.node_id),
