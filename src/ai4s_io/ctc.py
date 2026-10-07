@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import tifffile
 
+from ai4s_core import validate_edges, validate_nodes
+
 
 def _marker_centroids(mask: np.ndarray) -> list[tuple[int, float, float, float]]:
     arr = np.asarray(mask)
@@ -94,4 +96,6 @@ def load_ctc_tracking(sequence_dir: str | Path) -> tuple[pd.DataFrame, pd.DataFr
         metadata_rows,
         columns=["track_id", "start_frame", "end_frame", "parent_id"],
     )
+    validate_nodes(nodes)
+    validate_edges(edge_df, nodes)
     return nodes, edge_df, metadata
