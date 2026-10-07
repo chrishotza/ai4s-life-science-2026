@@ -116,7 +116,9 @@ The downstream phenotype-preservation experiment on the same reference centroids
 
 These phenotype values measure trajectory-feature preservation under tracking; they are not biological phenotype classification scores.
 
-The benchmark is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
+The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.
+
+The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
 ## Demo video
 
@@ -149,10 +151,10 @@ The private BioHub project contains earlier learned temporal-association researc
 
 The intended contribution is a reproducible pipeline that moves from microscopy to **dynamic, interpretable single-cell phenotype**, rather than treating cell tracking as the final objective.
 
-## Next milestones
+## Finalization status
 
-1. Validate phenotype stability under controlled tracking perturbations.
-2. Add representative real-data visualizations.
-3. Strengthen lineage/division validation.
-4. Produce the final 5-minute demonstration.
-5. Finalize the Kaggle Writeup and submission package.
+1. Phenotype stability stress test: completed.
+2. Real-data phenotype visualization: integrated into the demo renderer.
+3. Lineage/division representation validation: added and wired into CI.
+4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
+5. Remaining submission blockers: public repository visibility, final public-URL check, Kaggle upload, and final claim consistency review.
