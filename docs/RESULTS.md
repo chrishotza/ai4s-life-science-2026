@@ -17,32 +17,32 @@ The first reproducible run used mutual-nearest-neighbor association with a 12-co
 
 ### Physical-unit ablation
 
-A second reproducible run evaluated mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian assignment using the CTC DIC pixel scale of 0.19 µm in-plane and a physical distance threshold.
-
-At **3.0 µm**, the best mean-F1 configuration in that sweep was Hungarian assignment:
+The second reproducible run evaluated mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian assignment using the CTC DIC pixel scale of 0.19 µm in-plane and a physical distance threshold.
 
 | Method | Threshold | Mean precision | Mean recall | Mean F1 |
 |---|---:|---:|---:|---:|
-| Hungarian | 3.0 µm | 0.99734 | 0.90736 | **0.95015** |
-| Mutual NN | 3.0 µm | 0.99734 | 0.90736 | **0.95015** |
-| Velocity Hungarian | 3.0 µm | 0.99730 | 0.89283 | 0.94212 |
+| Mutual NN | **8.0 µm** | 0.99135 | **0.99322** | **0.99228** |
+| Hungarian | 8.0 µm | 0.99134 | 0.99230 | 0.99182 |
+| Velocity Hungarian | 8.0 µm | 0.99129 | 0.98609 | 0.98868 |
 
-Per-sequence results for the best 3.0 µm configuration:
+The best measured configuration is therefore **mutual-nearest-neighbor at 8.0 µm**, with mean F1 **0.99228** across the two real sequences.
 
-| Sequence | Predicted tracks | Precision | Recall | F1 |
-|---|---:|---:|---:|---:|
-| 01 | 153 | 0.99793 | 0.89187 | 0.94192 |
-| 02 | 106 | 0.99675 | 0.92285 | 0.95838 |
+Per-sequence results for that configuration:
 
-This raises mean F1 from the initial 0.9183 average to 0.9501 while maintaining approximately 0.997 precision.
+| Sequence | GT tracks | Predicted tracks | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|---:|
+| 01 | 38 | 35 | 0.99171 | 0.99446 | 0.99308 |
+| 02 | 32 | 31 | 0.99099 | 0.99198 | 0.99149 |
 
-A wider 3.0–8.0 µm sweep has been launched to test whether additional difficult links can be recovered without excessive false associations.
+Compared with the initial mean F1 of 0.9183, the calibrated physical-unit configuration reaches **0.9923 mean F1** while retaining approximately **0.991 precision**.
+
+The 3.0 µm point is also informative: mean F1 was 0.95015. Increasing the physical gate to 8.0 µm recovers substantially more true links without collapsing precision.
 
 ### Interpretation
 
-The central failure mode is track fragmentation: precision is already very high, while recall remains the limiting metric.
+The initial failure mode was track fragmentation caused by an overly restrictive distance gate. On this CTC association benchmark, the strongest simple baseline is not the velocity model: it is a physically calibrated mutual-nearest-neighbor association with a permissive 8.0 µm gate.
 
-The next technical target is therefore **continuity recovery** rather than simply accepting more links. Candidate directions are longer-range motion-aware association, gap closing, and lineage-aware relinking.
+This is a useful result because it gives us a measured, reproducible reference configuration before introducing additional learned or lineage-aware machinery.
 
 ## Evidence policy
 
