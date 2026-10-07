@@ -81,6 +81,14 @@ Phenotype discovery now has an explicit fit/transform boundary. A fitted discove
 
 This makes it possible to fit phenotype states on a reference cohort and transform a new cohort without silently re-fitting the clustering model. It is a prerequisite for scientifically meaningful cross-condition comparisons.
 
+## Temporal-gap branch
+
+The production baseline remains adjacent-frame MNN. A separate gap_hungarian branch can retain unmatched tracks for a bounded number of frames and create forward-time edges with an explicit frame_gap field.
+
+This is intentionally experimental. It exists because real linking tasks can contain incomplete observations, and the Cell Tracking Challenge Cell Linking Benchmark explicitly evaluates establishing tracklets and completing possible temporal gaps.
+
+The gap branch is protected by A/B evaluation rather than being promoted automatically.
+
 ## Performance boundary
 
 The production baseline remains exact mutual-nearest-neighbor association for reproducibility. A KD-tree implementation is now available as an explicitly experimental variant and is included in the A/B harness rather than being silently substituted.
