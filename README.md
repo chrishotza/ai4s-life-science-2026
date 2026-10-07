@@ -122,7 +122,7 @@ The benchmark is reproducible through GitHub Actions; the microscopy dataset its
 
 A reproducible demo-video renderer is included in `scripts/make_demo_video.py`. It downloads the public DIC-C2DH-HeLa sequence, overlays the deterministic tracking trajectories on real microscopy frames, and appends a measured validation summary card.
 
-The GitHub Actions workflow `.github/workflows/demo-video.yml` produces the MP4 as a workflow artifact.
+The GitHub Actions workflow `.github/workflows/demo-video.yml` produces the MP4 as a workflow artifact. The rendered sequence now shows real microscopy with tracks, an unsupervised temporal-phenotype view, and the measured validation summary.
 
 ## Scientific output
 
