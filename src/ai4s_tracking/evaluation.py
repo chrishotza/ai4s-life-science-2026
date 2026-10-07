@@ -18,9 +18,15 @@ def link_metrics(predicted_edges: pd.DataFrame, true_edges: pd.DataFrame) -> dic
     fp = len(pred - true)
     fn = len(true - pred)
 
-    precision = tp / (tp + fp) if tp + fp else 1.0
-    recall = tp / (tp + fn) if tp + fn else 1.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    predicted_count = tp + fp
+    truth_count = tp + fn
+    precision = tp / predicted_count if predicted_count else (1.0 if truth_count == 0 else 0.0)
+    recall = tp / truth_count if truth_count else (1.0 if predicted_count == 0 else 0.0)
+    f1 = (
+        2 * precision * recall / (precision + recall)
+        if precision + recall
+        else 1.0
+    )
 
     return {
         "true_links": float(len(true)),
