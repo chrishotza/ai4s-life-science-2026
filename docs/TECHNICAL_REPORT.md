@@ -16,6 +16,8 @@ The competition target is single-cell phenotype analysis. The system addresses t
 
 ## 3. System architecture
 
+The public implementation now exposes a canonical TemporalPhenotypeEngine that can start from microscopy frames or precomputed detections. Internal data contracts and a centralized physical-coordinate transform are shared by tracking, lineage, and phenotype layers.
+
 ### 3.1 Microscopy preprocessing
 
 The public baseline uses transparent thresholding and connected components to convert microscopy frames into object centroids and basic intensity/area measurements.
