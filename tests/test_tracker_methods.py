@@ -67,3 +67,27 @@ def test_voxel_scaling_is_used_for_physical_distance():
     assert len(edges) == 1
     assert float(edges.iloc[0]["distance_um"]) == 1.0
     assert nodes["track_id"].nunique() == 1
+
+
+def test_mutual_rescue_recovers_unclaimed_assignment():
+    detections = pd.DataFrame(
+        [
+            {"t": 0, "z": 0.0, "y": 0.0, "x": 0.0},
+            {"t": 0, "z": 0.0, "y": 0.0, "x": 0.5},
+            {"t": 1, "z": 0.0, "y": 0.0, "x": 0.1},
+            {"t": 1, "z": 0.0, "y": 0.0, "x": 2.0},
+        ]
+    )
+
+    _, mutual_edges = track_detections(
+        detections,
+        TrackingConfig(max_distance_um=2.0, method="mutual_nn"),
+    )
+    _, rescue_edges = track_detections(
+        detections,
+        TrackingConfig(max_distance_um=2.0, method="mutual_rescue"),
+    )
+
+    assert len(mutual_edges) == 1
+    assert len(rescue_edges) == 2
+    assert rescue_edges["target_id"].nunique() == 2
