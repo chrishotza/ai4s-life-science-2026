@@ -250,8 +250,8 @@ def render_summary(path: Path) -> None:
     ax.text(
         0.05,
         0.11,
-        "DIC-C2DH-HeLa sequence 01 | reference centroids used as detections\n"
-        "Association benchmark, not an end-to-end segmentation score.",
+        "DIC-C2DH-HeLa sequence 01 | association-isolation validation\n"
+        "Reference centroids are used only for the association benchmark; raw-image detection is shown separately.",
         fontsize=11,
     )
     fig.tight_layout()
