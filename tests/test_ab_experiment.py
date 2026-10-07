@@ -1,4 +1,16 @@
-from scripts.ab_experiment import BASELINE, compare
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "ab_experiment.py"
+SPEC = importlib.util.spec_from_file_location("ab_experiment", MODULE_PATH)
+MODULE = importlib.util.module_from_spec(SPEC)
+assert SPEC.loader is not None
+SPEC.loader.exec_module(MODULE)
+
+BASELINE = MODULE.BASELINE
+compare = MODULE.compare
 
 
 def test_baseline_is_not_rejected():
