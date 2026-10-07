@@ -47,7 +47,8 @@ For each track, the engine computes:
 - parent count;
 - child count;
 - descendant count;
-- division-event flag.
+- division-event flag;
+- observation fraction and temporal-gap diagnostics.
 
 ### 3.5 Phenotype discovery
 
