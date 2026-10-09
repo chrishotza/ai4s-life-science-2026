@@ -177,6 +177,18 @@ A separate run evaluated `cpsam_v2` on raw DIC-C2DH-HeLa frames with one-to-one 
 
 This is promising partial segmentation evidence only. The run was cancelled before the second sequence, the aggregate JSON and artifact were not produced, and no complete image-derived tracking-to-phenotype score is available from it. Do not treat these partial frame means as a completed benchmark or combine them with the supervised holdout metrics.
 
+### Bounded Cellpose image-to-tracking pilot
+
+A subsequent bounded pilot evaluated the first **4 frames from each sequence** (8 total) using the same pretrained cpsam_v2 model and one-to-one IoU ≥ 0.5 segmentation match. It reported:
+
+- Mean instance segmentation F1: **0.87490**
+- Image-derived detection F1: **0.88810**
+- Tracking-edge F1: **0.89180**
+
+The [Actions run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248) and [captured JSON artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248/artifacts/11608135086) preserve the evidence. The sample covers only the opening four frames of each sequence, so the result is exploratory; it does not establish robust cross-time generalization or biological phenotype validity. These pilot metrics are separate from both the earlier cancelled partial run and the supervised holdout.
+
+
+
 ### End-to-end tracking-to-phenotype robustness
 
 A controlled synthetic benchmark now re-runs the temporal association stage after injecting coordinate noise and detection dropout, then carries those predictions through temporal phenotype extraction and unsupervised phenotype discovery. It reports predicted track count, mean track purity, and phenotype-group ARI against the known synthetic behavioral groups.

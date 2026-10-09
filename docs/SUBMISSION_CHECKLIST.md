@@ -40,6 +40,7 @@ Verified against the current Kaggle competition overview: the official submissio
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [x] Re-run CI on the final public code/documentation commit (GitHub Actions run triggered on this commit)
 - [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
+- [x] Capture bounded pretrained Cellpose pilot artifact (4 frames per sequence; exploratory metrics documented)
 - [x] Add representative real-data visualization artifact
 - [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup
