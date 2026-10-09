@@ -8,6 +8,8 @@ from .discovery import (
 )
 from .phenotype import analyze
 from .cohort import CohortComparison, compare_cohorts
+from .causal import (causal_shape_motion_features, STATIC_FEATURES,
+                     MOTION_FEATURES, HISTORY_FEATURES)
 
 __all__ = [
     "analyze",
@@ -17,4 +19,8 @@ __all__ = [
     "FEATURE_SCHEMA_VERSION",
     "CohortComparison",
     "compare_cohorts",
+    "causal_shape_motion_features",
+    "STATIC_FEATURES",
+    "MOTION_FEATURES",
+    "HISTORY_FEATURES",
 ]
