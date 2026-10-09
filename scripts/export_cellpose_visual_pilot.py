@@ -64,8 +64,6 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     gray = normalized_u8(raw)
     raw_im = Image.fromarray(gray, "L").convert("RGB")
     over = raw_im.copy().convert("RGBA")
-    marks = Image.new("RGBA", over.size, (0, 0, 0, 0))
-    md = ImageDraw.Draw(marks)
     # Predicted instances only; no GT mask in display.
     for lab in np.unique(mask):
         if int(lab) <= 0:
