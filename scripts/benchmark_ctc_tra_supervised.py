@@ -376,7 +376,7 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
         },
         "image_derived_detection": {
             **detection_scores,
-            "match_radius_px": CENTER_RADIUS_PX,
+            "matching_rule": "one-to-one overlap with CTC GT/TRA marker pixels",
         },
         "image_derived_tracking": {
             "edge_precision": float(edge_score["precision"]),
