@@ -38,9 +38,10 @@ jobs:
           root = Path("external_biology/alfi_expert")
           records = []
           with RemoteZip(url, support_suffix_range=True, timeout=55) as archive:
-              files = sorted(info for info in archive.infolist()
-                             if info.filename.endswith("_PhenoTruth.csv")
-                             and info.filename.startswith("Data&Annotations/"))
+              files = sorted((info for info in archive.infolist()
+                              if info.filename.endswith("_PhenoTruth.csv")
+                              and info.filename.startswith("Data&Annotations/")),
+                             key=lambda item: item.filename)
               if len(files) != 29:
                   raise ValueError(f"Expected 29 ALFI expert phenotype CSVs, found {len(files)}")
               for info in files:
