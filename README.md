@@ -53,14 +53,10 @@ model = TemporalStateProbe.fit(training, feature_set="static_motion")
 predictions = model.predict(unseen, require_heldout_sequences=True)
 ```
 
-The equivalent runnable CLI is:
+The equivalent runnable CLI is (also usable from Windows CMD):
 
 ```bash
-python scripts/predict_cell_states.py \\
-  --training-boxes train_expert_boxes_with_labels.csv \\
-  --input-boxes test_boxes_from_disjoint_sequences.csv \\
-  --output phenotype_state_predictions.csv \\
-  --features static_motion
+python scripts/predict_cell_states.py --training-boxes train_expert_boxes_with_labels.csv --input-boxes test_boxes_from_disjoint_sequences.csv --output phenotype_state_predictions.csv --features static_motion
 ```
 
 It produces a CSV and a companion provenance JSON with source SHA-256 hashes, training/test sequence IDs and the exact feature set. For precomputed masks, use the `instances_to_box_detections` adapter before tracking; a synthetic end-to-end contract test exercises this mask → tracker → causal state path.
