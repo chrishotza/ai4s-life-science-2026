@@ -1,0 +1,45 @@
+name: GIDE real terminal cellular assay
+
+on:
+  push:
+    paths:
+      - ".github/workflows/gide-terminal-cells.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terminal-cells:
+    runs-on: ubuntu-latest
+    timeout-minutes: 49
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install image processing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest
+      - name: Verify manifest and synthetic segmentation test
+        run: |
+          python -m scripts.run_gide_terminal_cells --dry-run
+          python -m pytest -q tests/test_gide_terminal_cells.py
+      - name: Download 60 terminal TIFFs and measure nuclear-proximal Annexin V
+        run: python -u -m scripts.run_gide_terminal_cells
+      - name: Upload masks QC, hashes and measured results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gide-30well-nuclear-proximal-annexinv
+          path: |
+            external_biology/gide_cell_terminal/manifest.json
+            external_biology/gide_cell_terminal/well_features.csv
+            external_biology/gide_cell_terminal/nucleus_annexin_proxy.csv
+            external_biology/gide_cell_terminal/summary.json
+            external_biology/gide_cell_terminal/*_segmentation_qc.png
+          if-no-files-found: warn
+          retention-days: 30
