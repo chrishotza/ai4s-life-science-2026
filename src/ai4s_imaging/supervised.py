@@ -84,7 +84,8 @@ class Supervised2DSegmenter:
     samples_per_class_per_frame: int = 2500
     max_training_frames: int = 24
     random_state: int = 42
-    min_marker_area: int = 8
+    min_marker_area: int | None = None
+    effective_min_marker_area: int = field(default=8, init=False)
     min_instance_area: int = 12
     max_instance_area: int = 30000
     model: RandomForestClassifier | None = field(default=None, init=False, repr=False)
@@ -96,7 +97,7 @@ class Supervised2DSegmenter:
             raise ValueError("samples_per_class_per_frame must be >= 1")
         if self.max_training_frames < 1:
             raise ValueError("max_training_frames must be >= 1")
-        if self.min_marker_area < 1 or self.min_instance_area < 1:
+        if (self.min_marker_area is not None and self.min_marker_area < 1) or self.min_instance_area < 1:
             raise ValueError("minimum areas must be >= 1")
         if self.max_instance_area < self.min_instance_area:
             raise ValueError("max_instance_area must be >= min_instance_area")
@@ -121,6 +122,18 @@ class Supervised2DSegmenter:
             )
         else:
             selected = np.arange(frames.shape[0], dtype=int)
+
+        training_instance_areas: list[int] = []
+        for frame_index in selected:
+            values, counts = np.unique(masks[int(frame_index)], return_counts=True)
+            training_instance_areas.extend(
+                int(count) for value, count in zip(values, counts) if value > 0
+            )
+        if self.min_marker_area is None:
+            median_area = float(np.median(training_instance_areas)) if training_instance_areas else 200.0
+            self.effective_min_marker_area = int(np.clip(round(0.10 * median_area), 16, 256))
+        else:
+            self.effective_min_marker_area = int(self.min_marker_area)
 
         rng = np.random.default_rng(self.random_state)
         feature_rows: list[np.ndarray] = []
@@ -180,31 +193,33 @@ class Supervised2DSegmenter:
         features = _pixel_features(image)
         classes = self.model.predict(features.reshape(-1, features.shape[-1])).reshape(image.shape)
 
-        foreground = classes != 0
         interior = classes == 1
-        foreground = ndimage.binary_closing(
-            foreground, structure=np.ones((3, 3), dtype=bool)
-        )
+        boundary = classes == 2
         markers, marker_count = ndimage.label(interior)
 
-        # Remove tiny and implausibly large interior islands before assignment.
+        # Suppress fragments using a threshold estimated from labeled training cells.
         if marker_count:
             sizes = np.bincount(markers.reshape(-1), minlength=marker_count + 1)
             remap = np.zeros(marker_count + 1, dtype=np.int32)
             next_id = 1
             for old_id in range(1, marker_count + 1):
-                if self.min_marker_area <= int(sizes[old_id]) <= self.max_instance_area:
+                if (
+                    self.effective_min_marker_area <= int(sizes[old_id])
+                    <= self.max_instance_area
+                ):
                     remap[old_id] = next_id
                     next_id += 1
             markers = remap[markers]
 
-        # If the interior class is absent, retain connected foreground regions as a
-        # conservative fallback rather than producing an empty segmentation.
-        if int(markers.max(initial=0)) == 0:
-            markers, _ = ndimage.label(foreground)
-
-        if int(markers.max(initial=0)) == 0:
+        kept_interior = markers > 0
+        if not kept_interior.any():
+            # Boundary-only predictions are not cells; do not promote them to objects.
             return np.zeros(image.shape, dtype=np.int32)
+
+        # Grow kept instances only into nearby predicted boundary pixels. This preserves
+        # the learned inter-cell boundary instead of joining all non-background pixels.
+        distance_to_interior = ndimage.distance_transform_edt(~kept_interior)
+        foreground = kept_interior | (boundary & (distance_to_interior <= 2.0))
 
         _, nearest_indices = ndimage.distance_transform_edt(
             markers == 0, return_indices=True
