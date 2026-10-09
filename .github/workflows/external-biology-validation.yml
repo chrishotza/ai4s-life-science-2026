@@ -1,0 +1,80 @@
+name: External biology validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      table_url:
+        description: "Optional HTTPS URL to a CSV/TSV/Parquet table. Leave empty to use table_path."
+        required: false
+        default: ""
+      table_path:
+        description: "Repository-local table path, used when table_url is empty."
+        required: false
+        default: ""
+      positive_min_dose:
+        description: "Minimum treated dose considered positive."
+        required: false
+        default: "19.53"
+      feature_sets:
+        description: "Optional comma-separated NAME:REGEX selectors, e.g. CP:^((?!scDINO).)*$,scDINO:scDINO"
+        required: false
+        default: ""
+
+jobs:
+  external-biology-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install package and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install -r requirements.txt
+
+      - name: Resolve input table
+        id: table
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p external_biology
+          if [[ -n "${{ github.event.inputs.table_url }}" ]]; then
+            url="${{ github.event.inputs.table_url }}"
+            name="${url##*/}"
+            [[ -n "$name" ]] || name="external_table.parquet"
+            curl -L "$url" -o "external_biology/$name"
+            echo "path=external_biology/$name" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ github.event.inputs.table_path }}" ]]; then
+            echo "path=${{ github.event.inputs.table_path }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Either table_url or table_path must be provided" >&2
+            exit 2
+          fi
+
+      - name: Run grouped external-biology evaluator
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ -n "${{ github.event.inputs.feature_sets }}" ]]; then
+            IFS=',' read -ra sets <<< "${{ github.event.inputs.feature_sets }}"
+            for fs in "${sets[@]}"; do
+              args+=(--feature-set "$fs")
+            done
+          fi
+          python scripts/evaluate_external_biology.py \
+            --table "${{ steps.table.outputs.path }}" \
+            --out external_biology/external_biology_summary.json \
+            --positive-min-dose "${{ github.event.inputs.positive_min_dose }}" \
+            "${args[@]}"
+
+      - name: Upload validation summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-biology-validation-summary
+          path: external_biology/external_biology_summary.json
