@@ -73,7 +73,7 @@ def evaluate_sequence(root: Path, sequence: str, segmenter: CellposeSegmenter) -
     detections = instances_to_detections(np.stack(frames), np.stack(predictions))
     detections["t"] = detections["t"].map(dict(enumerate(eval_times))).astype(int)
     tracked, edges = track_detections(
-        detections[["t", "z", "y", "x"]],
+        detections[["t", "z", "y", "x", "instance_id"]],
         TrackingConfig(
             max_distance_um=MAX_DISTANCE_UM,
             method="mutual_nn",
