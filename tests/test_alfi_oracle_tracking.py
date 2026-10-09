@@ -33,7 +33,7 @@ def test_oracle_adjacent_edges_and_mapped_association():
         assert result["oracle_detections"] == 8
         assert result["oracle_temporal_edges"] == 6
         assert result["matched_edges"] == 6
-        assert result["edge_precision"] if "edge_precision" in result else True
+        assert result["precision"] == result["recall"] == 1.0
         assert result["f1"] == 1.0
 
 
