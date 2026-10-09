@@ -390,3 +390,52 @@ A lineage edge connects a parent track endpoint to a daughter track start. The s
 The candidate event layer is intentionally separated from biological interpretation. Spatial proximity between a parent endpoint and two new track starts can generate a plausible division candidate, but proximity alone is not sufficient to establish a cell division. A true biological division claim requires independent event annotations or a benchmark that compares image-derived candidates with such annotations.
 
 The CTC reference loader preserves the supplied parent identifiers and track intervals. For the principal association benchmark, reference centroids are used as observations and reference lineage edges are independently controlled in the no-oracle sensitivity experiment. The report states which part of the graph was observed, inferred, or held fixed.
+
+
+## Appendix B. Physical units and tracking
+
+### B.1 Coordinate conversion
+
+Every spatial comparison is made in a common z/y/x coordinate convention. The scale is supplied as a three-element tuple, and the tracking layer converts coordinates to physical distances before applying a gate. For DIC-C2DH-HeLa, the in-plane pixel size is 0.19 micrometers. The real-data benchmark uses the scale (1.0, 0.19, 0.19) with an 8.0 micrometer association gate.
+
+The pixel scale matters directly. A threshold stated only in pixels encodes a dataset-specific resolution assumption and cannot be compared safely across microscopes. A physical gate gives the experiment a stable interpretation and makes it easier to reproduce on a second dataset with a different pixel size.
+
+### B.2 Mutual nearest neighbor
+
+For adjacent frames, the MNN baseline finds nearest candidates between source and target observations under the physical distance metric. A link is retained only when the candidate relationship is reciprocal. The algorithm is deterministic and makes few assumptions about cell dynamics, which makes it an appropriate transparent baseline.
+
+MNN does not solve every data-association case. Crowded fields, closely interacting cells, missing observations, and rapid movement can produce fragmented tracks. The repository therefore tests alternative association methods under the same scoring interface rather than silently replacing the selected baseline.
+
+### B.3 Assignment alternatives
+
+The repository contains Hungarian assignment, a constant-velocity Hungarian variant, a bounded-gap Hungarian branch, and an experimental KD-tree MNN implementation. The global assignment methods can resolve competition between candidate links differently from reciprocal nearest neighbors. The gap branch explicitly addresses missed detections. The KD-tree path changes the computational search strategy and remains under A/B validation until its correctness and performance are independently accepted.
+
+The real DIC headline is tied to the measured MNN configuration. Alternative methods remain experimental comparisons, and their results do not overwrite the reported headline merely because a particular run happens to improve one metric.
+
+## Appendix C. Temporal phenotype feature semantics
+
+### C.1 Duration and observations
+
+Duration is the difference between the last and first observed frame indices. Observation count is the number of detections assigned to the track. These quantities are related but not interchangeable: a long-duration track can contain gaps, and two tracks with equal duration can have different observation counts.
+
+Observation fraction divides the number of observed detections by the number of frame positions in the track's temporal span. It gives a simple measure of temporal coverage and is interpreted alongside the explicit gap count and maximum gap.
+
+### C.2 Displacement, path length, speed, and persistence
+
+Displacement measures the straight-line distance between the first and last observation. Path length sums distances between consecutive observations. Mean speed divides each observed step by its positive frame interval and averages the resulting rates.
+
+Directional persistence is displacement divided by path length where path length is positive. Values near one indicate that the accumulated path aligns with the net displacement; lower values indicate turning or meandering. This is an interpretable geometric descriptor, not a named biological state.
+
+These motion features deliberately use the track's observed points. They inherit uncertainty from the detection and association process; they cannot correct an identity switch or a missing segment by themselves. That is why the report pairs downstream feature errors with link and track diagnostics.
+
+### C.3 Lineage and event features
+
+Parent count, child count, division-event indicator, and descendant count summarize the lineage graph available to the analysis. They are computed from explicit edges rather than inferred from motion features.
+
+Where lineage is derived from reference graph annotations, the report says so. Where lineage is generated from spatial candidates, it is labeled as candidate inference. The implementation does not treat “division detected” as a synonym for “two nearby track starts.”
+
+### C.4 Auxiliary observation attributes
+
+Numeric detection attributes are aggregated per track with mean, standard deviation, minimum, and maximum summaries. Examples include object area and mean intensity where the input adapter provides them. Non-numeric metadata and columns that look like identifiers are excluded.
+
+The default phenotype discovery schema remains the fixed trajectory/lineage feature list. Auxiliary morphology values are preserved for future multimodal experiments but are not allowed to enter the current published clustering benchmark without an explicit schema version update and a new evaluation.
