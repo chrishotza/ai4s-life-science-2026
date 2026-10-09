@@ -7,6 +7,9 @@ on:
       - "src/ai4s_phenotype/causal.py"
       - "scripts/evaluate_alfi_expert_labels.py"
       - "tests/test_causal_features.py"
+      - "src/ai4s_phenotype/state_probe.py"
+      - "tests/test_temporal_state_probe.py"
+      - "scripts/evaluate_alfi_product_probe.py"
       - "scripts/evaluate_alfi_assay_robustness.py"
       - "tests/test_alfi_assay_robustness.py"
   workflow_dispatch:
@@ -29,7 +32,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e . -r requirements-dev.txt remotezip requests
       - name: Test past-only temporal features and isolated sequence folds
-        run: python -m pytest -q tests/test_alfi_expert_labels.py tests/test_causal_features.py
+        run: python -m pytest -q tests/test_alfi_expert_labels.py tests/test_causal_features.py tests/test_temporal_state_probe.py
       - name: Extract 29 expert phenotype tables, without downloading 8.4 GB images
         run: |
           mkdir -p external_biology/alfi_expert/labels
@@ -76,6 +79,11 @@ jobs:
             --annotations external_biology/alfi_expert/labels \
             --out external_biology/alfi_expert/assay_robustness.json \
             --bootstrap 10000
+      - name: Evaluate actual deployed temporal state probe against expert ALFI MI labels
+        run: |
+          python -u -m scripts.evaluate_alfi_product_probe \
+            --annotations external_biology/alfi_expert/labels \
+            --out external_biology/alfi_expert/product_state_probe.json
       - name: Preserve labels, source checksums and all model metrics
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,6 +93,7 @@ jobs:
             external_biology/alfi_expert/source_manifest.json
             external_biology/alfi_expert/metrics.json
             external_biology/alfi_expert/assay_robustness.json
+            external_biology/alfi_expert/product_state_probe.json
             external_biology/alfi_expert/labels/*.csv
           if-no-files-found: warn
           retention-days: 30
