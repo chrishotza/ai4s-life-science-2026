@@ -1,0 +1,77 @@
+name: ALFI 4-train 4-heldout raw cell segmentation
+
+on:
+  push:
+    paths:
+      - ".github/workflows/alfi-multi-train-raw.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alfi-cross-sequence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project and remote ALFI ZIP support
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          python -m pip install remotezip requests
+      - name: Obtain exactly 64 fixed raw ALFI image/mask PNGs
+        run: |
+          python -u - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          from remotezip import RemoteZip
+
+          url="https://ndownloader.figshare.com/files/41740227"
+          root=Path("external_biology/alfi_multi_training/input")
+          root.mkdir(parents=True,exist_ok=True)
+          manifest=[]
+          with RemoteZip(url,support_suffix_range=True,timeout=55) as z:
+              known={i.filename for i in z.infolist()}
+              for index in range(1,9):
+                  seq=f"MI{index:02d}"
+                  for t in (1,5,9,13):
+                      for kind,folder,prefix in (
+                          ("image","Images","I"),("mask","Masks","M")
+                      ):
+                          source=f"Data&Annotations/{seq}/{folder}/{prefix}_{seq}_{t:04d}.png"
+                          if source not in known:
+                              raise ValueError("ALFI source missing "+source)
+                          payload=z.read(source)
+                          (root/f"{seq}_{kind}_{t:04d}.png").write_bytes(payload)
+                          manifest.append(dict(
+                              source=source,bytes=len(payload),
+                              sha256=hashlib.sha256(payload).hexdigest()
+                          ))
+                          print(seq,t,kind,len(payload),flush=True)
+          if len(manifest)!=64:
+              raise ValueError(f"Unexpected input count {len(manifest)}")
+          (root.parent/"source_manifest.json").write_text(
+              json.dumps(dict(archive=url,dataset_license="CC BY",
+                              entries=manifest),indent=2)
+          )
+          PY
+      - name: Train only MI01-04 then validate unseen MI05-08
+        run: |
+          python -u -m scripts.evaluate_alfi_multi_train \
+            --inputs external_biology/alfi_multi_training/input \
+            --out external_biology/alfi_multi_training/results
+      - name: Preserve source hashes and test metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfi-raw-4train-4heldout-instance-segmentation
+          path: |
+            external_biology/alfi_multi_training/source_manifest.json
+            external_biology/alfi_multi_training/results/
+          if-no-files-found: warn
+          retention-days: 30
