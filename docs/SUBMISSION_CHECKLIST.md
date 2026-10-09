@@ -17,6 +17,7 @@
 - [x] Reproducible CTC TRA/LNK evidence artifact captured
 - [x] No-oracle lineage sensitivity control completed with unchanged TRA/LNK
 - [x] Submission claim audit synchronized with CTC TRA/LNK values
+- [x] Project Summary word-count audit enforced in `scripts/validate_submission_claims.py`
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
 - [x] Category declaration at start of Writeup
@@ -27,6 +28,8 @@
 - [x] CI tests
 - [x] Docker reproduction path
 - [x] Judge-facing rubric evidence map
+- [x] Judge reader guide
+- [x] Top-level MIT code license
 
 ## Official competition submission constraints
 
@@ -46,7 +49,7 @@ Official detail reflected in this checklist:
 - [ ] Confirm the registered team has 1–5 members, one leader, and a roster matching the technical report
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Check whether the registered roster qualifies for the +0.5 cross-disciplinary bonus; do not claim it unless both expertise areas are represented
-- [x] CI passes on current source commit 081e0da (run 37925894104); rerun after any further source or submission-document changes
+- [x] CI has passed on recent submission-document PRs; rerun on the final merge commit before official Kaggle submission
 - [ ] Reproduce the remaining published benchmark suite on the final submission commit; the PhC-C2DL-PSC supervised segmentation holdout and bounded Cellpose image-to-phenotype integration have been re-run on current source snapshots (runs 37924623262 and 37925893949)
 - [x] Re-run the bounded Cellpose product path through per-track phenotype outputs; captured CSVs, JSON, and provenance (run 37925893949; artifact 11613698759)
 - [x] Capture bounded pretrained Cellpose pilot metrics (4 frames per sequence; exploratory)
@@ -60,7 +63,8 @@ Official detail reflected in this checklist:
 
 ## Current verified state
 
-- `main` contains the merged external CTC validation bridge.
+- `main` contains the merged external CTC validation bridge, confidence-gated phenotype interpretation, claim-evidence matrix, and compact 200–300 word Kaggle Project Summary.
+- `docs/JUDGE_READER_GUIDE.md` is the judge-facing entry point for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
 - Captured `py-ctcmetrics==1.3.3` results are documented for sequences 01 and 02.
 - Official Cell Tracking Challenge leaderboard scores remain explicitly unclaimed.
 - Repository visibility and root URL were verified on the final public `main` branch; repeat only if ownership or visibility changes.
