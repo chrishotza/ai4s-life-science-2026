@@ -49,12 +49,12 @@ Official detail reflected in this checklist:
 - [ ] Re-run CI on the final public code/documentation commit (the latest successful run predates the most recent documentation changes; verify a green run on the final SHA)
 - [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Capture bounded pretrained Cellpose pilot artifact (4 frames per sequence; exploratory metrics documented)
-- [x] Add representative real-data visualization artifact
+- [ ] Add and verify a representative real-data visualization artifact that reviewers can access without login (the renderer exists, but no public output has been verified)
 - [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup
 - [ ] Submit final technical report
 - [ ] Add independent biological phenotype validation if time permits
-- [ ] Produce final narrated demo video (max 5 minutes), publish it without login/approval/payment, and verify media usage rights
+- [ ] Produce final demo video (max 5 minutes), publish it without login/approval/payment, and verify media usage rights
 - [x] Final consistency check: no claim exceeds measured evidence
 
 ## Current verified state
