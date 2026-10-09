@@ -8,6 +8,7 @@ from .discovery import (
 )
 from .phenotype import analyze
 from .cohort import CohortComparison, compare_cohorts
+from .state_probe import TemporalStateProbe
 from .causal import (causal_shape_motion_features, STATIC_FEATURES,
                      MOTION_FEATURES, HISTORY_FEATURES)
 
@@ -20,6 +21,7 @@ __all__ = [
     "CohortComparison",
     "compare_cohorts",
     "causal_shape_motion_features",
+    "TemporalStateProbe",
     "STATIC_FEATURES",
     "MOTION_FEATURES",
     "HISTORY_FEATURES",
