@@ -40,6 +40,9 @@ SEGMENTATION_F1_GATE = 0.25
 DETECTION_F1_GATE = 0.50
 TRACKING_EDGE_F1_GATE = 0.30
 GOLD_OBJECT_RECALL_GATE = 0.20
+VALIDATION_START_FRAME = 24
+MARKER_AREA_CANDIDATES = (16, 32, 64, 128, 256)
+INSTANCE_AREA_CANDIDATES = (80, 120, 200)
 
 
 def segmentation_masks(root: Path, sequence: str, corpus: str) -> dict[int, Path]:
@@ -77,16 +80,98 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
             f"training={len(paired)}, test={len(test_paths)}"
         )
 
-    train_frames: list[np.ndarray] = []
-    train_masks: list[np.ndarray] = []
-    for image_path in paired:
-        image = np.squeeze(tifffile.imread(image_path))
-        mask = np.squeeze(tifffile.imread(seg_map[frame_index(image_path)]))
-        if image.ndim != 2 or mask.ndim != 2 or image.shape != mask.shape:
-            raise ValueError(f"Invalid train pair at {image_path.name}: {image.shape} vs {mask.shape}")
-        train_frames.append(image)
-        train_masks.append(mask)
+    fit_paths = [path for path in paired if frame_index(path) < VALIDATION_START_FRAME]
+    validation_paths = [
+        path
+        for path in paired
+        if VALIDATION_START_FRAME <= frame_index(path) < TEST_START_FRAME
+    ]
+    if len(fit_paths) < MAX_TRAIN_FRAMES or not validation_paths:
+        raise RuntimeError(
+            f"Insufficient pre-test calibration split for sequence {sequence}: "
+            f"fit={len(fit_paths)}, validation={len(validation_paths)}"
+        )
 
+    def load_pairs(paths: list[Path]) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        images: list[np.ndarray] = []
+        masks: list[np.ndarray] = []
+        for image_path in paths:
+            image = np.squeeze(tifffile.imread(image_path))
+            mask = np.squeeze(tifffile.imread(seg_map[frame_index(image_path)]))
+            if image.ndim != 2 or mask.ndim != 2 or image.shape != mask.shape:
+                raise ValueError(
+                    f"Invalid train pair at {image_path.name}: {image.shape} vs {mask.shape}"
+                )
+            images.append(image)
+            masks.append(mask)
+        return images, masks
+
+    fit_frames, fit_masks = load_pairs(fit_paths)
+    validation_frames, validation_masks = load_pairs(validation_paths)
+
+    tuning_segmenter = Supervised2DSegmenter(
+        n_estimators=60,
+        max_depth=18,
+        min_samples_leaf=2,
+        samples_per_class_per_frame=SAMPLES_PER_CLASS,
+        max_training_frames=MAX_TRAIN_FRAMES,
+        random_state=RANDOM_STATE,
+        min_marker_area=16,
+        min_instance_area=80,
+        max_instance_area=30000,
+    ).fit(np.stack(fit_frames), np.stack(fit_masks))
+
+    candidate_rows: list[dict[str, float | int]] = []
+    for marker_area in MARKER_AREA_CANDIDATES:
+        for instance_area in INSTANCE_AREA_CANDIDATES:
+            tuning_segmenter.effective_min_marker_area = int(marker_area)
+            tuning_segmenter.min_instance_area = int(instance_area)
+            scores: list[dict[str, float]] = []
+            for image, silver_mask in zip(validation_frames, validation_masks):
+                pred_mask = restrict_instances_to_foi(
+                    tuning_segmenter.predict_instances(image)
+                )
+                scores.append(
+                    segmentation_score(
+                        np.asarray(silver_mask, dtype=np.int32),
+                        pred_mask,
+                    )
+                )
+            mean_f1 = float(np.mean([score["f1_iou50"] for score in scores]))
+            mean_iou = float(np.mean([score["mean_matched_iou"] for score in scores]))
+            mean_pred = float(np.mean([score["pred_objects"] for score in scores]))
+            candidate_rows.append(
+                {
+                    "min_marker_area": int(marker_area),
+                    "min_instance_area": int(instance_area),
+                    "mean_f1_iou50": mean_f1,
+                    "mean_matched_iou": mean_iou,
+                    "mean_pred_objects": mean_pred,
+                }
+            )
+            print(
+                f"[temporal-calibration] seq={sequence} marker={marker_area} "
+                f"instance={instance_area} F1@IoU50={mean_f1:.3f} "
+                f"matched_IoU={mean_iou:.3f}",
+                flush=True,
+            )
+
+    best_candidate = max(
+        candidate_rows,
+        key=lambda row: (
+            float(row["mean_f1_iou50"]),
+            float(row["mean_matched_iou"]),
+            -abs(float(row["mean_pred_objects"]) - float(np.mean([
+                np.count_nonzero(np.unique(mask) > 0) for mask in validation_masks
+            ]))),
+            -int(row["min_instance_area"]),
+            -int(row["min_marker_area"]),
+        ),
+    )
+    selected_marker_area = int(best_candidate["min_marker_area"])
+    selected_instance_area = int(best_candidate["min_instance_area"])
+
+    train_frames, train_masks = load_pairs(paired)
     segmenter = Supervised2DSegmenter(
         n_estimators=60,
         max_depth=18,
@@ -94,7 +179,8 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
         samples_per_class_per_frame=SAMPLES_PER_CLASS,
         max_training_frames=MAX_TRAIN_FRAMES,
         random_state=RANDOM_STATE,
-        min_instance_area=200,
+        min_marker_area=selected_marker_area,
+        min_instance_area=selected_instance_area,
         max_instance_area=30000,
     ).fit(np.stack(train_frames), np.stack(train_masks))
 
@@ -196,7 +282,16 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
             "max_depth": 18,
             "samples_per_class_per_frame": SAMPLES_PER_CLASS,
             "effective_min_marker_area_px": int(segmenter.effective_min_marker_area),
-            "marker_area_rule": "10% of median labeled training-cell area, clipped to 16-256 px",
+            "min_instance_area_px": int(segmenter.min_instance_area),
+            "calibration": {
+                "fit_frame_range": [0, VALIDATION_START_FRAME - 1],
+                "validation_frame_range": [VALIDATION_START_FRAME, TEST_START_FRAME - 1],
+                "selection_metric": "mean ST/SEG object F1 at IoU >= 0.5; mean matched IoU tie-break",
+                "marker_area_candidates": list(MARKER_AREA_CANDIDATES),
+                "instance_area_candidates": list(INSTANCE_AREA_CANDIDATES),
+                "selected": best_candidate,
+                "all_candidates": candidate_rows,
+            },
             "random_state": RANDOM_STATE,
         },
         "segmentation": {
@@ -249,7 +344,9 @@ def main() -> None:
         "protocol": {
             "dataset": "DIC-C2DH-HeLa",
             "split": "per-sequence temporal holdout",
-            "training_window": f"frames 0-{TEST_START_FRAME - 1}",
+            "training_window": f"frames 0-{VALIDATION_START_FRAME - 1}",
+            "calibration_window": f"frames {VALIDATION_START_FRAME}-{TEST_START_FRAME - 1}",
+            "final_refit_window": f"frames 0-{TEST_START_FRAME - 1}",
             "evaluation_window": f"frames {TEST_START_FRAME}-{TEST_START_FRAME + TEST_FRAME_COUNT - 1}",
             "segmentation_metric": "one-to-one instance IoU >= 0.5",
             "detection_metric": "one-to-one predicted-instance overlap with complete-coverage CTC GT/TRA marker pixels",
