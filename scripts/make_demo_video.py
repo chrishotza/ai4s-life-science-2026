@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -543,9 +544,6 @@ def main() -> None:
             raise ValueError(f"Expected 2-D grayscale frame at {image_path}; got {frame.shape}")
         raw_frames.append(frame)
     raw_stack = np.stack(raw_frames)
-    predicted_masks = np.stack(
-        [fit_supervised_segmenter(root).predict_instances(frame) for frame in []]
-    ) if False else None
     segmenter = fit_supervised_segmenter(root)
     predicted_masks = np.stack(
         [segmenter.predict_instances(frame) for frame in raw_stack],
@@ -565,7 +563,7 @@ def main() -> None:
     )
     metrics = evaluate_demo_run(root, images, predicted_masks, predicted, predicted_edges)
     (ROOT / "ai4s_demo_video_metrics.json").write_text(
-        __import__("json").dumps(metrics, indent=2),
+        json.dumps(metrics, indent=2),
         encoding="utf-8",
     )
     print("IMAGE-DERIVED HELD-OUT METRICS")
