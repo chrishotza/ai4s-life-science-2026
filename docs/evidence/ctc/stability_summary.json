@@ -1,0 +1,112 @@
+{
+  "status": "EMPIRICAL_UNSUPERVISED_CLUSTER_STABILITY_NOT_BIOLOGICAL_VALIDATION",
+  "dataset": "CTC DIC-C2DH-HeLa, CellposeSAM-v2, seq01+seq02, 168 frames",
+  "source_workflow_run": "37930909373",
+  "source_commit": "ffc135c56fb5adcf2d23bcf4e8461ba284dcc870",
+  "source_file_sha256": {
+    "01": "6c2a57619a39e32373a61864aeccfb4315885e19463f38d9935b0b74d4ad5611",
+    "02": "02fdc0df28fbf40c219192efed6407c183c108c63f9370177d2af4173b5faf31"
+  },
+  "source_evidence_url": "https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373",
+  "features": [
+    "duration",
+    "observations",
+    "displacement",
+    "path_length",
+    "mean_speed",
+    "directional_persistence",
+    "parent_count",
+    "child_count",
+    "descendant_count"
+  ],
+  "method": "Actual PhenotypeDiscoveryModel with KMeans(k=3,n_init=30), StandardScaler and random_state=17; seeds 0...n-1; sequence-stratified bootstrap resampling trajectory rows.",
+  "total_profiles": 126,
+  "total_single_observation_tracks": 43,
+  "cohorts": {
+    "all": {
+      "n_profiles": 126,
+      "n_sequences": 2,
+      "n_single_observation": 43,
+      "n_shorter_than_three": 54,
+      "cluster_counts": [
+        51,
+        24,
+        51
+      ],
+      "silhouette_index": 0.5110212079213362,
+      "seed_ari": {
+        "n_fits": 20,
+        "min": 1.0,
+        "median": 1.0,
+        "mean": 1.0,
+        "max": 1.0
+      },
+      "stratified_track_bootstrap_ari": {
+        "n_refits": 80,
+        "min": 0.4925211800997217,
+        "p05": 0.7982501785982026,
+        "median": 0.9448255857946377,
+        "p95": 1.0,
+        "max": 1.0,
+        "definition": "ARI vs full-data baseline, predicting the SAME full cohort from models fit on sequence-stratified resampled trajectories; not a confidence interval on biological truth."
+      }
+    },
+    "min_3_observations": {
+      "n_profiles": 72,
+      "n_sequences": 2,
+      "n_single_observation": 0,
+      "n_shorter_than_three": 0,
+      "cluster_counts": [
+        14,
+        24,
+        34
+      ],
+      "silhouette_index": 0.3443442035276777,
+      "seed_ari": {
+        "n_fits": 20,
+        "min": 0.9229607963391045,
+        "median": 1.0,
+        "mean": 0.9768882389017314,
+        "max": 1.0
+      },
+      "stratified_track_bootstrap_ari": {
+        "n_refits": 80,
+        "min": 0.4354520326281225,
+        "p05": 0.4905937396715653,
+        "median": 0.6867139852870741,
+        "p95": 0.9150213772220935,
+        "max": 1.0,
+        "definition": "ARI vs full-data baseline, predicting the SAME full cohort from models fit on sequence-stratified resampled trajectories; not a confidence interval on biological truth."
+      }
+    },
+    "reliability_ge_0_5": {
+      "n_profiles": 56,
+      "n_sequences": 2,
+      "n_single_observation": 0,
+      "n_shorter_than_three": 5,
+      "cluster_counts": [
+        29,
+        17,
+        10
+      ],
+      "silhouette_index": 0.43738592031944756,
+      "seed_ari": {
+        "n_fits": 20,
+        "min": 1.0,
+        "median": 1.0,
+        "mean": 1.0,
+        "max": 1.0
+      },
+      "stratified_track_bootstrap_ari": {
+        "n_refits": 80,
+        "min": 0.43970299950946407,
+        "p05": 0.4646917952949226,
+        "median": 0.809909063176141,
+        "p95": 1.0,
+        "max": 1.0,
+        "definition": "ARI vs full-data baseline, predicting the SAME full cohort from models fit on sequence-stratified resampled trajectories; not a confidence interval on biological truth."
+      }
+    }
+  },
+  "interpretation_boundary": "Descriptive stability of algorithm-generated trajectory groups, not biological ground truth, drug-response separation, generalization to new batches, or evidence of named phenotypes. Cohorts and quality thresholds were selected after inspecting the source output; no inferential p-values are reported. Sequence-specific original cluster numbers are not compared: ALL clustering is refit on pooled profiles for each cohort."
+}
