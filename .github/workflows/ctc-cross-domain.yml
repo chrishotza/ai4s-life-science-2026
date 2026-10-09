@@ -10,6 +10,7 @@ on:
       - "requirements.txt"
       - "pyproject.toml"
   push:
+    branches: ["main"]
     paths:
       - ".github/workflows/ctc-cross-domain.yml"
       - "scripts/benchmark_ctc_phc_psc_association.py"
