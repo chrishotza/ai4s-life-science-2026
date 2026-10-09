@@ -131,6 +131,12 @@ The repository includes:
 
 See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
 
+### Evidence figure
+
+![Separate real-data validation protocols](docs/figures/validation-evidence.svg)
+
+This public figure keeps reference-centroid association, the supervised image-derived holdout, and the eight-frame Cellpose-SAM pilot separate. The protocols are not directly comparable, and none establishes biological phenotype validity.
+
 ### Image-derived performance status
 
 The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. The [benchmark artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907638057/artifacts/11605411442) contains the JSON results. A separate strict temporal holdout failed its gates: segmentation F1 **0.14942**, detection F1 **0.43454**, tracking-edge F1 **0.30197**, and sparse-gold object recall **0.1132** ([artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907133446/artifacts/11605019590)). A bounded pretrained Cellpose-SAM pilot evaluated only the first 4 frames of each sequence (8 frames total): segmentation F1 **0.87490**, image-derived detection F1 **0.88810**, and tracking-edge F1 **0.89180** ([run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248), [artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248/artifacts/11608135086)). Treat this small pilot as exploratory, not as a stable generalization estimate or biological phenotype validation. A distinct earlier partial run covered 40 frames from sequence 01 and 14/40 from sequence 02, then was cancelled; its frame means were **0.92903** and **0.94621**, without aggregate evidence. Full protocols and claim boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
@@ -245,4 +251,4 @@ The intended contribution is a reproducible pipeline that moves from microscopy 
 2. Real-data phenotype visualization: integrated into the demo renderer.
 3. Lineage/division representation validation: added as a dedicated GitHub Actions benchmark.
 4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
-5. Remaining submission blockers: required competition registration; confirming the registered team roster; pasting the Kaggle Writeup; submitting the final technical report; and publishing a public demo video and representative visualization that reviewers can access without login (max 5 minutes).
+5. Remaining submission blockers: required competition registration; confirming the registered team roster; pasting the Kaggle Writeup; submitting the final technical report; and producing a public demo video (max 5 minutes). The layered validation figure above is committed as a public SVG.

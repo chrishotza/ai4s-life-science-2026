@@ -122,6 +122,8 @@ On the completed strict holdout run, one-to-one instance F1 at IoU ≥ 0.5 avera
 
 ### Measured CTC association results
 
+The public [layered validation figure](figures/validation-evidence.svg) places this reference-centroid association result alongside distinct image-derived evaluations. Its panels are deliberately not presented as directly comparable.
+
 An initial mutual-nearest-neighbor run achieved:
 
 | Sequence | Precision | Recall | F1 |

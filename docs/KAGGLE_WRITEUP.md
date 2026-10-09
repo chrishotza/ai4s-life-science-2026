@@ -81,6 +81,8 @@ An earlier, separate Cellpose run reached mean per-frame segmentation F1 of **0.
 
 ### Real benchmark evidence
 
+**Public evidence figure:** [three-layer CTC validation summary](https://github.com/chrishotza/ai4s-life-science-2026/blob/main/docs/figures/validation-evidence.svg). It separates reference-centroid association, the supervised image-derived holdout, and the eight-frame Cellpose-SAM pilot; these protocols are not directly comparable.
+
 The system was evaluated on DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge.
 
 The association benchmark uses the reference centroids as detections, intentionally isolating temporal association from segmentation.

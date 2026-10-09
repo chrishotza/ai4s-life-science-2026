@@ -49,7 +49,7 @@ Official detail reflected in this checklist:
 - [x] CI passes on the latest claim-audit/documentation corrections; rerun after any further source or submission-document changes
 - [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Capture bounded pretrained Cellpose pilot artifact (4 frames per sequence; exploratory metrics documented)
-- [ ] Add and verify a representative real-data visualization artifact that reviewers can access without login (the renderer exists, but no public output has been verified)
+- [x] Add a public real-data validation figure reviewers can access without login (`docs/figures/validation-evidence.svg`); it separates three protocols and states their evidence limits
 - [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup
 - [ ] Submit final technical report
