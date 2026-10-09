@@ -118,6 +118,8 @@ The second compares the same transparent segmentation baseline against the avail
 
 A third experiment uses the public PhC-C2DL-PSC phase-contrast dataset for raw-image-to-instance-mask segmentation. A Random Forest is fit on annotated frames from one sequence and evaluated on the other, then the direction is reversed; no test-sequence masks are used for fitting. The primary score uses CTC silver SEG annotations where available, while sparse gold SEG annotations are reported as a separate cross-check. Predicted and reference instances are matched one-to-one at IoU ≥ 0.5, maximizing valid match count before using IoU as a tie-break. This is an independent cross-sequence image-level diagnostic, not an official CTC leaderboard score or independent biological validation.
 
+On the completed strict holdout run, one-to-one instance F1 at IoU ≥ 0.5 averaged 0.2270 across the two silver-mask test folds (mean frame-wise precision 0.1986, recall 0.2786). The sparse gold-mask cross-check averaged F1 0.3972 across just two frames per direction. The result is therefore treated as a weak/negative diagnostic baseline, not as a successful general-purpose segmenter; the protocol and direction-specific metrics are tabulated in docs/RESULTS.md.
+
 ### Measured CTC association results
 
 An initial mutual-nearest-neighbor run achieved:

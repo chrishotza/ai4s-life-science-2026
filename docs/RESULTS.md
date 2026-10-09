@@ -123,6 +123,38 @@ Per sequence:
 
 The important result is that the downstream temporal phenotype is comparatively stable for matched tracks: the median track coverage is 100%, and directional persistence has a mean absolute error of only 0.0439 across the two sequences.
 
+## Cross-sequence PhC-C2DL-PSC raw-image segmentation
+
+This benchmark is deliberately separate from the reference-centroid association results above. A Random Forest was trained on annotated frames from sequence 01 and evaluated on sequence 02, then trained on sequence 02 and evaluated on sequence 01. No masks from the held-out sequence were used for fitting. Each direction used 24 training frames (from 300 annotated silver-mask frames available) and sampled 40 test frames. Training sampled at most 3,000 pixels per class per frame; the model used 60 trees, maximum depth 18, minimum leaf size 2, and random seed 42.
+
+**Instance matching is one-to-one at IoU ≥ 0.5.** The assignment first maximizes the number of valid matches, then uses IoU as a tie-break. Precision, recall, and F1 below are frame-wise object metrics averaged across sampled frames; F1 is averaged per frame, not computed by pooling all pixels.
+
+### Primary evaluation — silver SEG masks
+
+| Train → test | Test frames sampled | Precision @ IoU 0.5 | Recall @ IoU 0.5 | Mean frame F1 @ IoU 0.5 |
+|---|---:|---:|---:|---:|
+| 01 → 02 | 40 | 0.2090 | 0.3200 | 0.2485 |
+| 02 → 01 | 40 | 0.1881 | 0.2371 | 0.2055 |
+| **Mean across directions** | — | **0.1986** | **0.2786** | **0.2270** |
+
+This is weak instance-segmentation performance for a general-purpose cell-analysis pipeline: many reference cells are missed and predicted instances frequently fail the IoU matching threshold. The result is retained as a negative/diagnostic baseline, not presented as a competitive segmentation score.
+
+### Sparse gold-mask cross-check
+
+The official gold SEG annotations are available for only two frames in each held-out sequence, so this is a very small cross-check rather than a robust estimate.
+
+| Train → test | Gold frames | Precision @ IoU 0.5 | Recall @ IoU 0.5 | Mean frame F1 @ IoU 0.5 |
+|---|---:|---:|---:|---:|
+| 01 → 02 | 2 | 0.3548 | 0.6229 | 0.4476 |
+| 02 → 01 | 2 | 0.2951 | 0.4211 | 0.3468 |
+| **Mean across directions** | — | **0.3250** | **0.5220** | **0.3972** |
+
+The silver annotations are the primary higher-coverage evaluation. Neither silver-mask agreement nor this sparse gold sample is an independent biological validation or an official CTC leaderboard score. The benchmark was run successfully in [GitHub Actions run 37883823343](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37883823343); evidence is in [artifact 11594599533](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37883823343/artifacts/11594599533).
+
+Reproduce with:
+
+    python scripts/benchmark_phc_psc_supervised_segmentation.py
+
 ### End-to-end tracking-to-phenotype robustness
 
 A controlled synthetic benchmark now re-runs the temporal association stage after injecting coordinate noise and detection dropout, then carries those predictions through temporal phenotype extraction and unsupervised phenotype discovery. It reports predicted track count, mean track purity, and phenotype-group ARI against the known synthetic behavioral groups.
