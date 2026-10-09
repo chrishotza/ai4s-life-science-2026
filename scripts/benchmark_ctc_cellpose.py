@@ -23,6 +23,7 @@ from benchmark_ctc_tra_supervised import (
     keyed_masks,
     keyed_track_masks,
     marker_overlap_match,
+    restrict_instances_to_foi,
     segmentation_score,
     truth_edges,
 )
@@ -54,7 +55,7 @@ def evaluate_sequence(root: Path, sequence: str, segmenter: CellposeSegmenter) -
         truth = np.squeeze(tifffile.imread(masks_by_time[time_index])).astype(np.int32, copy=False)
         if frame.ndim != 2 or truth.ndim != 2 or frame.shape != truth.shape:
             raise ValueError(f"Invalid image/label pair at {path}: {frame.shape} vs {truth.shape}")
-        predicted = segmenter.predict_instances(frame)
+        predicted = restrict_instances_to_foi(segmenter.predict_instances(frame))
         frames.append(frame)
         truth_masks.append(truth)
         predictions.append(predicted)
