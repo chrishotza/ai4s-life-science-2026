@@ -268,9 +268,10 @@ def instances_to_detections(
                     "x": float(xx.mean()),
                     "area": int(len(yy)),
                     "mean_intensity": float(np.asarray(frame)[yy, xx].mean()),
+                    "instance_id": int(label_id),
                 }
             )
     return pd.DataFrame(
         rows,
-        columns=["t", "z", "y", "x", "area", "mean_intensity"],
+        columns=["t", "z", "y", "x", "area", "mean_intensity", "instance_id"],
     )
