@@ -334,9 +334,12 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
             voxel_size_um=DIC_C2DH_HELA_VOXEL_SIZE_UM,
         ),
     )
-    matched_tp, matched_fp, matched_fn, node_mapping = centroid_match(
+    gt_track_masks = keyed_track_masks(root, test_sequence)
+    matched_tp, matched_fp, matched_fn, node_mapping = marker_overlap_match(
         tracked,
         truth_nodes[["node_id", "track_id", "t", "z", "y", "x"]],
+        dict(zip(eval_times, predicted_masks)),
+        gt_track_masks,
     )
     detection_scores = f1_from_counts(matched_tp, matched_fp, matched_fn)
 
@@ -404,12 +407,13 @@ def main() -> None:
             "evaluation": "first 40 frames in the other sequence",
             "cross_sequence_holdout": [["01", "02"], ["02", "01"]],
             "segmentation_match": "one-to-one instance IoU >= 0.5 against ST/SEG silver labels (proxy)",
-            "detection_match": f"one-to-one centroid distance <= {CENTER_RADIUS_PX} px",
+            "detection_match": "one-to-one predicted-instance overlap with complete-coverage CTC GT/TRA marker pixels",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
             "claim_boundary": (
                 "Cross-sequence raw-image-to-instance-mask-to-tracking evaluation. Segmentation "
                 "scores are measured against dense CTC silver ST/SEG labels as a proxy, while "
-                "detection and links are checked against GT/TRA tracking identities. This is not "
+                "detection is checked by overlap with CTC GT/TRA tracking-marker pixels and links "
+                "are checked against GT/TRA identities. Tracking markers are not cell-boundary masks. This is not "
                 "an official CTC leaderboard score or independent manual segmentation validation."
             ),
         },
