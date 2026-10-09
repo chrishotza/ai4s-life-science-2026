@@ -78,7 +78,7 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
         subset = Image.new("RGBA", (int(xs.max()-xs.min()+1), int(ys.max()-ys.min()+1)), (*hue, alpha))
         array = np.asarray(mask[ys.min():ys.max()+1, xs.min():xs.max()+1] == lab, dtype=np.uint8) * 255
         over.alpha_composite(Image.composite(subset, Image.new("RGBA", subset.size), Image.fromarray(array, "L")), (int(xs.min()), int(ys.min())))
-    overlay = Image.alpha_composite(over, marks).convert("RGB")
+    overlay = over.convert("RGB")
     od = ImageDraw.Draw(overlay)
     # Tracks computed from the same predicted observations.
     curr = nodes[nodes["t"] <= i]
