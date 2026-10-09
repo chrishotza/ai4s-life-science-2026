@@ -62,15 +62,25 @@ def _attribute_features(group: pd.DataFrame) -> dict[str, float]:
     return out
 
 
-def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
+def analyze(
+    nodes: pd.DataFrame,
+    edges: pd.DataFrame,
+    *,
+    voxel_size_um: tuple[float, float, float] = (1.0, 1.0, 1.0),
+) -> pd.DataFrame:
     """Extract interpretable temporal phenotypes from tracked cells.
 
     One row is returned per track_id. Detection-level edges are converted to
     track-level lineage edges before lineage/event features are calculated.
+    Input coordinates are voxels; geometric phenotype features use physical
+    units through voxel_size_um=(z, y, x).
     """
     _validate(nodes, edges)
     validate_nodes(nodes)
     validate_edges(edges, nodes, require_forward_time=True)
+    scale = np.asarray(voxel_size_um, dtype=float)
+    if scale.shape != (3,) or not np.isfinite(scale).all() or np.any(scale <= 0):
+        raise ValueError("voxel_size_um must contain three finite positive values")
     if "edge_type" in edges.columns:
         lineage_edges = edges[edges["edge_type"].eq("division_parent")][["source_id", "target_id"]]
         if not lineage_edges.empty:
@@ -125,7 +135,7 @@ def analyze(nodes: pd.DataFrame, edges: pd.DataFrame) -> pd.DataFrame:
     out = []
     for track_id, g in n.groupby("track_id", sort=False):
         g = g.sort_values("t")
-        xyz = g[["z", "y", "x"]].to_numpy(float)
+        xyz = g[["z", "y", "x"]].to_numpy(float) * scale
         dt = np.diff(g["t"].to_numpy(float))
         step = np.linalg.norm(np.diff(xyz, axis=0), axis=1) if len(g) > 1 else np.array([])
         valid_dt = dt > 0

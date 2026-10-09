@@ -25,8 +25,12 @@ class PipelineConfig:
     def __post_init__(self) -> None:
         if self.detection_min_area < 1:
             raise ValueError("detection_min_area must be >= 1")
-        if self.division_radius_um <= 0:
-            raise ValueError("division_radius_um must be positive")
+        if not np.isfinite(self.detection_z):
+            raise ValueError("detection_z must be finite")
+        if self.detection_threshold is not None and not np.isfinite(self.detection_threshold):
+            raise ValueError("detection_threshold must be finite when provided")
+        if not np.isfinite(self.division_radius_um) or self.division_radius_um <= 0:
+            raise ValueError("division_radius_um must be finite and positive")
         if self.phenotype_clusters < 2:
             raise ValueError("phenotype_clusters must be at least 2")
 
@@ -120,7 +124,11 @@ class TemporalPhenotypeEngine:
             [temporal_edges, lineage_edges],
             ignore_index=True,
         )
-        phenotypes = analyze(nodes, edges)
+        phenotypes = analyze(
+            nodes,
+            edges,
+            voxel_size_um=self.config.tracking.voxel_size_um,
+        )
         discovery_model = None
         if len(phenotypes) >= self.config.phenotype_clusters:
             discovery_model = PhenotypeDiscoveryModel.fit(
