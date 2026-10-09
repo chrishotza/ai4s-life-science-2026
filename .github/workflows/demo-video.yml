@@ -1,6 +1,14 @@
 name: Demo Video
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/demo-video.yml"
+      - "scripts/make_demo_video.py"
+      - "src/ai4s_imaging/**"
+      - "src/ai4s_io/**"
+      - "src/ai4s_phenotype/**"
+      - "src/ai4s_tracking/**"
   push:
     paths:
       - "scripts/make_demo_video.py"
