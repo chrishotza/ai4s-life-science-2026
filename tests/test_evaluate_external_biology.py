@@ -1,7 +1,18 @@
+import importlib.util
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-from scripts.evaluate_external_biology import FeatureSet, evaluate
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "evaluate_external_biology.py"
+spec = importlib.util.spec_from_file_location("evaluate_external_biology", MODULE_PATH)
+evaluate_external_biology = importlib.util.module_from_spec(spec)
+sys.modules["evaluate_external_biology"] = evaluate_external_biology
+assert spec.loader is not None
+spec.loader.exec_module(evaluate_external_biology)
+FeatureSet = evaluate_external_biology.FeatureSet
+evaluate = evaluate_external_biology.evaluate
 
 
 def test_external_biology_grouped_split_detects_signal():
