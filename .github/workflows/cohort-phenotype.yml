@@ -10,6 +10,7 @@ on:
       - "requirements.txt"
       - "pyproject.toml"
   push:
+    branches: ["main"]
     paths:
       - ".github/workflows/cohort-phenotype.yml"
       - "scripts/benchmark_cohort_effect.py"

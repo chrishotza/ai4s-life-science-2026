@@ -10,6 +10,7 @@ on:
       - "requirements.txt"
       - "pyproject.toml"
   push:
+    branches: ["main"]
     paths:
       - ".github/workflows/ctc-image-e2e.yml"
       - "scripts/benchmark_ctc_image_e2e.py"

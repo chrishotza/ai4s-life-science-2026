@@ -9,6 +9,7 @@ on:
       - "requirements.txt"
       - "pyproject.toml"
   push:
+    branches: ["main"]
     paths:
       - ".github/workflows/ctc-supervised-segmentation.yml"
       - "scripts/benchmark_ctc_supervised_segmentation.py"
