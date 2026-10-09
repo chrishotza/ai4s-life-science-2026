@@ -54,6 +54,6 @@ def test_permutation_uses_thirty_wells_not_individual_cells():
                               median_ann_ring_p90=float(col*10),
                               n_valid_nuclei=100, qc_pass=True))
     result = summarize(wells, permutations=199)
-    assert result["n_wells"] == 30
+    assert result["n_wells_total"] == 30
     assert result["primary_dose_vs_median_ann_ring_p90"]["rho"] > .9
     assert result["primary_dose_vs_median_ann_ring_p90"]["permutation_p"] <= .05
