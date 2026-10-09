@@ -1,6 +1,18 @@
 name: CTC Cellpose End-to-End Validation
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/ctc-cellpose-validation.yml"
+      - "scripts/benchmark_ctc_cellpose.py"
+      - "src/ai4s_imaging/cellpose_backend.py"
+      - "src/ai4s_pipeline/**"
+      - "src/ai4s_tracking/**"
+      - "src/ai4s_phenotype/**"
+      - "requirements-dev.txt"
+      - "requirements-lock-py311.txt"
+      - "pyproject.toml"
   workflow_dispatch:
     inputs:
       max_test_frames:
@@ -44,10 +56,47 @@ jobs:
         env:
           AI4S_CTC_MAX_TEST_FRAMES: ${{ inputs.max_test_frames || '4' }}
         run: python scripts/benchmark_ctc_cellpose.py
+      - name: Capture validation provenance
+        if: always()
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, platform
+          from pathlib import Path
+
+          paths = {
+              "results": Path("ctc_cellpose_e2e_results.json"),
+              "sequence_01_phenotypes": Path("ctc_cellpose_phenotypes_seq01.csv"),
+              "sequence_02_phenotypes": Path("ctc_cellpose_phenotypes_seq02.csv"),
+              "benchmark_script": Path("scripts/benchmark_ctc_cellpose.py"),
+              "cellpose_backend": Path("src/ai4s_imaging/cellpose_backend.py"),
+              "pipeline_engine": Path("src/ai4s_pipeline/engine.py"),
+              "tracker": Path("src/ai4s_tracking/tracker.py"),
+              "phenotype_extractor": Path("src/ai4s_phenotype/phenotype.py"),
+          }
+          record = {
+              "benchmark": "CTC Cellpose raw-image-to-phenotype bounded/full validation",
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "python_version": platform.python_version(),
+              "sha256": {
+                  name: hashlib.sha256(path.read_bytes()).hexdigest()
+                  for name, path in paths.items()
+                  if path.exists()
+              },
+          }
+          Path("ctc_cellpose_e2e_provenance.json").write_text(
+              json.dumps(record, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(record, indent=2))
+          PY
       - name: Upload quantitative evidence, including partial checkpoints
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ctc-cellpose-e2e-evidence
-          path: ctc_cellpose_e2e_results.json
+          path: |
+            ctc_cellpose_e2e_results.json
+            ctc_cellpose_phenotypes_seq*.csv
+            ctc_cellpose_e2e_provenance.json
           if-no-files-found: warn

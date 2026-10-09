@@ -17,7 +17,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from ai4s_core import runtime_metadata
 from ai4s_imaging import CellposeSegmenter, instances_to_detections
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
-from ai4s_tracking import TrackingConfig, link_metrics, track_detections
+from ai4s_pipeline import PipelineConfig, TemporalPhenotypeEngine
+from ai4s_tracking import TrackingConfig, link_metrics
 from benchmark_ctc_tra_supervised import (
     MAX_DISTANCE_UM,
     f1_from_counts,
@@ -83,14 +84,19 @@ def evaluate_sequence(
     eval_times = [frame_index(path) for path in eval_paths]
     detections = instances_to_detections(np.stack(frames), np.stack(predictions))
     detections["t"] = detections["t"].map(dict(enumerate(eval_times))).astype(int)
-    tracked, edges = track_detections(
-        detections[["t", "z", "y", "x", "instance_id"]],
-        TrackingConfig(
+    pipeline_config = PipelineConfig(
+        tracking=TrackingConfig(
             max_distance_um=MAX_DISTANCE_UM,
             method="mutual_nn",
             voxel_size_um=DIC_C2DH_HELA_VOXEL_SIZE_UM,
         ),
+        phenotype_clusters=3,
+        phenotype_random_state=17,
     )
+    pipeline_result = TemporalPhenotypeEngine(pipeline_config).run(detections)
+    tracked = pipeline_result.nodes
+    edges = pipeline_result.temporal_edges
+    phenotype_profiles = pipeline_result.discovered
 
     truth_nodes = truth_nodes[truth_nodes["t"].isin(eval_times)].copy()
     gt_track_masks = keyed_track_masks(root, sequence)
@@ -110,6 +116,49 @@ def evaluate_sequence(
     mapped_edge_df = pd.DataFrame(sorted(mapped_edge_pairs), columns=["source_id", "target_id"])
     edge = link_metrics(mapped_edge_df, gt_edge_df)
     frame_df = pd.DataFrame(per_frame)
+    profile_path = ROOT / f"ctc_cellpose_phenotypes_seq{sequence}.csv"
+    phenotype_profiles.to_csv(profile_path, index=False)
+    profile_columns = [
+        "track_id",
+        "t_start",
+        "t_end",
+        "duration",
+        "observations",
+        "observation_fraction",
+        "gap_count",
+        "displacement",
+        "path_length",
+        "mean_speed",
+        "directional_persistence",
+        "track_integrity_score",
+        "phenotype_cluster",
+        "phenotype_cluster_name",
+        "phenotype_assignment_quality",
+        "phenotype_reliability_score",
+    ]
+    profile_columns = [column for column in profile_columns if column in phenotype_profiles.columns]
+    profile_records = []
+    for row in phenotype_profiles[profile_columns].to_dict(orient="records"):
+        profile_records.append(
+            {
+                key: (
+                    None
+                    if pd.isna(value)
+                    else value.item()
+                    if isinstance(value, (np.integer, np.floating, np.bool_))
+                    else value
+                )
+                for key, value in row.items()
+            }
+        )
+    cluster_counts = (
+        phenotype_profiles["phenotype_cluster"]
+        .value_counts()
+        .sort_index()
+        .to_dict()
+        if "phenotype_cluster" in phenotype_profiles.columns
+        else {}
+    )
 
     return {
         "sequence": sequence,
@@ -133,6 +182,39 @@ def evaluate_sequence(
             "true_positive_links": float(edge["true_positive"]),
             "false_positive_links": float(edge["false_positive"]),
             "false_negative_links": float(edge["false_negative"]),
+        },
+        "phenotype": {
+            "profile_count": int(len(phenotype_profiles)),
+            "candidate_lineage_edges": int(len(pipeline_result.lineage_edges)),
+            "descriptive_cluster_counts": {
+                str(key): int(value) for key, value in cluster_counts.items()
+            },
+            "mean_speed_um_per_frame": (
+                float(phenotype_profiles["mean_speed"].mean())
+                if "mean_speed" in phenotype_profiles and len(phenotype_profiles)
+                else None
+            ),
+            "mean_directional_persistence": (
+                float(phenotype_profiles["directional_persistence"].mean())
+                if "directional_persistence" in phenotype_profiles and len(phenotype_profiles)
+                else None
+            ),
+            "mean_track_integrity_score": (
+                float(phenotype_profiles["track_integrity_score"].mean())
+                if "track_integrity_score" in phenotype_profiles and len(phenotype_profiles)
+                else None
+            ),
+            "mean_phenotype_reliability_score": (
+                float(phenotype_profiles["phenotype_reliability_score"].mean())
+                if "phenotype_reliability_score" in phenotype_profiles and len(phenotype_profiles)
+                else None
+            ),
+            "profiles_csv": profile_path.name,
+            "profiles": profile_records,
+            "interpretation": (
+                "Descriptive trajectory-derived groups from the image-to-track pipeline; "
+                "not biologically validated phenotype labels."
+            ),
         },
         "mean_frame_metrics": {
             key: float(value) for key, value in frame_df.mean(numeric_only=True).to_dict().items()
@@ -163,12 +245,17 @@ def main() -> None:
         "segmentation_match": "one-to-one instance IoU >= 0.5",
         "detection_match": "one-to-one predicted-instance coverage of >50% of complete-coverage CTC GT/TRA marker pixels",
         "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
+        "phenotype": (
+            "TemporalPhenotypeEngine extracts per-track motion, integrity, and descriptive "
+            "unsupervised groups from the Cellpose-derived observations."
+        ),
         "claim_boundary": (
             "Independent pretrained-model inference on raw held-out images. "
             "CTC masks are used only for scoring; GT/TRA markers are matched by predicted-instance "
             "overlap rather than expecting marker-region centroids to equal whole-cell centroids. "
             "This is not an official CTC leaderboard score "
-            "or biological phenotype-label validation."
+            "The downstream phenotype profiles are measured product outputs but are not scored "
+            "against independent biological phenotype labels."
         ),
         "license_note": (
             "Review upstream Cellpose model/weight licensing before redistribution or commercial use."
