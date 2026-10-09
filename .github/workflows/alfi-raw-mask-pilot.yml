@@ -1,0 +1,63 @@
+name: ALFI real images mask pilot
+
+on:
+  push:
+    paths:
+      - ".github/workflows/alfi-raw-mask-pilot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alfi-raw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install HTTP range and image reader
+        run: python -m pip install remotezip requests numpy pillow
+      - name: Extract 2 completely disjoint sequences of small image/mask samples
+        run: |
+          python -u - <<'PY'
+          import hashlib,io,json
+          from pathlib import Path
+          import numpy as np
+          from PIL import Image
+          from remotezip import RemoteZip
+          output=Path("external_biology/alfi_raw_pilot")
+          output.mkdir(parents=True,exist_ok=True)
+          url="https://ndownloader.figshare.com/files/41740227"
+          meta=[]
+          with RemoteZip(url,support_suffix_range=True,timeout=55) as archive:
+              indexed={f.filename:f for f in archive.infolist()}
+              for seq in ("MI01","MI02"):
+                  for t in (1,5,9,13):
+                      for kind,dirname,prefix in (("image","Images","I"),("mask","Masks","M")):
+                          name=f"Data&Annotations/{seq}/{dirname}/{prefix}_{seq}_{t:04d}.png"
+                          if name not in indexed: raise ValueError("Archive missing "+name)
+                          raw=archive.read(name)
+                          img=Image.open(io.BytesIO(raw))
+                          a=np.asarray(img)
+                          target=output/f"{seq}_{kind}_{t:04d}.png"
+                          target.write_bytes(raw)
+                          vals,counts=np.unique(a,return_counts=True)
+                          entry=dict(sequence=seq,kind=kind,frame=t,
+                                     path=name,sha256=hashlib.sha256(raw).hexdigest(),
+                                     size=len(raw),mode=img.mode,
+                                     shape=list(a.shape),dtype=str(a.dtype),
+                                     unique_count=len(vals),
+                                     first_values=[int(v) for v in vals[:12]],
+                                     positive_fraction=float(np.mean(a>0)))
+                          meta.append(entry)
+                          print(f"{seq} {t} {kind} {len(raw)} bytes; mode={img.mode} shape={a.shape} vals={len(vals)} first={vals[:7]}",flush=True)
+          (output/"manifest.json").write_text(json.dumps(meta,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alfi-raw-mi01-mi02-sample
+          path: external_biology/alfi_raw_pilot/
+          retention-days: 30
