@@ -53,6 +53,18 @@ model = TemporalStateProbe.fit(training, feature_set="static_motion")
 predictions = model.predict(unseen, require_heldout_sequences=True)
 ```
 
+The equivalent runnable CLI is:
+
+```bash
+python scripts/predict_cell_states.py \\
+  --training-boxes train_expert_boxes_with_labels.csv \\
+  --input-boxes test_boxes_from_disjoint_sequences.csv \\
+  --output phenotype_state_predictions.csv \\
+  --features static_motion
+```
+
+It produces a CSV and a companion provenance JSON with source SHA-256 hashes, training/test sequence IDs and the exact feature set. For precomputed masks, use the `instances_to_box_detections` adapter before tracking; a synthetic end-to-end contract test exercises this mask → tracker → causal state path.
+
 This produces per-frame inferred states and per-class model scores. These scores are **not calibrated biological probabilities**. The strict heldout check rejects any sequence present in the training set.
 
 [ALFI real-label product test](docs/ALFI_PRODUCT_TEMPORAL_PROBE_RESULTS.md): train MI01–MI04 expert tracks, test MI05–MI08 expert tracks. Static macro-F1 0.51379 vs static-plus-six-motion 0.56762; four-sequence bootstrap interval for delta [+0.0134,+0.1754]. The corpus and task had been explored earlier, so this is a **post-selection exploratory result**, not a confirmatory independent test. Critically, ALFI raw-image instance segmentation remains weak (see [ALFI model comparison](docs/ALFI_MODEL_SCOUT_AUDIT.md)); none of these scores represents end-to-end image-to-biology success.
