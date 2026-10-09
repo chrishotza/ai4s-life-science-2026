@@ -249,6 +249,25 @@ def _track_gap_hungarian(
     return df, edge_df
 
 
+def _validate_detection_inputs(detections: pd.DataFrame) -> None:
+    """Validate frame indices and coordinates before distance computations."""
+    required = {"t", "z", "y", "x"}
+    missing = required - set(detections.columns)
+    if missing:
+        raise ValueError(f"missing columns: {sorted(missing)}")
+    if detections.empty:
+        return
+
+    for column in ("t", "z", "y", "x"):
+        if not pd.api.types.is_numeric_dtype(detections[column]):
+            raise ValueError(f"{column} values must be numeric")
+        values = detections[column].to_numpy(dtype=float, na_value=np.nan)
+        if not np.isfinite(values).all():
+            raise ValueError(f"{column} values must be finite")
+        if column == "t" and not np.all(values == np.floor(values)):
+            raise ValueError("t values must be finite frame indices")
+
+
 def track_detections(
     detections: pd.DataFrame,
     config: TrackingConfig = TrackingConfig(),
@@ -265,10 +284,7 @@ def track_detections(
     - velocity_hungarian: Hungarian assignment to constant-velocity predictions.
     - gap_hungarian: retain tracks for a bounded number of missing frames.
     """
-    required = {"t", "z", "y", "x"}
-    missing = required - set(detections.columns)
-    if missing:
-        raise ValueError(f"missing columns: {sorted(missing)}")
+    _validate_detection_inputs(detections)
 
     df = (
         detections.copy()

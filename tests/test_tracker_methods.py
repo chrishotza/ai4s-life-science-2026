@@ -149,3 +149,34 @@ def test_default_trackers_do_not_link_across_a_missing_frame():
 def test_tracking_config_rejects_nonfinite_or_invalid_geometry(config_kwargs):
     with pytest.raises(ValueError):
         TrackingConfig(**config_kwargs)
+
+
+@pytest.mark.parametrize(
+    ("column", "value", "message"),
+    [
+        ("x", float("nan"), "x values must be finite"),
+        ("y", float("inf"), "y values must be finite"),
+        ("z", float("-inf"), "z values must be finite"),
+        ("t", float("nan"), "t values must be finite"),
+        ("t", 0.5, "t values must be finite frame indices"),
+        ("x", "not-a-coordinate", "x values must be numeric"),
+    ],
+)
+@pytest.mark.parametrize("method", ["hungarian", "gap_hungarian"])
+def test_tracking_rejects_invalid_detection_inputs_before_association(
+    column,
+    value,
+    message,
+    method,
+):
+    detections = pd.DataFrame(
+        [(0, 0.0, 0.0, 0.0), (1, 0.0, 0.0, 1.0)],
+        columns=["t", "z", "y", "x"],
+    )
+    detections.loc[1, column] = value
+
+    with pytest.raises(ValueError, match=message):
+        track_detections(
+            detections,
+            TrackingConfig(method=method),
+        )
