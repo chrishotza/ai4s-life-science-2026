@@ -7,8 +7,10 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from benchmark_ctc_phc_psc_association import trajectory_identity_metrics
+from benchmark_ctc_phc_psc_association import fast_mutual_nn_track, trajectory_identity_metrics
 from benchmark_ctc_image_e2e import framewise_match
+from ai4s_io import PHC_C2DL_PSC_VOXEL_SIZE_UM
+from ai4s_tracking import TrackingConfig, track_detections
 
 
 def test_pairwise_identity_metrics_penalize_track_merges():
@@ -65,3 +67,34 @@ def test_unmatched_centroids_do_not_report_zero_error():
     assert (tp, fp, fn) == (0, 1, 1)
     assert mean_distance is None
     assert mapping == {}
+
+ 
+
+def test_fast_mnn_path_matches_production_tracker_on_deterministic_fixture():
+    detections = pd.DataFrame(
+        [
+            {"t": 0, "z": 0.0, "y": 0.0, "x": 0.0, "reference_track_id": 1},
+            {"t": 0, "z": 0.0, "y": 20.0, "x": 20.0, "reference_track_id": 2},
+            {"t": 1, "z": 0.0, "y": 1.0, "x": 0.0, "reference_track_id": 1},
+            {"t": 1, "z": 0.0, "y": 19.0, "x": 20.0, "reference_track_id": 2},
+            {"t": 1, "z": 0.0, "y": 40.0, "x": 40.0, "reference_track_id": 3},
+            {"t": 2, "z": 0.0, "y": 2.0, "x": 0.0, "reference_track_id": 1},
+            {"t": 2, "z": 0.0, "y": 18.0, "x": 20.0, "reference_track_id": 2},
+            {"t": 2, "z": 0.0, "y": 41.0, "x": 40.0, "reference_track_id": 3},
+        ]
+    )
+
+    fast_nodes, fast_edges = fast_mutual_nn_track(detections, 8.0)
+    production_nodes, production_edges = track_detections(
+        detections,
+        TrackingConfig(
+            max_distance_um=8.0,
+            method="mutual_nn",
+            voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
+        ),
+    )
+
+    assert fast_nodes["track_id"].tolist() == production_nodes["track_id"].tolist()
+    assert set(zip(fast_edges["source_id"], fast_edges["target_id"])) == set(
+        zip(production_edges["source_id"], production_edges["target_id"])
+    )
