@@ -51,6 +51,8 @@ FORMAL_REQUIREMENTS = {
         "## 10.3 Exact reproduction recipe",
         "Data provenance and use conditions",
         "Development AI tooling:",
+        "1 listed member",
+        "organ-on-a-chip data",
     ),
     ROOT / "docs" / "SUBMISSION_CHECKLIST.md": (
         "[x] Category declaration at start of Writeup",
@@ -59,6 +61,10 @@ FORMAL_REQUIREMENTS = {
         "[x] Development AI-tool provenance disclosed",
         "[x] Cross-sequence image-to-tracking validation protocol",
         "[x] CTC GT/SEG image-segmentation validation protocol",
+        "1–5 members and one leader",
+        "publicly viewable without login",
+        "+0.5 bonus in Interpretability and Reliability",
+        "The bonus is not claimed",
     ),
     ROOT / "docs" / "RUBRIC_SCORECARD.md": (
         "Problem Importance & Potential Impact",
@@ -66,6 +72,9 @@ FORMAL_REQUIREMENTS = {
         "Results & Validation",
         "Reproducibility & Implementation Quality",
         "Presentation Quality",
+        "Official eligibility and domain boundary",
+        "does not show that combination",
+        "organ-on-a-chip data",
     ),
     ROOT / "docs" / "DEMO_SCRIPT.md": (
         "association-isolation",
