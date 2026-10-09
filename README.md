@@ -4,7 +4,7 @@
 
 **From time-lapse microscopy to cell trajectories, interpretable temporal features and testable cell-state hypotheses.**
 
-This open-source-code prototype treats tracking as infrastructure for a harder question: **how does an individual cell's behavior change over time?** It ingests microscopy sequences, detects and tracks cells, extracts motion/lineage descriptors and reports trajectory-based phenotype groups. An optional supervised state probe uses present-and-past cell shape/motion features.
+This publicly auditable research prototype treats tracking as infrastructure for a harder question: **how does an individual cell's behavior change over time?** It ingests microscopy sequences, detects and tracks cells, extracts motion/lineage descriptors and reports trajectory-based phenotype groups. An optional supervised state probe uses present-and-past cell shape/motion features.
 
 > **The strongest image-derived evidence:** CellposeSAM-v2 followed by the actual tracking and phenotype pipeline was run on **168 raw DIC-C2DH-HeLa images** (84 frames in each of two Cell Tracking Challenge sequences). It achieved mean **segmentation F1@IoU≥0.5 = 0.9354**, **detection F1 = 0.9684** and **tracking-edge F1 = 0.9808**. Reference annotations were used for evaluation, **not as input detections**. These are internal CTC metrics—not an official leaderboard score, an organ-on-a-chip validation, or proof of biological phenotype discovery. [Completed run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373) · [Audit and protocol](docs/CTC_CELLPOSE_ARTIFACT_AUDIT.md).
 
@@ -32,7 +32,9 @@ The disparity between **CTC 0.9354 instance-segmentation F1** and **ALFI 0.2282 
 
 Clustering uses standardized trajectory and lineage features with K-Means (k=3), as an **unsupervised representation**. Synthetic perturbation benchmarks already exist, but they do not demonstrate real-world biological validity.
 
-A separate real-CTC stability study measures seed-to-seed adjusted Rand index (ARI), sequence-stratified trajectory-bootstrap ARI and the effect of excluding short or unreliable tracks. **43/126 extracted CTC trajectories have just one observation**; their inclusion can make the grouping look artificially robust. The benchmark, original-source checksum checks and durable derived-feature table are in [the real CTC stability workflow](https://github.com/chrishotza/ai4s-life-science-2026/actions/workflows/ctc-real-phenotype-stability.yml) and, when the workflow has published them, [docs/evidence/ctc](docs/evidence/ctc/). A high ARI is clustering repeatability, **not** biological ground truth.
+The completed [real-CTC cluster stability audit](docs/CTC_REAL_PHENOTYPE_STABILITY.md) evaluated **126 image-derived tracks** using the actual discovery model. **43 tracks contain only one observation**. Across 20 random seeds, full-data cluster ARI was 1.000, but under 80 sequence-stratified trajectory bootstraps the median ARI fell from **0.945 on all 126 tracks** to **0.687 on the 72 tracks with at least three observations**. All 43 singleton tracks landed in one 51-member group in the pooled reference clustering: short observation histories can masquerade as a stable biological behavior. The engine now marks tracks with fewer than three observations as **insufficient_temporal_evidence** while preserving their numerical K-Means cluster for auditing. This quantifies **algorithmic repeatability**, not biological truth.
+
+**Permanent evidence:** [168-frame image-derived CTC summary JSON](docs/evidence/ctc/full_sequence_metrics.json) · [real CTC ARI metrics JSON](docs/evidence/ctc/stability_summary.json) · [126 real derived features CSV](docs/evidence/ctc/derived_phenotype_features.csv) · [reproducible run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37975995897).
 
 ## Quick reproduction — no CTC download needed
 
