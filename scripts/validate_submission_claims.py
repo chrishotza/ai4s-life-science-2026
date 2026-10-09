@@ -81,6 +81,14 @@ FORMAL_REQUIREMENTS = {
         "does not show that combination",
         "organ-on-a-chip data",
     ),
+    ROOT / "docs" / "CLAIM_EVIDENCE_MATRIX.md": (
+        "CTC-CONFIDENCE-GATE",
+        "confidence-gated interpretation permissions",
+        "Explicitly blocked claims",
+        "official CTC leaderboard result",
+        "unsupervised phenotype clusters are validated biological cell states",
+        "All 126 real CTC tracks are safe for motion-phenotype interpretation",
+    ),
     ROOT / "docs" / "DEMO_SCRIPT.md": (
         "association-isolation",
         "reference centroids",
@@ -168,3 +176,7 @@ def main() -> None:
         raise SystemExit("\n".join(missing))
 
     print("Submission claim and formal-requirements audit: PASS")
+
+
+if __name__ == "__main__":
+    main()
