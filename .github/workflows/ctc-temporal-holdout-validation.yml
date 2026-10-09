@@ -1,16 +1,6 @@
 name: CTC Temporal Holdout Scientific Validation
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/ctc-temporal-holdout-validation.yml"
-      - "scripts/benchmark_ctc_temporal_holdout.py"
-      - "scripts/benchmark_ctc_tra_supervised.py"
-      - "scripts/benchmark_ctc_image_e2e.py"
-      - "src/ai4s_imaging/supervised.py"
-      - "src/ai4s_io/**"
-      - "src/ai4s_tracking/**"
-      - "src/ai4s_core/**"
   workflow_dispatch:
 
 concurrency:
