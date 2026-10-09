@@ -55,15 +55,21 @@ class CellposeSegmenter:
             raise ValueError(f"frame must be 2-D; got {image.shape}")
         if image.size == 0:
             raise ValueError("frame must not be empty")
-        if not np.isfinite(image).any():
+        finite = np.isfinite(image)
+        if not finite.any():
             return np.zeros(image.shape, dtype=np.int32)
 
-        # Keep Cellpose normalization enabled: DIC frames can vary in raw scale.
+        image_float = np.asarray(image, dtype=np.float32).copy()
+        if not finite.all():
+            image_float[~finite] = float(np.median(image_float[finite]))
+        if self.invert:
+            image_float = float(np.max(image_float)) - image_float
+
+        # Cellpose v4 consumes polarity through pixel intensities, not an invert kwarg.
         result = self.model.eval(
-            np.asarray(image, dtype=np.float32),
+            image_float,
             channel_axis=None,
             normalize=True,
-            invert=self.invert,
             flow_threshold=self.flow_threshold,
             cellprob_threshold=self.cellprob_threshold,
             min_size=self.min_size,
