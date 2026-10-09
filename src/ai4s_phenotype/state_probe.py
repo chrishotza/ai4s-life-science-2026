@@ -74,6 +74,10 @@ class TemporalStateProbe:
         if require_heldout_sequences and (seen & self.training_sequences):
             raise ValueError("Evaluation includes sequences used for training")
         out = measured[["sequence", "track_id", "frame"]].copy()
+        out["prior_observations"] = measured["obs_age"].to_numpy()
+        out["observed_history_frames"] = measured["time_age"].to_numpy()
+        out["has_temporal_motion"] = (measured["obs_age"] > 0).to_numpy()
+        out["last_observation_gap"] = measured["time_step"].to_numpy()
         if measured.empty:
             out["predicted_state"] = pd.Series(dtype="object")
             out["score_of_predicted_state"] = pd.Series(dtype=float)
