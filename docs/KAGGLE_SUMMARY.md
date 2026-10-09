@@ -14,6 +14,6 @@ A separate exploratory Cellpose-SAM pilot on only four frames per sequence (eigh
 
 The same association path was independently evaluated with pinned **py-ctcmetrics==1.3.3** using preserved reference object geometry: **sequence 01 TRA 0.997315 / LNK 0.979091; sequence 02 TRA 0.997207 / LNK 0.978239**.
 
-These are reference-geometry association-isolation results, not end-to-end segmentation or biological phenotype classification and **not official Cell Tracking Challenge leaderboard scores**. Biological phenotype validity still requires independent biological labels or perturbation annotations. A no-oracle sensitivity control produced identical TRA/LNK values on both sequences.
+These remain reference-geometry association-isolation metrics, not end-to-end segmentation, biological phenotype classification, or official CTC leaderboard scores. No-oracle sensitivity left TRA/LNK unchanged on both sequences. Biological validity still requires independent labels or perturbation annotations.
 
 The contribution is a reproducible microscopy-to-phenotype bridge; transfer to organ-on-a-chip data remains untested.
