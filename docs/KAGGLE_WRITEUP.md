@@ -23,7 +23,7 @@ The system combines transparent image preprocessing, cell detection, determinist
 
 On DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge, a physical-unit sweep selected mutual-nearest-neighbor association with an 8.0 µm gate. Using reference track centroids as detections, this association-isolation benchmark achieved mean precision 0.99135, mean recall 0.99322, and mean edge F1 0.99228. In a downstream trajectory-feature preservation experiment on the same reference centroids, mean trajectory coverage was 0.9451, median coverage 1.0000, and directional-persistence MAE 0.0439.
 
-These results measure temporal association and preservation of trajectory-derived features. They are not image-segmentation scores, biological phenotype classification scores, or official Cell Tracking Challenge leaderboard scores. Controlled synthetic perturbation experiments assess robustness but do not substitute for independent biological validation.
+A separate CTC-maintained reference-geometry association-isolation check measured sequence 01 TRA 0.997315 / LNK 0.979091 and sequence 02 TRA 0.997207 / LNK 0.978239. These are not official Cell Tracking Challenge leaderboard scores. All reported CTC association results preserve reference object geometry and are not segmentation scores or biological phenotype classification scores. Controlled synthetic perturbation experiments assess robustness but do not substitute for independent biological validation.
 
 The implementation includes reproducible setup, tests, benchmark scripts, CI, Docker support, and a direct demo entry point. The next validation step is to test phenotype profiles against independently annotated biological perturbations.
 
