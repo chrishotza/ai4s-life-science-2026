@@ -82,7 +82,6 @@ def fast_mutual_nn_track(
 
     scale = np.asarray(PHC_C2DL_PSC_VOXEL_SIZE_UM, dtype=float)
     positions = ordered[["z", "y", "x"]].to_numpy(dtype=float) * scale
-    times = ordered["t"].to_numpy()
     track_ids = np.full(len(ordered), -1, dtype=np.int64)
     edge_rows: list[tuple[int, int, float, float, str]] = []
     next_track_id = 0
