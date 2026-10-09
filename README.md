@@ -79,7 +79,7 @@ This competition is a **judged Kaggle hackathon**, not a fixed-label Kaggle lead
 
 **Known limitations:** Organs-on-chip transfer remains untested; CTC biological treatment labels are unavailable for discovery groups; ALFI oracle-track benefits do not survive as a verified full image-to-cell-state score because cross-domain segmentation is currently weak. Causal features mean **past-only computational inputs**, not a causal-effect identification or treatment-response claim. Predicted lineage structures are candidates unless validated against lineage annotations.
 
-**Reproducibility:** [Technical report](docs/TECHNICAL_REPORT.md) · [Architecture](docs/ARCHITECTURE.md) · [Source-provenance audit](docs/CTC_CELLPOSE_ARTIFACT_AUDIT.md) · [GitHub Actions](.github/workflows/) · [Full historical technical README](docs/ARCHIVED_TECHNICAL_README_2026-10-09.md).
+**Reproducibility:** [Public 17-page PDF technical report](https://github.com/chrishotza/ai4s-life-science-2026/releases/download/ai4s-2026-technical-report/AI4S_Temporal_Cellular_Phenotype_Technical_Report.pdf) · [Technical report source](docs/TECHNICAL_REPORT.md) · [Architecture](docs/ARCHITECTURE.md) · [Source-provenance audit](docs/CTC_CELLPOSE_ARTIFACT_AUDIT.md) · [GitHub Actions](.github/workflows/) · [Full historical technical README](docs/ARCHIVED_TECHNICAL_README_2026-10-09.md).
 
 ## License and third-party rights
 

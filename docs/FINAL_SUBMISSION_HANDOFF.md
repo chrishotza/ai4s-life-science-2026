@@ -9,7 +9,7 @@
 - [Competition Writeups](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/writeups)
 - [Public GitHub repository](https://github.com/chrishotza/ai4s-life-science-2026) — GitHub API verified `visibility: public`, October 9, 2026
 - [Copy-ready Writeup source](KAGGLE_WRITEUP.md), starting with **Category: End-to-End System**
-- [Self-contained report source](TECHNICAL_REPORT.md); full content may be included within the Writeup, or exported as a public PDF linked there.
+- [Full technical report — 17-page public PDF](https://github.com/chrishotza/ai4s-life-science-2026/releases/download/ai4s-2026-technical-report/AI4S_Temporal_Cellular_Phenotype_Technical_Report.pdf) (verified public GitHub Release). [Markdown source](TECHNICAL_REPORT.md).
 - [Evidence and biological-use-case guide](BIOLOGICAL_IMPACT_CASE.md).
 
 ## Human / authenticated actions that must be verified
