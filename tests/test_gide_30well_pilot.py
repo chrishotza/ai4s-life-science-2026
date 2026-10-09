@@ -1,5 +1,9 @@
 """Contract tests for GIDE 30-well pilot (synthetic smoke data ONLY)."""
 from collections import Counter
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 
