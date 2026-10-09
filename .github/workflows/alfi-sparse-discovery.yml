@@ -1,0 +1,60 @@
+name: ALFI sparse annotation discovery
+
+on:
+  push:
+    paths:
+      - ".github/workflows/alfi-sparse-discovery.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install remote range reader
+        run: python -m pip install remotezip requests
+      - name: Query ALFI 8.4 GB archive CENTRAL DIRECTORY only
+        run: |
+          mkdir -p external_biology/alfi_discovery
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from remotezip import RemoteZip
+
+          u="https://ndownloader.figshare.com/files/41740227"
+          target=Path("external_biology/alfi_discovery/probe.json")
+          result={"source":"ALFI dataset (final), figshare 23798451",
+                  "archive_url":u,"expected_full_archive_bytes":8423073056,
+                  "mode":"http-range-central-directory-only",
+                  "max_download_bytes_intended":"metadata and central directory, not archive contents"}
+          try:
+              with RemoteZip(u, support_suffix_range=True, timeout=40) as z:
+                  entries=z.infolist()
+                  ann=[dict(path=i.filename,uncompressed_bytes=i.file_size,
+                            compressed_bytes=i.compress_size)
+                       for i in entries
+                       if any(p in i.filename.lower() for p in
+                              ("annotation","label","track","phenotype","readme","xml","csv","json"))]
+                  result.update(status="success",n_archive_entries=len(entries),
+                                n_annotation_candidates=len(ann),
+                                annotation_candidates=sorted(ann,key=lambda x:x["uncompressed_bytes"])[:130],
+                                warning="Archive table-of-contents only; no biological validation yet")
+          except Exception as e:
+              result.update(status="range_access_failed",
+                            exception_type=type(e).__name__,
+                            message=str(e)[:1000])
+          target.write_text(json.dumps(result,indent=2),encoding="utf-8")
+          print(json.dumps({k:v for k,v in result.items() if k!="annotation_candidates"},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alfi-remote-zip-annotation-manifest
+          path: external_biology/alfi_discovery/probe.json
+          if-no-files-found: error
