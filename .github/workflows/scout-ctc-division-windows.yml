@@ -1,0 +1,32 @@
+name: Scout CTC Division Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'video/**'
+    paths:
+      - 'scripts/scout_ctc_division_windows.py'
+      - '.github/workflows/scout-ctc-division-windows.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-${{ runner.os }}
+      - name: Install project
+        run: pip install -e .
+      - name: Locate authentic CTC division windows
+        run: python scripts/scout_ctc_division_windows.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ctc-division-window-scout
+          path: ctc_division_window_scout.json
