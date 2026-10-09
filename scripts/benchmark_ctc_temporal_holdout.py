@@ -151,7 +151,7 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
     truth_nodes, _, _ = load_ctc_tracking(root / f"{sequence}_GT" / "TRA")
     truth_nodes = truth_nodes[truth_nodes["t"].isin(eval_times)].copy()
     tracked, predicted_edges = track_detections(
-        detections[["t", "z", "y", "x"]],
+        detections[["t", "z", "y", "x", "instance_id"]],
         TrackingConfig(
             max_distance_um=MAX_DISTANCE_UM,
             method="mutual_nn",
