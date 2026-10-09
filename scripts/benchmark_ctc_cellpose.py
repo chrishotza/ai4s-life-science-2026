@@ -32,9 +32,9 @@ from benchmark_ctc_tra_supervised import (
 )
 from benchmark_ctc_image_e2e import image_files
 
-MAX_TEST_FRAMES = int(os.environ.get("AI4S_CTC_MAX_TEST_FRAMES", "40"))
-if not 1 <= MAX_TEST_FRAMES <= 40:
-    raise ValueError("AI4S_CTC_MAX_TEST_FRAMES must be between 1 and 40")
+MAX_TEST_FRAMES = int(os.environ.get("AI4S_CTC_MAX_TEST_FRAMES", "84"))
+if not 1 <= MAX_TEST_FRAMES <= 84:
+    raise ValueError("AI4S_CTC_MAX_TEST_FRAMES must be between 1 and 84")
 MODEL_NAME = "cpsam_v2"
 MIN_SIZE = 200
 FLOW_THRESHOLD = 0.4
