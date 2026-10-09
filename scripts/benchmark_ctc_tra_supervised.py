@@ -37,15 +37,16 @@ def frame_index(path: Path) -> int:
 
 
 def keyed_masks(root: Path, sequence: str) -> dict[int, Path]:
-    paths = sorted((root / f"{sequence}_GT" / "TRA").glob("man_track*.tif"))
+    """Load dense CTC silver segmentation masks for pixel-model training/scoring."""
+    paths = sorted((root / f"{sequence}_ST" / "SEG").glob("man_seg*.tif"))
     output: dict[int, Path] = {}
     for path in paths:
         index = frame_index(path)
         if index in output:
-            raise ValueError(f"Duplicate annotation frame {index} for sequence {sequence}")
+            raise ValueError(f"Duplicate segmentation frame {index} for sequence {sequence}")
         output[index] = path
     if not output:
-        raise FileNotFoundError(f"No CTC GT/TRA masks for sequence {sequence}")
+        raise FileNotFoundError(f"No CTC ST/SEG masks for sequence {sequence}")
     return output
 
 
@@ -307,11 +308,11 @@ def main() -> None:
         "runtime": runtime_metadata(),
         "protocol": {
             "dataset": "DIC-C2DH-HeLa",
-            "label_source": "CTC GT/TRA instance masks",
+            "label_source": "CTC ST/SEG dense silver segmentation masks",
             "training": "up to 24 evenly sampled labeled frames from one sequence",
             "evaluation": "first 40 frames in the other sequence",
             "cross_sequence_holdout": [["01", "02"], ["02", "01"]],
-            "segmentation_match": "one-to-one instance IoU >= 0.5",
+            "segmentation_match": "one-to-one instance IoU >= 0.5 against ST/SEG silver labels (proxy)",
             "detection_match": f"one-to-one centroid distance <= {CENTER_RADIUS_PX} px",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
             "claim_boundary": (
