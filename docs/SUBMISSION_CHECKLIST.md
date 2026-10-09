@@ -46,9 +46,10 @@ Official detail reflected in this checklist:
 - [ ] Confirm the registered team has 1–5 members, one leader, and a roster matching the technical report
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Check whether the registered roster qualifies for the +0.5 cross-disciplinary bonus; do not claim it unless both expertise areas are represented
-- [x] CI passes on the latest claim-audit/documentation corrections; rerun after any further source or submission-document changes
-- [ ] Reproduce the remaining published benchmark suite on the final submission commit; only the PhC-C2DL-PSC supervised segmentation holdout has been re-run on the current source snapshot (run 37924623262; artifact 11613811430)
-- [x] Capture bounded pretrained Cellpose pilot artifact (4 frames per sequence; exploratory metrics documented)
+- [x] CI passes on current source commit 081e0da (run 37925894104); rerun after any further source or submission-document changes
+- [ ] Reproduce the remaining published benchmark suite on the final submission commit; the PhC-C2DL-PSC supervised segmentation holdout and bounded Cellpose image-to-phenotype integration have been re-run on current source snapshots (runs 37924623262 and 37925893949)
+- [x] Re-run the bounded Cellpose product path through per-track phenotype outputs; captured CSVs, JSON, and provenance (run 37925893949; artifact 11613698759)
+- [x] Capture bounded pretrained Cellpose pilot metrics (4 frames per sequence; exploratory)
 - [x] Add a public real-data validation figure reviewers can access without login (`docs/figures/validation-evidence.svg`); it separates three protocols and states their evidence limits
 - [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup

@@ -177,15 +177,15 @@ A separate run evaluated `cpsam_v2` on raw DIC-C2DH-HeLa frames with one-to-one 
 
 This is promising partial segmentation evidence only. The run was cancelled before the second sequence, the aggregate JSON and artifact were not produced, and no complete image-derived tracking-to-phenotype score is available from it. Do not treat these partial frame means as a completed benchmark or combine them with the supervised holdout metrics.
 
-### Bounded Cellpose image-to-tracking pilot
+### Bounded Cellpose image-to-phenotype integration
 
-A subsequent bounded pilot evaluated the first **4 frames from each sequence** (8 total) using the same pretrained cpsam_v2 model and one-to-one IoU ≥ 0.5 segmentation match. It reported:
+A bounded real-image integration run exercised the product's TemporalPhenotypeEngine after pretrained Cellpose-SAM segmentation on the first **4 frames from each DIC-C2DH-HeLa sequence** (8 frames total). CTC annotations were used only for scoring. One-to-one mask matching at IoU ≥ 0.5 produced:
 
 - Mean instance segmentation F1: **0.87490**
 - Image-derived detection F1: **0.88810**
 - Tracking-edge F1: **0.89180**
 
-The [Actions run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248) and [captured JSON artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248/artifacts/11608135086) preserve the evidence. The sample covers only the opening four frames of each sequence, so the result is exploratory; it does not establish robust cross-time generalization or biological phenotype validity. These pilot metrics are separate from both the earlier cancelled partial run and the supervised holdout.
+The pipeline also generated per-track temporal feature profiles, descriptive cluster assignments, and integrity/reliability diagnostics; CSVs for sequences 01 and 02 and JSON results/provenance are in [artifact 11613698759](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37925893949/artifacts/11613698759). The run executed on source commit [081e0da](https://github.com/chrishotza/ai4s-life-science-2026/commit/081e0da89078004b87d9489f055c43ccc4c7ff28) in [GitHub Actions run 37925893949](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37925893949). This verifies that the real-image product path emits downstream phenotype outputs, but the short opening-frame sample is exploratory: it does not establish sequence-wide generalization, nor do the descriptive clusters have independent biological validation. The segmentation/tracking scores are separate from the supervised holdout and the earlier cancelled partial run.
 
 
 
