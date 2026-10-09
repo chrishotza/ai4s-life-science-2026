@@ -327,7 +327,7 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
     detections["t"] = detections["t"].map(dict(enumerate(eval_times))).astype(int)
     detections = detections.reset_index(drop=True)
     tracked, edges = track_detections(
-        detections[["t", "z", "y", "x"]],
+        detections[["t", "z", "y", "x", "instance_id"]],
         TrackingConfig(
             max_distance_um=MAX_DISTANCE_UM,
             method="mutual_nn",
