@@ -40,6 +40,9 @@ FORMAL_REQUIREMENTS = {
         "**Category: End-to-End System**",
         "## Project Summary",
         "**Code repository:** https://github.com/chrishotza/ai4s-life-science-2026",
+        "**Team (draft):** Chris Hotza",
+        "organ-on-a-chip data remains untested",
+        "A separate exploratory Cellpose-SAM pilot",
     ),
     ROOT / "docs" / "TECHNICAL_REPORT.md": (
         "## 1.1 Team information",
