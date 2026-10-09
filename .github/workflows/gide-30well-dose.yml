@@ -1,0 +1,41 @@
+name: GIDE 30-well real-image dose response
+
+on:
+  push:
+    paths:
+      - ".github/workflows/gide-30well-dose.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gide-dose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install numerical and TIFF dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Verify 90-image manifest before transferring
+        run: python -m scripts.run_gide_30well_dose_pilot --dry-run
+      - name: Download and evaluate official S-BIAD2515 TIFFs
+        run: python -u -m scripts.run_gide_30well_dose_pilot
+      - name: Preserve SHA256 data manifest and measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gide-30well-dose-real-image-evidence
+          path: |
+            external_biology/gide_30well/manifest.json
+            external_biology/gide_30well/image_features.csv
+            external_biology/gide_30well/well_features.csv
+            external_biology/gide_30well/summary.json
+          if-no-files-found: warn
+          retention-days: 30
