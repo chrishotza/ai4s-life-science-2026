@@ -69,6 +69,10 @@ The public engine provides a canonical image-to-phenotype path through baseline 
 
 The submission now includes a separate cross-sequence holdout protocol that starts from the raw DIC-C2DH-HeLa microscopy rather than reference centroids. Detector settings are selected on one sequence and evaluated on the other. A second validation layer compares the transparent segmentation baseline against the available CTC GT/SEG instance annotations. These experiments are kept separate from the published association-isolation headline so that segmentation, tracking, and downstream phenotype evidence cannot be conflated.
 
+The completed supervised DIC-C2DH-HeLa holdout is weak: mean frame-wise instance F1 at IoU ≥ 0.5 is **0.09155**, image-derived detection F1 is **0.37728**, and temporal-link F1 is **0.09716**. The benchmark completed in [Actions run 37905245043](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37905245043) and uploaded [its evidence artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37905245043/artifacts/11604575839). These numbers are a diagnostic result, not evidence of competitive image-to-phenotype accuracy.
+
+A separate pretrained Cellpose-SAM run reached mean per-frame segmentation F1 of **0.92903** on 40 sampled frames from sequence 01 and **0.94621** on 14 of 40 frames from sequence 02 before cancellation ([partial Actions log](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37899689242)). It produced no aggregate JSON or artifact and no complete downstream tracking/phenotype evaluation, so it remains preliminary evidence only.
+
 ### Real benchmark evidence
 
 The system was evaluated on DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge.
@@ -149,6 +153,17 @@ to:
 **microscopy → temporal cellular behavior → interpretable phenotype**
 
 That representation can support motility analysis, state characterization, abnormal-behavior screening, lineage-aware studies, and downstream biological investigation.
+
+### Reproducible product execution
+
+The system can be run on an input sequence through `scripts/analyze_microscopy.py`. It accepts a TIFF stack or a directory of 2-D grayscale TIFF frames and writes observation/track tables, temporal links, candidate lineage edges, per-track phenotype tables, a machine-readable summary, and a visualization. Example:
+
+```bash
+python scripts/analyze_microscopy.py ./sequence --output ./analysis_output \
+  --max-distance-um 5 --voxel-size-um 1 0.19 0.19 --clusters 3
+```
+
+The detector in this entry point is a transparent threshold/connected-component baseline. Its quality is data-dependent and it must not be interpreted as a universal microscope segmenter. The high CTC association-isolation numbers reported above use reference centroids and do not validate image-derived segmentation.
 
 ### Reproducibility
 

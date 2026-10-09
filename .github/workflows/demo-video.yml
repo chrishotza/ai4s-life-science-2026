@@ -1,9 +1,6 @@
 name: Demo Video
 
 on:
-  push:
-    paths:
-      - "scripts/make_demo_video.py"
   workflow_dispatch:
 
 jobs:
@@ -30,4 +27,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ai4s-demo-video
-          path: ai4s_demo_video.mp4
+          path: |
+            ai4s_demo_video.mp4
+            ai4s_demo_video_metrics.json

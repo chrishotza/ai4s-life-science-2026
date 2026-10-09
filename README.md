@@ -77,6 +77,41 @@ python demo.py
 
 The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups. For exact reproduction of the verified Python 3.11 environment, use `requirements-lock-py311.txt` and `requirements-dev-lock-py311.txt`.
 
+## Run on real microscopy TIFFs
+
+The repository includes a command-line entry point for running the canonical pipeline on an image sequence without editing Python code. Input can be a directory containing one grayscale `.tif/.tiff` file per frame (natural filename order) or a TIFF stack shaped `(t,y,x)` / `(t,z,y,x)`.
+
+```bash
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --min-area 12 --max-distance-um 5 \
+  --voxel-size-um 1 0.19 0.19 --clusters 3
+```
+
+The physical sampling values must match the dataset metadata; the example uses 0.19 µm/pixel in-plane and is not appropriate for every microscope. The default `--segmenter auto` preserves the lightweight behavior above: it uses the transparent threshold/connected-component detector unless paired supervised training images and masks are supplied.
+
+The same product entrypoint exposes three image backends:
+
+```bash
+# Lightweight transparent baseline
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --segmenter threshold --voxel-size-um 1 0.19 0.19
+
+# Fit the repository's supervised pixel classifier on a matching annotated domain
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --segmenter supervised \
+  --training-images ./train_images --training-masks ./train_masks \
+  --voxel-size-um 1 0.19 0.19
+
+# Optional pretrained Cellpose-SAM backend
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --segmenter cellpose --cellpose-model cpsam_v2 \
+  --voxel-size-um 1 0.19 0.19
+```
+
+Cellpose is optional and intentionally not part of the lightweight core dependency set. Install a compatible CPU or GPU PyTorch build and Cellpose before selecting that backend; the GitHub Actions Cellpose validation workflow documents a reproducible CPU-only installation. Model weights are obtained from the upstream Cellpose project at runtime, so their source and licensing remain an explicit external dependency boundary.
+
+The output directory contains `nodes.csv`, `temporal_edges.csv`, `lineage_candidates.csv`, `phenotypes.csv`, `discovered_phenotypes.csv`, `summary.json`, `report.md`, and `overview.png`. Learned instance-segmentation backends also write `predicted_instances.tif`. The report keeps inferred lineage events and unsupervised groups clearly labeled as candidate/descriptive outputs rather than verified biological facts.
+
 ## Quantitative validation
 
 The repository includes:
@@ -93,6 +128,11 @@ The repository includes:
 - downstream temporal phenotype preservation benchmarking.
 
 See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
+
+### Image-derived performance status
+
+The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. These are weak diagnostic results, not competitive image-to-phenotype accuracy. A separate pretrained Cellpose-SAM run reached per-frame segmentation F1 **0.92903** on 40 frames of sequence 01 and **0.94621** on 14 of 40 frames of sequence 02, then was cancelled before the full benchmark and produced no aggregate artifact. Full protocols and boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
+
 
 ## Real benchmark
 
