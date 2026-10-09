@@ -152,7 +152,7 @@ def main() -> None:
             },
             "evaluation": f"first {MAX_TEST_FRAMES} paired frames from each CTC sequence",
             "segmentation_match": "one-to-one instance IoU >= 0.5",
-            "detection_match": "one-to-one predicted-instance overlap with complete-coverage CTC GT/TRA marker pixels",
+            "detection_match": "one-to-one predicted-instance coverage of >50% of complete-coverage CTC GT/TRA marker pixels",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
             "claim_boundary": (
                 "Independent pretrained-model inference on raw held-out images. "
