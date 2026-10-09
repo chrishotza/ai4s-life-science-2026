@@ -1,0 +1,74 @@
+name: ALFI cross-domain segmentation model race
+
+on:
+  push:
+    paths:
+      - ".github/workflows/alfi-model-race.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [cpsam_v2, cpdino-vitb]
+    runs-on: ubuntu-latest
+    timeout-minutes: 64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install CPU Cellpose, project and DINOv3 backbone if requested
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          python -m pip install fastremap roifile fill-voids segment_anything opencv-python-headless natsort tqdm remotezip requests
+          python -m pip install --no-deps "cellpose==4.2.1.1"
+          if [ "${{ matrix.model }}" = "cpdino-vitb" ]; then
+            python -m pip install "git+https://github.com/facebookresearch/dinov3"
+          fi
+      - name: Extract same four ALFI MI05-MI08 image-mask pairs
+        run: |
+          python -u - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          from remotezip import RemoteZip
+          url="https://ndownloader.figshare.com/files/41740227"
+          root=Path("external_biology/alfi_model_race/input")
+          root.mkdir(parents=True,exist_ok=True)
+          manifest=[]
+          with RemoteZip(url,support_suffix_range=True,timeout=55) as archive:
+              known={i.filename for i in archive.infolist()}
+              for seq in ("MI05","MI06","MI07","MI08"):
+                  for kind,folder,prefix in (("image","Images","I"),("mask","Masks","M")):
+                      original=f"Data&Annotations/{seq}/{folder}/{prefix}_{seq}_0001.png"
+                      if original not in known:
+                          raise ValueError("Missing ALFI source: "+original)
+                      content=archive.read(original)
+                      (root/f"{seq}_{kind}_0001.png").write_bytes(content)
+                      manifest.append(dict(source=original,
+                          bytes=len(content),sha256=hashlib.sha256(content).hexdigest()))
+          (root.parent/"manifest.json").write_text(json.dumps(manifest,indent=2))
+          print("Downloaded",len(manifest),"original source files",flush=True)
+          PY
+      - name: Compare frozen pretrained model against expert masks
+        run: |
+          python -u -m scripts.benchmark_alfi_model_race \
+            --inputs external_biology/alfi_model_race/input \
+            --output external_biology/alfi_model_race/results \
+            --model "${{ matrix.model }}"
+      - name: Preserve artifact with source hashes and QC overlays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfi-model-race-${{ matrix.model }}
+          path: |
+            external_biology/alfi_model_race/manifest.json
+            external_biology/alfi_model_race/results/
+          if-no-files-found: warn
+          retention-days: 30
