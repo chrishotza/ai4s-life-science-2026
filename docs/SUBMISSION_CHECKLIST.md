@@ -29,6 +29,8 @@
 - [x] Docker reproduction path
 - [x] Judge-facing rubric evidence map
 - [x] Judge reader guide
+- [x] Concrete biological research use case and independent validation plan (`docs/BIOLOGICAL_IMPACT_CASE.md`)
+- [x] Final competition submission handoff with official registration link (`docs/FINAL_SUBMISSION_HANDOFF.md`)
 - [x] Top-level MIT code license
 
 ## Official competition submission constraints
@@ -42,6 +44,8 @@ Official detail reflected in this checklist:
 - The organizers offer a +0.5 bonus in Interpretability and Reliability for a team covering both AI/CS and biology, bioengineering, or clinical expertise. The current draft does not evidence that mix, so the bonus is not claimed.
 
 ## Before submission
+
+**Human-action handoff:** [final registration, video-publication, and Kaggle submission steps](FINAL_SUBMISSION_HANDOFF.md). Generated or privately hosted files are not a verified public submission.
 
 - [ ] Complete the required competition registration form
 - [x] Make competition repository public
