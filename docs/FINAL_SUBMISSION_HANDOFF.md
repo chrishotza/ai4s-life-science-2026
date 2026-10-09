@@ -7,14 +7,14 @@
 - [Competition and submission rules](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview/challenge-organization)
 - [Required organizer registration form](https://docs.google.com/forms/d/e/1FAIpQLSdRAat5jIunRaFNh_NntsVeJUnekEJDrbuokLZ32LFgCwPtiA/viewform?usp=publish-editor)
 - [Competition Writeups](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/writeups)
-- [Public GitHub repository](https://github.com/chrishotza/ai4s-life-science-2026)
+- [Public GitHub repository](https://github.com/chrishotza/ai4s-life-science-2026) — GitHub API verified `visibility: public`, October 9, 2026
 - [Copy-ready Writeup source](KAGGLE_WRITEUP.md), starting with **Category: End-to-End System**
 - [Self-contained report source](TECHNICAL_REPORT.md); full content may be included within the Writeup, or exported as a public PDF linked there.
 - [Evidence and biological-use-case guide](BIOLOGICAL_IMPACT_CASE.md).
 
 ## Human / authenticated actions that must be verified
 
-- [ ] **Submit organizer registration form.** Registration is separately required for eligibility; GitHub CI passing is not registration.
+- [x] **Submit organizer registration form.** Team leader confirmed this completed on October 9, 2026; this is self-reported and the form's confirmation receipt was not independently inspected.
 - [ ] Verify registered team roster **and one leader** match the report; report currently contains **Chris Hotza as the single draft member**, not verified registration.
 - [ ] Make the V10 **video publicly viewable without login/permission/payment**, and confirm media/data/weight usage rights. A private ElevenLabs editor link is **not** a public competition demo link.
 - [ ] Paste and submit the Kaggle Writeup with **the public video URL**, public code URL, category declaration and technical-report content or valid public PDF.
