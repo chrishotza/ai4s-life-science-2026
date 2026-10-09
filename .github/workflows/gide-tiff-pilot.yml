@@ -1,0 +1,40 @@
+name: GIDE real TIFF pilot
+
+on:
+  push:
+    paths:
+      - ".github/workflows/gide-tiff-pilot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gide-tiff-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install lightweight image dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scipy tifffile
+      - name: Validate public image manifest (no data download)
+        run: python scripts/run_gide_tiff_pilot.py --dry-run
+      - name: Download and analyze 24 official GIDE TIFF images
+        run: python scripts/run_gide_tiff_pilot.py
+      - name: Preserve reproducible manifest, checksums, measurements and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gide-real-tiff-image-level-pilot
+          path: |
+            external_biology/gide_tiff_pilot/manifest.json
+            external_biology/gide_tiff_pilot/image_features.csv
+            external_biology/gide_tiff_pilot/summary.json
+          if-no-files-found: warn
+          retention-days: 30
