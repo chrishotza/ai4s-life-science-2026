@@ -216,13 +216,14 @@ class Supervised2DSegmenter:
             # Boundary-only predictions are not cells; do not promote them to objects.
             return np.zeros(image.shape, dtype=np.int32)
 
-        # Grow kept instances only into nearby predicted boundary pixels. This preserves
-        # the learned inter-cell boundary instead of joining all non-background pixels.
-        distance_to_interior = ndimage.distance_transform_edt(~kept_interior)
-        foreground = kept_interior | (boundary & (distance_to_interior <= 2.0))
-
+        # Reconstruct complete instances from both predicted interiors and boundaries.
+        # Restricting boundary growth to a 2-pixel band truncates cells when the pixel
+        # classifier predicts thick boundary regions, collapsing instance IoU even when
+        # the cell contour was recognized. Assign predicted foreground to the nearest
+        # surviving interior marker; the learned background remains excluded.
+        foreground = (classes == 1) | boundary
         _, nearest_indices = ndimage.distance_transform_edt(
-            markers == 0, return_indices=True
+            ~kept_interior, return_indices=True
         )
         nearest_markers = markers[tuple(nearest_indices)]
         instances = np.where(foreground, nearest_markers, 0).astype(np.int32)
