@@ -5,6 +5,8 @@
 
 This project converts time-lapse microscopy into interpretable temporal cellular phenotype analysis.
 
+**Scope boundary:** empirical validation uses public Cell Tracking Challenge microscopy, not organ-on-a-chip data; transfer to organ-on-a-chip settings remains untested.
+
 ## Core idea
 
 Most pipelines stop at segmentation or tracking. This system treats tracking as infrastructure and asks the downstream scientific question:
@@ -243,4 +245,4 @@ The intended contribution is a reproducible pipeline that moves from microscopy 
 2. Real-data phenotype visualization: integrated into the demo renderer.
 3. Lineage/division representation validation: added as a dedicated GitHub Actions benchmark.
 4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
-5. Remaining submission blockers: required competition registration, synchronizing the technical-report roster with Kaggle registration, pasting the Kaggle Writeup, submitting the final technical report, and producing the final narrated demo video (max 5 minutes).
+5. Remaining submission blockers: required competition registration; confirming the registered team roster; pasting the Kaggle Writeup; submitting the final technical report; and publishing a public demo video and representative visualization that reviewers can access without login (max 5 minutes).
