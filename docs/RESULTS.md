@@ -149,7 +149,7 @@ The official gold SEG annotations are available for only two frames in each held
 | 02 → 01 | 2 | 0.2951 | 0.4211 | 0.3468 |
 | **Mean across directions** | — | **0.3250** | **0.5220** | **0.3972** |
 
-The silver annotations are the primary higher-coverage evaluation. Neither silver-mask agreement nor this sparse gold sample is an independent biological validation or an official CTC leaderboard score. The benchmark was run successfully in [GitHub Actions run 37883823343](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37883823343); evidence is in [artifact 11594599533](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37883823343/artifacts/11594599533).
+The silver annotations are the primary higher-coverage evaluation. Neither silver-mask agreement nor this sparse gold sample is an independent biological validation or an official CTC leaderboard score. The two-way holdout was rerun successfully against current `main` at commit [`6d7bbc4`](https://github.com/chrishotza/ai4s-life-science-2026/commit/6d7bbc4ad4fece809b0752166230aeafc732a698) in [GitHub Actions run 37924623262](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37924623262), with machine-readable results and code/data provenance in [artifact 11613811430](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37924623262/artifacts/11613811430). The repeated metrics matched the values above (silver F1 0.22698; sparse gold F1 0.39723). This confirms reproducibility of this specific benchmark on that source snapshot; it does not improve the weak segmentation result.
 
 Reproduce with:
 
