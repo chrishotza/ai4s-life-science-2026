@@ -30,14 +30,22 @@
 
 ## Official competition submission constraints
 
-Verified against the current Kaggle competition overview: the official submission is a Kaggle Writeup containing a public demo video, a publicly accessible code repository, and a technical report. Teams must also complete the required registration form before submission. The current preliminary-round window ends **October 10, 2026**. See: https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview
+Verified against the [official Kaggle competition overview](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview) on October 9, 2026. The required submission is a Kaggle Writeup with a category declaration, public demo video, public code repository, and technical report. The required registration form must also be completed before submission. The preliminary-round window ends **October 10, 2026**.
+
+Official detail reflected in this checklist:
+- The demo video must be no longer than 5 minutes and publicly viewable without login, permission approval, or payment; all media/data/model-output rights must be clear.
+- The technical report must be self-contained in the Writeup or linked as a public PDF; the organizers recommend 15–20 pages excluding references and appendices.
+- Teams must have 1–5 members and one leader. The draft report currently lists Chris Hotza as the sole member; synchronize it with the Kaggle registration.
+- The organizers offer a +0.5 bonus in Interpretability and Reliability for a team covering both AI/CS and biology, bioengineering, or clinical expertise. The current draft does not evidence that mix, so the bonus is not claimed.
 
 ## Before submission
 
 - [ ] Complete the required competition registration form
 - [x] Make competition repository public
 - [x] Verify final public repository URL (public GitHub repository confirmed)
+- [ ] Confirm the registered team has 1–5 members, one leader, and a roster matching the technical report
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
+- [ ] Check whether the registered roster qualifies for the +0.5 cross-disciplinary bonus; do not claim it unless both expertise areas are represented
 - [ ] Re-run CI on the final public code/documentation commit (the latest successful run predates the most recent documentation changes; verify a green run on the final SHA)
 - [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Capture bounded pretrained Cellpose pilot artifact (4 frames per sequence; exploratory metrics documented)
@@ -46,7 +54,7 @@ Verified against the current Kaggle competition overview: the official submissio
 - [ ] Paste Kaggle Writeup
 - [ ] Submit final technical report
 - [ ] Add independent biological phenotype validation if time permits
-- [ ] Produce final narrated demo video (max 5 minutes)
+- [ ] Produce final narrated demo video (max 5 minutes), publish it without login/approval/payment, and verify media usage rights
 - [x] Final consistency check: no claim exceeds measured evidence
 
 ## Current verified state
