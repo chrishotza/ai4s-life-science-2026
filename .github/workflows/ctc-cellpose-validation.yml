@@ -11,11 +11,6 @@ on:
         options:
           - "4"
           - "40"
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/ctc-cellpose-validation.yml
     inputs:
       max_test_frames:
         description: "Frames per sequence: 4 for a bounded pilot, 40 for the full benchmark"
@@ -28,11 +23,10 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   benchmark:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[run-cellpose-pilot]')
     runs-on: ubuntu-latest
     # The CPU benchmark is intentionally manual: the full two-sequence run is costly.
     timeout-minutes: 120
