@@ -86,3 +86,8 @@ def test_gap_hungarian_maximizes_valid_links_when_tracks_have_different_gaps():
     assert len(edges) == 3
     assert nodes.loc[nodes["t"].eq(2), "track_id"].nunique() == 2
     assert set(edges["frame_gap"].astype(int)) == {1, 2}
+
+    older_track = int(nodes.loc[nodes["t"].eq(0) & nodes["x"].eq(-1.9), "track_id"].iloc[0])
+    recent_track = int(nodes.loc[nodes["t"].eq(1) & nodes["x"].eq(0.1), "track_id"].iloc[0])
+    t2 = nodes.loc[nodes["t"].eq(2)].sort_values("x")
+    assert t2["track_id"].astype(int).tolist() == [older_track, recent_track]
