@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tifffile
+from scipy.optimize import linear_sum_assignment
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -23,6 +24,7 @@ from benchmark_ctc_tra_supervised import (
     centroid_match,
     f1_from_counts,
     frame_index,
+    iou_matrix,
     segmentation_score,
     truth_edges,
 )
@@ -33,28 +35,32 @@ TEST_START_FRAME = 40
 TEST_FRAME_COUNT = 40
 SAMPLES_PER_CLASS = 2500
 RANDOM_STATE = 42
-SEGMENTATION_F1_GATE = 0.15
-DETECTION_F1_GATE = 0.30
-TRACKING_EDGE_F1_GATE = 0.10
+SEGMENTATION_F1_GATE = 0.25
+DETECTION_F1_GATE = 0.50
+TRACKING_EDGE_F1_GATE = 0.30
+GOLD_OBJECT_RECALL_GATE = 0.20
 
 
-def segmentation_masks(root: Path, sequence: str) -> dict[int, Path]:
-    """Return official CTC GT/SEG masks keyed by frame, not GT/TRA tracking masks."""
-    paths = sorted((root / f"{sequence}_GT" / "SEG").glob("man_seg*.tif"))
+def segmentation_masks(root: Path, sequence: str, corpus: str) -> dict[int, Path]:
+    """Return CTC SEG masks. ST is dense silver supervision; GT is sparse gold evaluation."""
+    paths = sorted((root / f"{sequence}_{corpus}" / "SEG").glob("man_seg*.tif"))
     output: dict[int, Path] = {}
     for path in paths:
         t = frame_index(path)
         if t in output:
-            raise ValueError(f"Duplicate SEG mask at frame {t} for sequence {sequence}")
+            raise ValueError(f"Duplicate {corpus}/SEG mask at frame {t} for sequence {sequence}")
         output[t] = path
     if not output:
-        raise FileNotFoundError(f"No CTC GT/SEG man_seg*.tif masks for sequence {sequence}")
+        raise FileNotFoundError(
+            f"No CTC {corpus}/SEG man_seg*.tif masks for sequence {sequence}"
+        )
     return output
 
 
 def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
     all_images = image_files(root, sequence)
-    seg_map = segmentation_masks(root, sequence)
+    seg_map = segmentation_masks(root, sequence, "ST")
+    gold_map = segmentation_masks(root, sequence, "GT")
     paired = [
         path for path in all_images
         if frame_index(path) in seg_map and frame_index(path) < TEST_START_FRAME
@@ -94,15 +100,36 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
     predicted_masks: list[np.ndarray] = []
     input_frames: list[np.ndarray] = []
     frame_metrics: list[dict[str, float]] = []
+    gold_tp = 0
+    gold_objects = 0
+    gold_best_ious: list[float] = []
+    gold_frames = 0
     eval_times: list[int] = []
     for image_path in test_paths:
         t = frame_index(image_path)
         image = np.squeeze(tifffile.imread(image_path))
-        gt_mask = np.squeeze(tifffile.imread(seg_map[t])).astype(np.int32, copy=False)
-        if image.ndim != 2 or gt_mask.ndim != 2 or image.shape != gt_mask.shape:
+        silver_mask = np.squeeze(tifffile.imread(seg_map[t])).astype(np.int32, copy=False)
+        if image.ndim != 2 or silver_mask.ndim != 2 or image.shape != silver_mask.shape:
             raise ValueError(f"Invalid held-out pair at {image_path.name}")
         pred_mask = segmenter.predict_instances(image)
-        score = segmentation_score(gt_mask, pred_mask)
+        # ST/SEG has broad instance coverage and is the full-frame proxy metric.
+        score = segmentation_score(silver_mask, pred_mask)
+        # GT/SEG is human-made but sparse. Score annotated objects only; predictions
+        # on unlabeled cells are not counted as false positives.
+        if t in gold_map:
+            gold_mask = np.squeeze(tifffile.imread(gold_map[t])).astype(np.int32, copy=False)
+            if gold_mask.shape != pred_mask.shape:
+                raise ValueError(f"Gold mask shape mismatch at {image_path.name}")
+            gold_ids = np.unique(gold_mask)
+            gold_ids = gold_ids[gold_ids > 0]
+            if len(gold_ids):
+                matrix = iou_matrix(gold_mask, pred_mask)
+                if matrix.size:
+                    rows, cols = linear_sum_assignment(matrix, maximize=True)
+                    gold_tp += sum(float(matrix[r, col]) >= 0.5 for r, col in zip(rows, cols))
+                    gold_best_ious.extend(float(value) for value in matrix.max(axis=1))
+                gold_objects += int(len(gold_ids))
+                gold_frames += 1
         score["frame"] = float(t)
         frame_metrics.append(score)
         predicted_masks.append(pred_mask)
@@ -155,7 +182,8 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
             "test_frame_range": [min(eval_times), max(eval_times)],
             "test_frames_evaluated": len(eval_times),
             "no_temporal_overlap": True,
-            "segmentation_reference": "CTC GT/SEG man_seg*.tif",
+            "segmentation_reference": "CTC ST/SEG man_seg*.tif (dense silver proxy)",
+            "gold_shape_reference": "CTC GT/SEG man_seg*.tif (sparse gold objects only)",
             "identity_and_edge_reference": "CTC GT/TRA man_track*.tif",
         },
         "model": {
@@ -168,12 +196,25 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
             "random_state": RANDOM_STATE,
         },
         "segmentation": {
+            "reference": "ST/SEG dense silver annotations (proxy, not independent manual gold)",
             "mean_precision_iou50": float(frame_df["precision_iou50"].mean()),
             "mean_recall_iou50": float(frame_df["recall_iou50"].mean()),
             "mean_f1_iou50": float(frame_df["f1_iou50"].mean()),
             "mean_matched_iou": float(frame_df["mean_matched_iou"].mean()),
             "mean_gt_objects_per_frame": float(frame_df["gt_objects"].mean()),
             "mean_pred_objects_per_frame": float(frame_df["pred_objects"].mean()),
+        },
+        "sparse_gold_shape_check": {
+            "reference": "GT/SEG human annotations; only annotated objects are scored",
+            "gold_frames_with_objects": int(gold_frames),
+            "annotated_objects": int(gold_objects),
+            "matched_objects_iou50": int(gold_tp),
+            "object_recall_iou50": float(gold_tp / gold_objects) if gold_objects else None,
+            "mean_best_iou_per_annotated_object": (
+                float(np.mean(gold_best_ious)) if gold_best_ious else None
+            ),
+            "precision_or_f1_reported": False,
+            "reason": "Gold segmentation has sparse object coverage; unannotated cells are unknown, not negatives.",
         },
         "detection": {**detection_metrics, "match_radius_px": CENTER_RADIUS_PX},
         "tracking": {
@@ -209,10 +250,12 @@ def main() -> None:
             "segmentation_metric": "one-to-one instance IoU >= 0.5",
             "detection_metric": f"one-to-one centroid distance <= {CENTER_RADIUS_PX} px",
             "edge_metric": "image-derived temporal links matched to CTC TRA identities",
+            "gold_shape_check": "GT/SEG sparse annotated objects only; no false-positive accounting on unlabeled cells",
             "quality_gate_thresholds": {
-                "mean_segmentation_f1_iou50": SEGMENTATION_F1_GATE,
+                "mean_segmentation_f1_iou50_st_proxy": SEGMENTATION_F1_GATE,
                 "mean_detection_f1": DETECTION_F1_GATE,
                 "mean_tracking_edge_f1": TRACKING_EDGE_F1_GATE,
+                "sparse_gold_object_recall_iou50": GOLD_OBJECT_RECALL_GATE,
             },
             "claim_boundary": (
                 "Same-sequence future-frame holdout, with segmentation GT/SEG labels and "
@@ -242,6 +285,17 @@ def main() -> None:
         failures.append(
             f"tracking-edge F1 {aggregate['mean_tracking_edge_f1']:.4f} "
             f"< {TRACKING_EDGE_F1_GATE:.4f}"
+        )
+    gold_counts = [int(r["sparse_gold_shape_check"]["annotated_objects"]) for r in sequences]
+    gold_tp_total = sum(int(r["sparse_gold_shape_check"]["matched_objects_iou50"]) for r in sequences)
+    gold_total = sum(gold_counts)
+    gold_recall = gold_tp_total / gold_total if gold_total else 0.0
+    aggregate["sparse_gold_object_recall_iou50"] = gold_recall if gold_total else None
+    aggregate["sparse_gold_annotated_objects"] = gold_total
+    if gold_total and gold_recall < GOLD_OBJECT_RECALL_GATE:
+        failures.append(
+            f"sparse gold object recall@IoU50 {gold_recall:.4f} "
+            f"< {GOLD_OBJECT_RECALL_GATE:.4f}"
         )
     if failures:
         raise SystemExit("Scientific quality gate failed: " + "; ".join(failures))
