@@ -24,6 +24,8 @@ from sklearn.model_selection import GroupKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from ai4s_phenotype import causal_shape_motion_features
+
 LABELS = ["EarlyMitosis", "LateMitosis", "CellDeath", "Multipolar"]
 STATIC = ["log_width", "log_height", "log_area", "aspect"]
 TEMPORAL = [
@@ -83,57 +85,8 @@ def load_annotations(path: Path) -> pd.DataFrame:
 
 
 def engineer_features(data: pd.DataFrame) -> pd.DataFrame:
-    output = []
-    for (sequence, track), group in data.groupby(
-        ["sequence", "track_id"], sort=True
-    ):
-        previous = None
-        previous_speed, cumulative = 0.0, 0.0
-        first_frame = int(group["frame"].min())
-        for i, (_, record) in enumerate(group.sort_values("frame").iterrows()):
-            width, height = float(record["width"]), float(record["height"])
-            if width <= 0 or height <= 0:
-                raise ValueError("Invalid expert bounding-box dimension")
-            area = width * height
-            cx, cy = float(record["xmin"]) + width / 2, (
-                float(record["ymin"]) + height / 2
-            )
-            row = dict(
-                sequence=sequence, track_id=int(track),
-                frame=int(record["frame"]), label=record["label"],
-                log_width=float(np.log(width)), log_height=float(np.log(height)),
-                log_area=float(np.log(area)), aspect=width / height,
-                obs_age=i, time_age=int(record["frame"]) - first_frame,
-                time_step=0.0, speed_cell_sizes=0.0, area_log_deriv=0.0,
-                width_log_deriv=0.0, height_log_deriv=0.0, aspect_deriv=0.0,
-                accel_speed=0.0, cumulative_motion_size=cumulative,
-            )
-            if previous is not None:
-                elapsed = int(record["frame"]) - previous["frame"]
-                if elapsed <= 0:
-                    raise ValueError("Duplicate or backward expert track time")
-                size = float(np.sqrt((area + previous["area"]) / 2))
-                speed = float(np.hypot(cx - previous["cx"], cy - previous["cy"]))
-                speed /= max(size, 1.0) * elapsed
-                cumulative += speed * elapsed
-                row.update(
-                    time_step=elapsed, speed_cell_sizes=speed,
-                    area_log_deriv=(np.log(area) - np.log(previous["area"])) / elapsed,
-                    width_log_deriv=(np.log(width) - np.log(previous["width"])) / elapsed,
-                    height_log_deriv=(np.log(height) - np.log(previous["height"])) / elapsed,
-                    aspect_deriv=(width / height - previous["aspect"]) / elapsed,
-                    accel_speed=(speed - previous_speed) / elapsed,
-                    cumulative_motion_size=cumulative,
-                )
-                previous_speed = speed
-            previous = dict(
-                frame=int(record["frame"]), area=area, cx=cx, cy=cy,
-                width=width, height=height, aspect=width / height,
-            )
-            output.append(row)
-    return pd.DataFrame(output).sort_values(
-        ["sequence", "track_id", "frame"]
-    ).reset_index(drop=True)
+    """Delegate validated past-only geometry to the real phenotype product API."""
+    return causal_shape_motion_features(data)
 
 
 def evaluate(features: pd.DataFrame, n_splits=5, bootstrap=300) -> dict:
