@@ -10,7 +10,7 @@ The system therefore combines image-to-detection preprocessing, temporal associa
 
 ## 1.1 Team information
 
-**Team:** Chris Hotza  
+**Team (draft):** Chris Hotza (1 listed member)  
 **Team leader:** Chris Hotza  
 **Role:** primary researcher, system architect, implementation, benchmarking, and submission lead.
 
@@ -287,7 +287,8 @@ The transparent public baseline has known limitations:
 - lineage inference is candidate-based and should be validated against reference annotations;
 - unsupervised clusters are descriptive rather than biological diagnoses;
 - the CTC association and phenotype-preservation experiments use reference centroids and therefore do not measure the full image-to-phenotype pipeline;
-- biological phenotype validity is not established by trajectory agreement alone.
+- biological phenotype validity is not established by trajectory agreement alone;
+- the image benchmarks use Cell Tracking Challenge microscopy, not organ-on-a-chip data, so transfer to the competition’s organ-on-a-chip focus remains untested.
 
 These limitations are explicit design constraints rather than hidden assumptions.
 
