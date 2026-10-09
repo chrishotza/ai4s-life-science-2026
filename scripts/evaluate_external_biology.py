@@ -150,14 +150,21 @@ def evaluate(
         measured = fit_score(work[cols], y, train_idx, test_idx)
         well_labels = (work.groupby(work[well_col].astype(str))["__dose_float"].mean() >= positive_min_dose).astype(int)
         rng = np.random.default_rng(seed)
-        shuffled_values = well_labels.to_numpy().copy()
-        rng.shuffle(shuffled_values)
-        shuffled_map = dict(zip(well_labels.index.to_numpy(), shuffled_values))
-        y_shuffle = work[well_col].astype(str).map(shuffled_map).astype(int).to_numpy()
-        if len(np.unique(y_shuffle[train_idx])) == 2 and len(np.unique(y_shuffle[test_idx])) == 2:
-            shuffled = fit_score(work[cols], y_shuffle, train_idx, test_idx)
-        else:
-            shuffled = {"auroc": float("nan"), "average_precision": float("nan"), "balanced_accuracy": float("nan")}
+        original_group_labels = well_labels.to_numpy()
+        shuffled = {"auroc": float("nan"), "average_precision": float("nan"), "balanced_accuracy": float("nan")}
+        shuffle_status = "unavailable"
+        shuffle_attempts = 0
+        for attempt in range(1, 501):
+            shuffled_values = rng.permutation(original_group_labels)
+            if np.array_equal(shuffled_values, original_group_labels):
+                continue
+            shuffled_map = dict(zip(well_labels.index.to_numpy(), shuffled_values))
+            y_shuffle = work[well_col].astype(str).map(shuffled_map).astype(int).to_numpy()
+            if len(np.unique(y_shuffle[train_idx])) == 2 and len(np.unique(y_shuffle[test_idx])) == 2:
+                shuffled = fit_score(work[cols], y_shuffle, train_idx, test_idx)
+                shuffle_status = "ok"
+                shuffle_attempts = attempt
+                break
 
         results.append(
             {
@@ -166,6 +173,8 @@ def evaluate(
                 "n_features": len(cols),
                 "metrics": measured,
                 "well_level_shuffle_control": shuffled,
+                "shuffle_control_status": shuffle_status,
+                "shuffle_attempts": shuffle_attempts,
                 "delta_auroc_vs_shuffle": measured["auroc"] - shuffled["auroc"] if np.isfinite(shuffled["auroc"]) else None,
                 "delta_ap_vs_shuffle": measured["average_precision"] - shuffled["average_precision"] if np.isfinite(shuffled["average_precision"]) else None,
             }
