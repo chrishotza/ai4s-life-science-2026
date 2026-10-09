@@ -87,6 +87,12 @@ This document maps each AI4S Open Innovation judging criterion to concrete evide
 - .github/workflows/demo-video.yml
 - docs/KAGGLE_WRITEUP.md
 
+## Official eligibility and domain boundary
+
+- Kaggle requires 1–5 registered members and one team leader; the technical-report draft currently lists Chris Hotza as the sole member and must match the registration.
+- The official +0.5 Interpretability and Reliability bonus requires both AI/CS and biology, bioengineering, or clinical expertise on the registered team. The current draft does not show that combination, so no bonus is claimed.
+- The evaluation uses Cell Tracking Challenge microscopy, not organ-on-a-chip data. Transfer to organ-on-a-chip workflows remains untested.
+
 ## Final zero-surprises gate
 
 Before submission, the repository, technical report, Kaggle Writeup, demo, benchmark outputs, and claims auditor must all agree on:
