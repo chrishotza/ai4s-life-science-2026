@@ -27,6 +27,7 @@ CENTER_RADIUS_PX = 6.0
 IOU_THRESHOLD = 0.5
 MAX_DISTANCE_UM = 8.0
 RANDOM_STATE = 42
+DIC_FOI_BORDER_PX = 50
 
 
 def frame_index(path: Path) -> int:
@@ -149,6 +150,27 @@ def marker_overlap_match(
             mapping[int(p.iloc[col]["node_id"])] = int(g.iloc[row]["node_id"])
 
     return tp, fp, fn, mapping
+
+
+def restrict_instances_to_foi(
+    labels: np.ndarray,
+    border_px: int = DIC_FOI_BORDER_PX,
+) -> np.ndarray:
+    """Keep complete predicted objects that intersect the CTC field of interest."""
+    arr = np.asarray(labels)
+    if arr.ndim != 2:
+        raise ValueError(f"FOI filtering expects a 2-D instance mask; got {arr.shape}")
+    height, width = arr.shape
+    if border_px < 0 or 2 * border_px >= min(height, width):
+        raise ValueError(
+            f"Invalid FOI border {border_px} for mask shape {arr.shape}"
+        )
+    interior = arr[border_px : height - border_px, border_px : width - border_px]
+    keep_ids = np.unique(interior)
+    keep_ids = keep_ids[keep_ids > 0]
+    if not len(keep_ids):
+        return np.zeros_like(arr, dtype=np.int32)
+    return np.where(np.isin(arr, keep_ids), arr, 0).astype(np.int32, copy=False)
 
 
 def label_centers(labels: np.ndarray) -> np.ndarray:
@@ -315,7 +337,9 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
             continue
         image = np.squeeze(tifffile.imread(image_path))
         truth_mask = np.squeeze(tifffile.imread(test_mask_map[t])).astype(np.int32, copy=False)
-        predicted_mask = segmenter.predict_instances(image)
+        predicted_mask = restrict_instances_to_foi(
+            segmenter.predict_instances(image)
+        )
         predicted_masks.append(predicted_mask)
         truth_masks.append(truth_mask)
         score = segmentation_score(truth_mask, predicted_mask)
@@ -419,6 +443,10 @@ def main() -> None:
             "segmentation_match": "one-to-one instance IoU >= 0.5 against ST/SEG silver labels (proxy)",
             "detection_match": "one-to-one predicted-instance coverage of >50% of complete-coverage CTC GT/TRA marker pixels",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
+            "field_of_interest": (
+                f"DIC-C2DH-HeLa CTC FOI: retain complete predicted instances that intersect "
+                f"the frame eroded by {DIC_FOI_BORDER_PX} px on each lateral border"
+            ),
             "claim_boundary": (
                 "Cross-sequence raw-image-to-instance-mask-to-tracking evaluation. Segmentation "
                 "scores are measured against dense CTC silver ST/SEG labels as a proxy, while "
