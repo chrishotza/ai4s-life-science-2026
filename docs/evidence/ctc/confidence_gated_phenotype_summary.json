@@ -1,0 +1,45 @@
+{
+  "status": "CONFIDENCE_GATED_PHENOTYPE_INTERPRETATION",
+  "dataset": "CTC DIC-C2DH-HeLa, CellposeSAM-v2, seq01+seq02, 168 frames",
+  "policy": {
+    "min_motion_observations": 3,
+    "reliable_threshold": 0.5,
+    "short_track_rule": "Tracks with fewer than min_motion_observations are retained for audit only and blocked from motion-phenotype claims.",
+    "reliability_rule": "Tracks meeting the temporal-history threshold but below the reliability threshold are descriptive_low_confidence."
+  },
+  "provenance": {
+    "source_workflow_run": "37930909373",
+    "source_commit": "ffc135c56fb5adcf2d23bcf4e8461ba284dcc870",
+    "source_file_sha256": {
+      "01": "6c2a57619a39e32373a61864aeccfb4315885e19463f38d9935b0b74d4ad5611",
+      "02": "02fdc0df28fbf40c219192efed6407c183c108c63f9370177d2af4173b5faf31"
+    },
+    "source_evidence_url": "https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373",
+    "stability_status": "EMPIRICAL_UNSUPERVISED_CLUSTER_STABILITY_NOT_BIOLOGICAL_VALIDATION"
+  },
+  "counts": {
+    "total_profiles": 126,
+    "audit_only": 54,
+    "descriptive_low_confidence": 21,
+    "descriptive_ok": 51,
+    "blocked_biological_claim": 75,
+    "descriptive_computational_group_only": 51,
+    "by_interpretation_permission": {
+      "audit_only": 54,
+      "descriptive_low_confidence": 21,
+      "descriptive_ok": 51
+    },
+    "by_claim_gate": {
+      "blocked_biological_claim": 75,
+      "descriptive_computational_group_only": 51
+    }
+  },
+  "stability_context": {
+    "all_track_bootstrap_median_ari": 0.9448255857946377,
+    "min_3_observations_track_bootstrap_median_ari": 0.6867139852870741,
+    "reliability_ge_0_5_track_bootstrap_median_ari": 0.809909063176141,
+    "min_3_observations_profiles": 72,
+    "reliability_ge_0_5_profiles": 56
+  },
+  "interpretation_boundary": "Confidence gates describe computational evidence quality only. They do not validate biological cell states, drug responses, or transfer to new microscopy domains."
+}

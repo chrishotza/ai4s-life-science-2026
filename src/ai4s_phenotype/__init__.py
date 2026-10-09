@@ -11,6 +11,7 @@ from .cohort import CohortComparison, compare_cohorts
 from .state_probe import TemporalStateProbe
 from .causal import (causal_shape_motion_features, STATIC_FEATURES,
                      MOTION_FEATURES, HISTORY_FEATURES)
+from .confidence import gate_phenotype_profiles, artifact_summary
 
 __all__ = [
     "analyze",
@@ -25,4 +26,6 @@ __all__ = [
     "STATIC_FEATURES",
     "MOTION_FEATURES",
     "HISTORY_FEATURES",
+    "gate_phenotype_profiles",
+    "artifact_summary",
 ]
