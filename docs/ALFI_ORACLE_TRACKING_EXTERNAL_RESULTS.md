@@ -40,3 +40,8 @@ Hungarian per-sequence F1: MI01 0.9995; MI02 0.9973; MI03 0.9937; MI04 1.0000; M
 1. Evaluate pretrained Cellpose-SAM on the same ALFI pixels and expert masks (workflow alfi-cellpose-raw.yml).
 2. If pretrained segmentation remains poor, evaluate/recalibrate segmentation explicitly; do not conceal underrepresentation or oversegmentation.
 3. Only if independently acceptable instance detection and linking are established, reproduce the real-label mitosis phase baseline with **predicted**, rather than expert, tracks and full-video heldout metrics.
+
+
+## Independent uncertainty check (after the primary artifact)
+
+A deterministic resampling check on the **eight entire sequence summaries**, not individual detections, used 10,000 bootstrap replicates and Hungarian true positives/predicted/gold edge counts. Its empirical 2.5–97.5 percentile interval for pooled edge-F1 is **[0.99065, 0.99748]**, centered around the original pooled F1=0.99433. The procedure resamples 8 sequence units with replacement and recomputes 2TP/(GT+pred) from counts; it does not retrain or select a tracker. This is an exploratory interval for variability among these 8 ALFI sequences, not a prediction interval for unseen microscopy domains.
