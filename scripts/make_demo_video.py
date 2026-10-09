@@ -542,7 +542,7 @@ def main() -> None:
     frame_ids = [frame_number(path) for path in images]
     detections["t"] = detections["t"].map(dict(enumerate(frame_ids))).astype(int)
     predicted, predicted_edges = track_detections(
-        detections[["t", "z", "y", "x", "area", "mean_intensity"]],
+        detections[["t", "z", "y", "x", "area", "mean_intensity", "instance_id"]],
         TrackingConfig(
             max_distance_um=8.0,
             method="mutual_nn",
