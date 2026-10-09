@@ -35,6 +35,10 @@ REQUIRED_CAVEATS = (
 )
 
 FORMAL_REQUIREMENTS = {
+    ROOT / "README.md": (
+        "Scope boundary:",
+        "transfer to organ-on-a-chip settings remains untested",
+    ),
     ROOT / "docs" / "KAGGLE_WRITEUP.md": (
         "## Submission Links",
         "**Category: End-to-End System**",
@@ -61,6 +65,7 @@ FORMAL_REQUIREMENTS = {
         "[x] Development AI-tool provenance disclosed",
         "[x] Cross-sequence image-to-tracking validation protocol",
         "[x] CTC GT/SEG image-segmentation validation protocol",
+        "reviewers can access without login",
         "1–5 members and one leader",
         "publicly viewable without login",
         "+0.5 bonus in Interpretability and Reliability",
