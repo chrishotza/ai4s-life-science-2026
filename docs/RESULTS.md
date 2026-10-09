@@ -155,6 +155,22 @@ Reproduce with:
 
     python scripts/benchmark_phc_psc_supervised_segmentation.py
 
+## Raw-image validation status
+
+These image-derived measurements are separate from the reference-centroid association scores above.
+
+### Supervised DIC-C2DH-HeLa holdout
+
+The completed two-way sequence holdout trained on one sequence and tested on the other. Across the held-out images, mean frame-wise instance F1 at IoU ≥ 0.5 was **0.09155**; the image-derived detection F1 was **0.37728**, and temporal-link F1 after image-derived detection was **0.09716**. This run completed successfully and uploaded [artifact 11604575839 from Actions run 37905245043](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37905245043/artifacts/11604575839).
+
+These are weak end-to-end image-derived results. They show that the current supervised baseline does not yet reliably connect raw DIC images to tracks. The success status of the workflow means the benchmark completed, not that its accuracy is adequate.
+
+### Pretrained Cellpose-SAM partial run
+
+A separate run evaluated `cpsam_v2` on raw DIC-C2DH-HeLa frames with one-to-one instance matching at IoU ≥ 0.5. Before cancellation, it completed 40/40 sampled frames from sequence 01 (mean frame F1 **0.92903**) and 14/40 from sequence 02 (mean frame F1 **0.94621**). The [Actions log](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37899689242) contains these per-frame outputs.
+
+This is promising partial segmentation evidence only. The run was cancelled before the second sequence, the aggregate JSON and artifact were not produced, and no complete image-derived tracking-to-phenotype score is available from it. Do not treat these partial frame means as a completed benchmark or combine them with the supervised holdout metrics.
+
 ### End-to-end tracking-to-phenotype robustness
 
 A controlled synthetic benchmark now re-runs the temporal association stage after injecting coordinate noise and detection dropout, then carries those predictions through temporal phenotype extraction and unsupervised phenotype discovery. It reports predicted track count, mean track purity, and phenotype-group ARI against the known synthetic behavioral groups.

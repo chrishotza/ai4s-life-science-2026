@@ -129,6 +129,11 @@ The repository includes:
 
 See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
 
+### Image-derived performance status
+
+The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. These are weak diagnostic results, not competitive image-to-phenotype accuracy. A separate pretrained Cellpose-SAM run reached per-frame segmentation F1 **0.92903** on 40 frames of sequence 01 and **0.94621** on 14 of 40 frames of sequence 02, then was cancelled before the full benchmark and produced no aggregate artifact. Full protocols and boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
+
+
 ## Real benchmark
 
 The CTC benchmark uses **DIC-C2DH-HeLa sequences 01 and 02**. The association experiment feeds the reference track centroids into the tracking stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
