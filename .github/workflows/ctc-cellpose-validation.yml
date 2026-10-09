@@ -16,13 +16,14 @@ on:
   workflow_dispatch:
     inputs:
       max_test_frames:
-        description: "Frames per sequence: 4 for a bounded pilot, 40 for the full benchmark"
+        description: "Frames per sequence: 4/40 for pilots, 84 for both complete sequences"
         required: true
-        default: "4"
+        default: "84"
         type: choice
         options:
           - "4"
           - "40"
+          - "84"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,8 +32,8 @@ concurrency:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    # The CPU benchmark is intentionally manual: the full two-sequence run is costly.
-    timeout-minutes: 120
+    # Full run evaluates all 84 frames in both sequences and writes frame-level checkpoints.
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -54,7 +55,7 @@ jobs:
           pip install --no-deps "cellpose==4.2.1.1"
       - name: Evaluate pretrained Cellpose on raw CTC images
         env:
-          AI4S_CTC_MAX_TEST_FRAMES: ${{ inputs.max_test_frames || '4' }}
+          AI4S_CTC_MAX_TEST_FRAMES: ${{ inputs.max_test_frames || '84' }}
         run: python scripts/benchmark_ctc_cellpose.py
       - name: Capture validation provenance
         if: always()
