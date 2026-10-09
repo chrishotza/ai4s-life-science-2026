@@ -11,15 +11,6 @@ on:
         options:
           - "4"
           - "40"
-    inputs:
-      max_test_frames:
-        description: "Frames per sequence: 4 for a bounded pilot, 40 for the full benchmark"
-        required: true
-        default: "4"
-        type: choice
-        options:
-          - "4"
-          - "40"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
