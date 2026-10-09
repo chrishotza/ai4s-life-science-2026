@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from ai4s_io import ensure_ctc_dataset, load_ctc_tracking
 from ai4s_imaging import Supervised2DSegmenter, instances_to_detections
+from benchmark_ctc_tra_supervised import keyed_masks, keyed_track_masks, marker_overlap_match
 from ai4s_phenotype import analyze, discover_phenotypes
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 
@@ -71,7 +72,7 @@ def track_mask_files(root: Path, sequence: str) -> dict[int, Path]:
 def fit_supervised_segmenter(root: Path) -> Supervised2DSegmenter:
     """Fit using one annotated sequence, then infer on the separate demo sequence."""
     all_images = image_files(root, TRAIN_SEQ, max_frames=None)
-    masks = track_mask_files(root, TRAIN_SEQ)
+    masks = keyed_masks(root, TRAIN_SEQ)
     pairs = [(path, masks[frame_number(path)]) for path in all_images if frame_number(path) in masks]
     if not pairs:
         raise FileNotFoundError(f"No paired images/GT masks for training sequence {TRAIN_SEQ}")
@@ -178,41 +179,29 @@ def consecutive_truth_edges(nodes):
 
 
 def evaluate_demo_run(root: Path, image_paths: list[Path], predicted_masks: np.ndarray, tracked, edges) -> dict[str, float | int]:
-    mask_map = track_mask_files(root, SEQ)
+    mask_map = keyed_masks(root, SEQ)
+    marker_map = keyed_track_masks(root, SEQ)
     truth_nodes, _, _ = load_ctc_tracking(root / f"{SEQ}_GT" / "TRA")
     frame_ids = [frame_number(path) for path in image_paths]
     truth_nodes = truth_nodes[truth_nodes["t"].isin(frame_ids)].copy()
-    mask_scores, tp, fp, fn = [], 0, 0, 0
+    mask_scores = []
 
+    # Score segmentation against dense silver masks, never against GT/TRA markers.
     for i, t in enumerate(frame_ids):
         if t not in mask_map:
             continue
         truth_mask = np.squeeze(tifffile.imread(mask_map[t])).astype(np.int32, copy=False)
         mask_scores.append(segmentation_f1(truth_mask, predicted_masks[i]))
-        frame_tp, frame_fp, frame_fn = center_counts(truth_mask, predicted_masks[i])
-        tp += frame_tp
-        fp += frame_fp
-        fn += frame_fn
 
+    tp, fp, fn, node_mapping = marker_overlap_match(
+        tracked,
+        truth_nodes[["node_id", "track_id", "t", "z", "y", "x"]],
+        dict(zip(frame_ids, predicted_masks)),
+        marker_map,
+    )
     det_precision = tp / (tp + fp) if tp + fp else 0.0
     det_recall = tp / (tp + fn) if tp + fn else 0.0
     det_f1 = 2 * det_precision * det_recall / (det_precision + det_recall) if det_precision + det_recall else 0.0
-
-    node_mapping = {}
-    p_by_t = {int(t): g for t, g in tracked.groupby("t", sort=False)}
-    g_by_t = {int(t): g for t, g in truth_nodes.groupby("t", sort=False)}
-    for t in sorted(set(p_by_t) | set(g_by_t)):
-        p, g = p_by_t.get(t), g_by_t.get(t)
-        if p is None or g is None or p.empty or g.empty:
-            continue
-        distance = np.linalg.norm(
-            p[["y", "x"]].to_numpy(float)[:, None, :] - g[["y", "x"]].to_numpy(float)[None, :, :],
-            axis=2,
-        )
-        rows, cols = linear_sum_assignment(distance)
-        for r, c in zip(rows, cols):
-            if float(distance[r, c]) <= 6.0:
-                node_mapping[int(p.iloc[r]["node_id"])] = int(g.iloc[c]["node_id"])
 
     mapped = {
         (node_mapping[int(row.source_id)], node_mapping[int(row.target_id)])
@@ -228,10 +217,10 @@ def evaluate_demo_run(root: Path, image_paths: list[Path], predicted_masks: np.n
     mask_f1 = float(np.mean([row["f1"] for row in mask_scores])) if mask_scores else 0.0
     return {
         "heldout_mask_f1_iou50": mask_f1,
-        "heldout_centroid_detection_f1_r6px": float(det_f1),
+        "heldout_marker_detection_f1": float(det_f1),
         "heldout_tracking_edge_f1": float(link_score["f1"]),
-        "heldout_detection_precision_r6px": float(det_precision),
-        "heldout_detection_recall_r6px": float(det_recall),
+        "heldout_marker_detection_precision": float(det_precision),
+        "heldout_marker_detection_recall": float(det_recall),
         "image_derived_observations": int(len(tracked)),
         "image_derived_tracks": int(tracked["track_id"].nunique()) if not tracked.empty else 0,
         "image_derived_temporal_links": int(len(edges)),
@@ -310,7 +299,7 @@ def render_detection(
     ax.text(
         0.01,
         0.02,
-        f"Random Forest trained on CTC GT/TRA masks from sequence {TRAIN_SEQ}; "
+        f"Random Forest trained on CTC ST/SEG silver segmentation masks from sequence {TRAIN_SEQ}; "
         f"predictions use raw images from held-out sequence {SEQ}.",
         transform=ax.transAxes,
         fontsize=8.5,
@@ -477,7 +466,7 @@ def render_validation_notes(path: Path, metrics: dict[str, float | int]) -> None
     )
     ax.text(
         0.08, 0.56,
-        f"Centroid detection F1 (6 px): {float(metrics['heldout_centroid_detection_f1_r6px']):.3f}",
+        f"Marker detection F1 (overlap): {float(metrics['heldout_marker_detection_f1']):.3f}",
         fontsize=15,
     )
     ax.text(
@@ -507,7 +496,7 @@ def render_summary(path: Path, metrics: dict[str, float | int]) -> None:
 
     rows = [
         ("Mask F1 @ IoU 0.5", f"{float(metrics['heldout_mask_f1_iou50']):.3f}"),
-        ("Detection F1 (centroid, 6 px)", f"{float(metrics['heldout_centroid_detection_f1_r6px']):.3f}"),
+        ("Marker detection F1 (overlap)", f"{float(metrics['heldout_marker_detection_f1']):.3f}"),
         ("Tracking edge F1", f"{float(metrics['heldout_tracking_edge_f1']):.3f}"),
         ("Image-derived observations", str(metrics["image_derived_observations"])),
         ("Predicted tracks", str(metrics["image_derived_tracks"])),
@@ -521,7 +510,7 @@ def render_summary(path: Path, metrics: dict[str, float | int]) -> None:
 
     ax.text(
         0.05, 0.09,
-        "Supervised fit: CTC sequence 02 annotations; inference: raw sequence 01 images.\n"
+        "Supervised fit: CTC ST/SEG sequence 02 silver masks; inference: raw sequence 01 images.\n"
         "Tracking and phenotype start from the predicted masks, not reference centroids.",
         fontsize=9.5,
         va="bottom",
