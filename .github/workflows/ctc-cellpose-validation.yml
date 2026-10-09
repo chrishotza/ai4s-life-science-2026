@@ -33,8 +33,10 @@ jobs:
           pip install --no-deps "cellpose==4.2.1.1"
       - name: Evaluate pretrained Cellpose on raw CTC images
         run: python scripts/benchmark_ctc_cellpose.py
-      - name: Upload quantitative evidence
+      - name: Upload quantitative evidence, including partial checkpoints
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ctc-cellpose-e2e-evidence
           path: ctc_cellpose_e2e_results.json
+          if-no-files-found: warn

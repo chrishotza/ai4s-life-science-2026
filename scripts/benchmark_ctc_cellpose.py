@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -37,7 +38,12 @@ CELLPROB_THRESHOLD = 0.0
 INVERT = False
 
 
-def evaluate_sequence(root: Path, sequence: str, segmenter: CellposeSegmenter) -> dict[str, object]:
+def evaluate_sequence(
+    root: Path,
+    sequence: str,
+    segmenter: CellposeSegmenter,
+    on_frame: Callable[[str, list[dict[str, float]]], None] | None = None,
+) -> dict[str, object]:
     paths = image_files(root, sequence)[:MAX_TEST_FRAMES]
     masks_by_time = keyed_masks(root, sequence)
     truth_nodes, _, _ = load_ctc_tracking(root / f"{sequence}_GT" / "TRA")
@@ -62,6 +68,8 @@ def evaluate_sequence(root: Path, sequence: str, segmenter: CellposeSegmenter) -
         score = segmentation_score(truth, predicted)
         score["frame"] = float(time_index)
         per_frame.append(score)
+        if on_frame is not None:
+            on_frame(sequence, per_frame)
         print(
             f"[cellpose] sequence={sequence} frame={time_index} "
             f"GT={int(score['gt_objects'])} pred={int(score['pred_objects'])} "
@@ -138,50 +146,81 @@ def main() -> None:
         cellprob_threshold=CELLPROB_THRESHOLD,
         invert=INVERT,
     )
-    sequences = [evaluate_sequence(dataset_root, sequence, segmenter) for sequence in ("01", "02")]
-    output = {
-        "runtime": runtime_metadata(),
-        "protocol": {
-            "dataset": "DIC-C2DH-HeLa",
-            "model": MODEL_NAME,
-            "model_source": "upstream pretrained Cellpose model; no CTC evaluation labels used to fit model weights",
-            "model_parameters": {
-                "min_size": MIN_SIZE,
-                "flow_threshold": FLOW_THRESHOLD,
-                "cellprob_threshold": CELLPROB_THRESHOLD,
-                "invert": INVERT,
-            },
-            "evaluation": f"first {MAX_TEST_FRAMES} paired frames from each CTC sequence",
-            "segmentation_match": "one-to-one instance IoU >= 0.5",
-            "detection_match": "one-to-one predicted-instance coverage of >50% of complete-coverage CTC GT/TRA marker pixels",
-            "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
-            "claim_boundary": (
-                "Independent pretrained-model inference on raw held-out images. "
-                "CTC masks are used only for scoring; GT/TRA markers are matched by predicted-instance "
-                "overlap rather than expecting marker-region centroids to equal whole-cell centroids. "
-                "This is not an official CTC leaderboard score "
-                "or biological phenotype-label validation."
-            ),
-            "license_note": (
-                "Review upstream Cellpose model/weight licensing before redistribution or commercial use."
-            ),
+    protocol = {
+        "dataset": "DIC-C2DH-HeLa",
+        "model": MODEL_NAME,
+        "model_source": "upstream pretrained Cellpose model; no CTC evaluation labels used to fit model weights",
+        "model_parameters": {
+            "min_size": MIN_SIZE,
+            "flow_threshold": FLOW_THRESHOLD,
+            "cellprob_threshold": CELLPROB_THRESHOLD,
+            "invert": INVERT,
         },
-        "sequences": sequences,
-        "aggregate": {
-            "mean_segmentation_f1_iou50": float(np.mean([
-                sequence["segmentation"]["mean_f1_iou50"] for sequence in sequences
-            ])),
-            "mean_detection_f1": float(np.mean([
-                sequence["detection"]["f1"] for sequence in sequences
-            ])),
-            "mean_tracking_edge_f1": float(np.mean([
-                sequence["tracking"]["edge_f1"] for sequence in sequences
-            ])),
-        },
+        "evaluation": f"first {MAX_TEST_FRAMES} paired frames from each CTC sequence",
+        "segmentation_match": "one-to-one instance IoU >= 0.5",
+        "detection_match": "one-to-one predicted-instance coverage of >50% of complete-coverage CTC GT/TRA marker pixels",
+        "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
+        "claim_boundary": (
+            "Independent pretrained-model inference on raw held-out images. "
+            "CTC masks are used only for scoring; GT/TRA markers are matched by predicted-instance "
+            "overlap rather than expecting marker-region centroids to equal whole-cell centroids. "
+            "This is not an official CTC leaderboard score "
+            "or biological phenotype-label validation."
+        ),
+        "license_note": (
+            "Review upstream Cellpose model/weight licensing before redistribution or commercial use."
+        ),
     }
     output_path = ROOT / "ctc_cellpose_e2e_results.json"
-    output_path.write_text(json.dumps(output, indent=2, default=str), encoding="utf-8")
-    print(json.dumps(output["aggregate"], indent=2))
+    sequences: list[dict[str, object]] = []
+
+    def write_checkpoint(
+        status: str,
+        current_sequence: str | None = None,
+        frame_metrics: list[dict[str, float]] | None = None,
+    ) -> None:
+        payload: dict[str, object] = {
+            "status": status,
+            "runtime": runtime_metadata(),
+            "protocol": protocol,
+            "sequences": sequences,
+        }
+        if current_sequence is not None:
+            payload["current_sequence"] = {
+                "sequence": current_sequence,
+                "frames_evaluated": len(frame_metrics or []),
+                "frame_metrics": frame_metrics or [],
+                "sequence_summary_pending": True,
+            }
+        if status == "completed":
+            payload["aggregate"] = {
+                "mean_segmentation_f1_iou50": float(np.mean([
+                    sequence["segmentation"]["mean_f1_iou50"] for sequence in sequences
+                ])),
+                "mean_detection_f1": float(np.mean([
+                    sequence["detection"]["f1"] for sequence in sequences
+                ])),
+                "mean_tracking_edge_f1": float(np.mean([
+                    sequence["tracking"]["edge_f1"] for sequence in sequences
+                ])),
+            }
+        temporary_path = output_path.with_suffix(".json.tmp")
+        temporary_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+        temporary_path.replace(output_path)
+
+    write_checkpoint("in_progress")
+    for sequence_name in ("01", "02"):
+        result = evaluate_sequence(
+            dataset_root,
+            sequence_name,
+            segmenter,
+            on_frame=lambda name, metrics: write_checkpoint("in_progress", name, metrics),
+        )
+        sequences.append(result)
+        write_checkpoint("in_progress")
+
+    write_checkpoint("completed")
+    print(json.dumps(json.loads(output_path.read_text(encoding="utf-8"))["aggregate"], indent=2))
     print(f"Evidence written to {output_path}")
 
 
