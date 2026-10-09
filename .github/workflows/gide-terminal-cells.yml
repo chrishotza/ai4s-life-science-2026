@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/gide-terminal-cells.yml"
+      - "scripts/run_gide_terminal_cells.py"
+      - "tests/test_gide_terminal_cells.py"
   workflow_dispatch:
 
 permissions:
@@ -40,6 +42,7 @@ jobs:
             external_biology/gide_cell_terminal/well_features.csv
             external_biology/gide_cell_terminal/nucleus_annexin_proxy.csv
             external_biology/gide_cell_terminal/summary.json
+            external_biology/gide_cell_terminal/failed_wells.csv
             external_biology/gide_cell_terminal/*_segmentation_qc.png
           if-no-files-found: warn
           retention-days: 30
