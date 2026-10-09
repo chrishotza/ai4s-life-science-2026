@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from benchmark_ctc_phc_psc_association import trajectory_identity_metrics
+from benchmark_ctc_image_e2e import framewise_match
 
 
 def test_pairwise_identity_metrics_penalize_track_merges():
@@ -48,3 +49,19 @@ def test_pairwise_identity_metrics_penalize_track_fragmentation():
 def test_pairwise_identity_metrics_reject_missing_reference_ids():
     with pytest.raises(ValueError, match="reference and predicted track IDs"):
         trajectory_identity_metrics(pd.DataFrame({"track_id": [1]}))
+
+
+
+def test_unmatched_centroids_do_not_report_zero_error():
+    predicted = pd.DataFrame(
+        [{"node_id": 20, "t": 0, "y": 0.0, "x": 0.0}]
+    )
+    truth = pd.DataFrame(
+        [{"node_id": 10, "t": 0, "y": 100.0, "x": 100.0}]
+    )
+
+    tp, fp, fn, mean_distance, mapping = framewise_match(predicted, truth, radius_px=6.0)
+
+    assert (tp, fp, fn) == (0, 1, 1)
+    assert mean_distance is None
+    assert mapping == {}
