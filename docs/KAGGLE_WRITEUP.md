@@ -150,6 +150,17 @@ to:
 
 That representation can support motility analysis, state characterization, abnormal-behavior screening, lineage-aware studies, and downstream biological investigation.
 
+### Reproducible product execution
+
+The system can be run on an input sequence through `scripts/analyze_microscopy.py`. It accepts a TIFF stack or a directory of 2-D grayscale TIFF frames and writes observation/track tables, temporal links, candidate lineage edges, per-track phenotype tables, a machine-readable summary, and a visualization. Example:
+
+```bash
+python scripts/analyze_microscopy.py ./sequence --output ./analysis_output \
+  --max-distance-um 5 --voxel-size-um 1 0.19 0.19 --clusters 3
+```
+
+The detector in this entry point is a transparent threshold/connected-component baseline. Its quality is data-dependent and it must not be interpreted as a universal microscope segmenter. The high CTC association-isolation numbers reported above use reference centroids and do not validate image-derived segmentation.
+
 ### Reproducibility
 
 The repository contains:
