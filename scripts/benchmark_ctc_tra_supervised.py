@@ -417,7 +417,7 @@ def main() -> None:
             "evaluation": "first 40 frames in the other sequence",
             "cross_sequence_holdout": [["01", "02"], ["02", "01"]],
             "segmentation_match": "one-to-one instance IoU >= 0.5 against ST/SEG silver labels (proxy)",
-            "detection_match": "one-to-one predicted-instance overlap with complete-coverage CTC GT/TRA marker pixels",
+            "detection_match": "one-to-one predicted-instance coverage of >50% of complete-coverage CTC GT/TRA marker pixels",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
             "claim_boundary": (
                 "Cross-sequence raw-image-to-instance-mask-to-tracking evaluation. Segmentation "
