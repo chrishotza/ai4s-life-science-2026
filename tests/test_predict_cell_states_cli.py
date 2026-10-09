@@ -33,6 +33,9 @@ def test_train_predict_and_provenance(tmp_path):
     assert len(scores)==10
     assert set(scores.predicted_state).issubset({"EarlyMitosis","LateMitosis"})
     assert np.all(scores.score_of_predicted_state.between(0,1))
+    assert "has_temporal_motion" in scores.columns
+    assert int(scores["has_temporal_motion"].sum()) == 8
+    assert "last_observation_gap" in scores.columns
     assert record["feature_set"]=="static_motion"
     provenance=json.loads(output.with_suffix(".provenance.json").read_text())
     assert provenance["training_sha256"]==record["training_sha256"]
