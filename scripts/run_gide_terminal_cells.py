@@ -17,11 +17,10 @@ import tifffile
 from PIL import Image
 from scipy import ndimage as ndi
 from scipy.stats import rankdata
-from skimage.feature import peak_local_max
 from skimage.filters import gaussian, threshold_otsu
 from skimage.measure import label, regionprops
 from skimage.morphology import closing, opening, disk, remove_small_objects
-from skimage.segmentation import clear_border, find_boundaries, watershed
+from skimage.segmentation import clear_border, find_boundaries
 
 from scripts.run_gide_tiff_pilot import BASE, download_one
 
@@ -51,7 +50,7 @@ def write_csv(rows, path):
         writer.writerows(rows)
 
 
-def segment_nuclei(hoechst, min_area=55, max_area=7000):
+def segment_nuclei(hoechst, min_area=110, max_area=7000):
     data = np.squeeze(hoechst).astype("float32")
     if data.ndim != 2 or not np.isfinite(data).all() or float(data.std()) < 1e-5:
         raise ValueError("Invalid Hoechst image")
@@ -64,15 +63,10 @@ def segment_nuclei(hoechst, min_area=55, max_area=7000):
     foreground = closing(foreground, footprint=disk(2))
     foreground = remove_small_objects(foreground, min_size=min_area)
     foreground = clear_border(foreground)
-    distance = ndi.distance_transform_edt(foreground)
-    peaks = peak_local_max(distance, min_distance=8, threshold_abs=3,
-                           labels=foreground.astype("uint8"), exclude_border=False)
-    markers = np.zeros(foreground.shape, dtype="int32")
-    if len(peaks):
-        markers[tuple(peaks.T)] = np.arange(1, len(peaks) + 1, dtype="int32")
-        masks = watershed(-distance, markers, mask=foreground)
-    else:
-        masks = label(foreground)
+    # QC review of original C-02 and D-02 images found watershed broke each
+    # nucleus into many fragments. Connected components preserve intact nuclei.
+    # Touching cells may merge; this limitation is recorded, not overfitted.
+    masks = label(foreground)
     counts = np.bincount(masks.ravel())
     valid = (counts >= min_area) & (counts <= max_area)
     valid[0] = False
@@ -134,34 +128,43 @@ def rank_permutation(x, y, rng, count):
 
 def summarize(wells, permutations=9999):
     if len(wells) != 30 or len({w["well"] for w in wells}) != 30:
-        raise ValueError("Expected 30 unique wells")
-    dose = [w["dose_nm"] for w in wells]
-    rng = np.random.default_rng(20261009)
-    primary = rank_permutation(dose, [w["median_ann_ring_p90"] for w in wells],
-                               rng, permutations)
-    secondary = rank_permutation(dose, [w["n_valid_nuclei"] for w in wells],
-                                 rng, permutations)
-    return dict(status="EXPLORATORY_TERMINAL_NUCLEAR_PROXIMAL_SIGNAL",
-                n_wells=len(wells), n_cells=sum(w["n_valid_nuclei"] for w in wells),
-                qc_wells_passed=sum(int(w["qc_pass"]) for w in wells),
-                primary_dose_vs_median_ann_ring_p90=primary,
-                secondary_dose_vs_nucleus_count=secondary,
-                dose_means=[
-                    dict(dose_nm=dose, wells=3,
-                         ann_ring_p90_mean=float(np.mean([
-                             w["median_ann_ring_p90"] for w in wells if w["dose_nm"] == dose])),
-                         valid_nuclei_mean=float(np.mean([
-                             w["n_valid_nuclei"] for w in wells if w["dose_nm"] == dose])))
-                    for dose in DOSES.values()],
-                claim_boundary=(
-                    "Same-FOV terminal Hoechst nuclei segmented and AnnexinV "
-                    "quantified in nearby fixed-radius pixel rings: NOT validated "
-                    "cell apoptosis labels. No temporal tracking or phenotype "
-                    "superiority claim. Thresholding/segmentation not manually "
-                    "validated. Three wells per dose, one field per well, single "
-                    "plate: dose identical to column position and confounded. "
-                    "Cells nested within wells are NOT independent sample units."
-                ))
+        raise ValueError("Expected 30 unique well records including rejected samples")
+    valid = [w for w in wells if w["qc_pass"] and w["median_ann_ring_p90"] is not None]
+    groups = {dose: [w for w in valid if w["dose_nm"] == dose] for dose in DOSES.values()}
+    accepted = len(valid) >= 24 and all(len(group) >= 2 for group in groups.values())
+    details = [
+        dict(dose_nm=dose, accepted_wells=len(group),
+             ann_ring_p90_mean=(float(np.mean([w["median_ann_ring_p90"] for w in group]))
+                                if group else None),
+             nuclei_mean=(float(np.mean([w["n_valid_nuclei"] for w in group]))
+                          if group else None))
+        for dose, group in groups.items()
+    ]
+    primary = secondary = None
+    if accepted:
+        rng = np.random.default_rng(20261009)
+        dose = [w["dose_nm"] for w in valid]
+        primary = rank_permutation(dose, [w["median_ann_ring_p90"] for w in valid],
+                                   rng, permutations)
+        secondary = rank_permutation(dose, [w["n_valid_nuclei"] for w in valid],
+                                     rng, permutations)
+    return dict(
+        status=("EXPLORATORY_TERMINAL_NUCLEAR_PROXIMAL_SIGNAL"
+                if accepted else "NO_GO_INSUFFICIENT_QC_COVERAGE"),
+        n_wells_total=len(wells), n_wells_accepted=len(valid),
+        n_wells_rejected=len(wells)-len(valid),
+        n_cells_accepted=sum(w["n_valid_nuclei"] for w in valid),
+        coverage_gate_pass=accepted,
+        primary_dose_vs_median_ann_ring_p90=primary,
+        secondary_dose_vs_nucleus_count=secondary,
+        dose_means=details,
+        claim_boundary=(
+            "Terminal Hoechst connected-component nuclei with AnnexinV "
+            "nearby pixel rings; not validated cell apoptosis or cell tracks. "
+            "Image QC failures are excluded and listed; missingness by dose "
+            "may bias association. Dose and plate column are confounded. "
+            "Cells in the same well are not independent experimental units."
+        ))
 
 
 def save_overlay(image, masks, path):
@@ -190,36 +193,54 @@ def main():
         return
     cache = out/"tiffs"
     cache.mkdir(exist_ok=True)
-    cells_out, wells_out = [], []
+    cells_out, wells_out, failures = [], [], []
     for i in range(0, len(sources), 2):
         t_h, t_a = sources[i:i+2]
         if t_h["well"] != t_a["well"]:
             raise ValueError("Channel pairing mismatch")
-        p_h, hash_h = download_one(t_h, cache)
-        p_a, hash_a = download_one(t_a, cache)
-        h, a = tifffile.imread(p_h), tifffile.imread(p_a)
-        masks, qc = segment_nuclei(h)
-        cells = measure_annexin_near_nuclei(masks, a)
-        if not cells:
-            raise ValueError(f"No cellular signal: {t_h['well']}")
         well, dose = t_h["well"], t_h["dose_nm"]
-        cells_out.extend(dict(well=well, dose_nm=dose, **record) for record in cells)
-        wells_out.append(dict(
-            well=well, dose_nm=dose, qc_pass=qc["qc_pass"],
-            n_segmented_nuclei=qc["n_nuclei"], n_valid_nuclei=len(cells),
-            median_nucleus_area=qc["median_nucleus_area"],
-            foreground_fraction=qc["foreground_fraction"],
-            median_ann_ring_mean=float(np.median([r["ann_ring_mean"] for r in cells])),
-            median_ann_ring_p90=float(np.median([r["ann_ring_p90"] for r in cells])),
-            terminal_hoechst_sha256=hash_h,
-            terminal_annexinv_sha256=hash_a))
-        if well in ("C-02", "D-02", "C-09", "C-11", "D-11", "E-11"):
-            save_overlay(h, masks, out/f"{well}_segmentation_qc.png")
-        print(f"[{len(wells_out)}/30] {well}: masks={qc['n_nuclei']}, "
-              f"ring_measures={len(cells)}, QC={qc['qc_pass']}", flush=True)
-    write_csv(cells_out, out/"nucleus_annexin_proxy.csv")
-    write_csv(wells_out, out/"well_features.csv")
+        qc = None
+        cells = []
+        try:
+            p_h, hash_h = download_one(t_h, cache)
+            p_a, hash_a = download_one(t_a, cache)
+            h, a = tifffile.imread(p_h), tifffile.imread(p_a)
+            masks, qc = segment_nuclei(h)
+            cells = measure_annexin_near_nuclei(masks, a)
+            if not cells:
+                raise ValueError("No measurable nuclei or local Annexin ROI")
+            if well in ("C-02", "D-02", "C-03", "C-04", "D-04", "E-04",
+                        "C-05", "E-05", "C-09", "C-11", "D-11", "E-11"):
+                save_overlay(h, masks, out/f"{well}_segmentation_qc.png")
+            cells_out.extend(dict(well=well, dose_nm=dose, **rec) for rec in cells)
+            wells_out.append(dict(
+                well=well, dose_nm=dose, qc_pass=qc["qc_pass"],
+                n_segmented_nuclei=qc["n_nuclei"], n_valid_nuclei=len(cells),
+                median_nucleus_area=qc["median_nucleus_area"],
+                foreground_fraction=qc["foreground_fraction"],
+                median_ann_ring_mean=float(np.median([v["ann_ring_mean"] for v in cells])),
+                median_ann_ring_p90=float(np.median([v["ann_ring_p90"] for v in cells])),
+                terminal_hoechst_sha256=hash_h,
+                terminal_annexinv_sha256=hash_a))
+            print(f"[{i//2+1}/30] {well}: {qc['n_nuclei']} connected components, "
+                  f"QC={qc['qc_pass']}", flush=True)
+        except (OSError, ValueError, RuntimeError) as exc:
+            failures.append(dict(well=well, dose_nm=dose, error=str(exc)[:400]))
+            wells_out.append(dict(
+                well=well, dose_nm=dose, qc_pass=False,
+                n_segmented_nuclei=None, n_valid_nuclei=0,
+                median_nucleus_area=None, foreground_fraction=None,
+                median_ann_ring_mean=None, median_ann_ring_p90=None,
+                terminal_hoechst_sha256=None, terminal_annexinv_sha256=None))
+            print(f"[{i//2+1}/30] REJECTED {well}: {type(exc).__name__}: {exc}",flush=True)
+        # Checkpoint every well: a corrupt original must never erase all prior evidence.
+        write_csv(wells_out, out/"well_features.csv")
+        if cells_out:
+            write_csv(cells_out, out/"nucleus_annexin_proxy.csv")
+        if failures:
+            write_csv(failures, out/"failed_wells.csv")
     summary = summarize(wells_out, args.permutations)
+    summary["failures"] = failures
     (out/"summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2), flush=True)
 
