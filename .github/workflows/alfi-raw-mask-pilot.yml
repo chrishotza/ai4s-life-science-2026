@@ -1,4 +1,4 @@
-name: ALFI real images mask pilot
+name: ALFI raw images multi-sequence generalization
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
           python -m pip install -e .
           python -m pip install remotezip requests pytest
           python -m pytest -q tests/test_alfi_raw_mi.py
-      - name: Extract 2 completely disjoint sequences of small image/mask samples
+      - name: Extract 4 MI sequences with original expert masks by HTTP range
         run: |
           python -u - <<'PY'
           import hashlib,io,json
@@ -39,7 +39,7 @@ jobs:
           meta=[]
           with RemoteZip(url,support_suffix_range=True,timeout=55) as archive:
               indexed={f.filename:f for f in archive.infolist()}
-              for seq in ("MI01","MI02"):
+              for seq in ("MI01","MI02","MI03","MI04"):
                   for t in (1,5,9,13):
                       for kind,dirname,prefix in (("image","Images","I"),("mask","Masks","M")):
                           name=f"Data&Annotations/{seq}/{dirname}/{prefix}_{seq}_{t:04d}.png"
@@ -61,17 +61,16 @@ jobs:
                           print(f"{seq} {t} {kind} {len(raw)} bytes; mode={img.mode} shape={a.shape} vals={len(vals)} first={vals[:7]}",flush=True)
           (output/"manifest.json").write_text(json.dumps(meta,indent=2))
           PY
-      - name: Train supervised mask segmentation on MI01, measure heldout MI02
+      - name: Train on MI01, compare MI02 development and MI03 MI04 untouched holdouts
         run: |
           python -u -m scripts.evaluate_alfi_raw_mi \
             --inputs external_biology/alfi_raw_pilot \
             --out external_biology/alfi_raw_metrics
       - uses: actions/upload-artifact@v4
         with:
-          name: alfi-mi01-train-mi02-heldout-raw-image-evidence
+          name: alfi-mi01-to-mi02-mi03-mi04-segmentation-evidence
           path: |
             external_biology/alfi_raw_pilot/manifest.json
             external_biology/alfi_raw_metrics/
-            external_biology/alfi_raw_pilot/MI01_*.png
-            external_biology/alfi_raw_pilot/MI02_*.png
+            external_biology/alfi_raw_pilot/MI0*_*.png
           retention-days: 30
