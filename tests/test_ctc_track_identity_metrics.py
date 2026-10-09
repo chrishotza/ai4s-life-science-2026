@@ -7,7 +7,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from benchmark_ctc_phc_psc_association import fast_mutual_nn_track, trajectory_identity_metrics
+from benchmark_ctc_phc_psc_association import fast_track_detections, trajectory_identity_metrics
 from benchmark_ctc_image_e2e import framewise_match
 from ai4s_io import PHC_C2DL_PSC_VOXEL_SIZE_UM
 from ai4s_tracking import TrackingConfig, track_detections
@@ -70,7 +70,11 @@ def test_unmatched_centroids_do_not_report_zero_error():
 
  
 
-def test_fast_mnn_path_matches_production_tracker_on_deterministic_fixture():
+@pytest.mark.parametrize(
+    "method",
+    ["mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian"],
+)
+def test_fast_association_paths_match_production_tracker_on_deterministic_fixture(method):
     detections = pd.DataFrame(
         [
             {"t": 0, "z": 0.0, "y": 0.0, "x": 0.0, "reference_track_id": 1},
@@ -84,12 +88,12 @@ def test_fast_mnn_path_matches_production_tracker_on_deterministic_fixture():
         ]
     )
 
-    fast_nodes, fast_edges = fast_mutual_nn_track(detections, 8.0)
+    fast_nodes, fast_edges = fast_track_detections(detections, 8.0, method=method)
     production_nodes, production_edges = track_detections(
         detections,
         TrackingConfig(
             max_distance_um=8.0,
-            method="mutual_nn",
+            method=method,
             voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
         ),
     )
