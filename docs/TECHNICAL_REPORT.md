@@ -8,6 +8,18 @@ The core hypothesis is that biological information is often contained not only i
 
 The system therefore combines image-to-detection preprocessing, temporal association, 3-D tracking, lineage/event inference, feature extraction, and unsupervised phenotype discovery.
 
+### Verified result summary (updated October 2026)
+
+The strongest image-derived evidence is the completed **168-frame** CellposeSAM-v2 evaluation on two Cell Tracking Challenge DIC-C2DH-HeLa sequences: **mean segmentation F1@IoU50 0.9354, detection F1 0.9684, and tracking-edge F1 0.9808**, using annotation masks and track IDs for **evaluation only**, not input. Verified run 37930909373 and a stable, [source-provenanced aggregate JSON](evidence/ctc/full_sequence_metrics.json) are available.
+
+By contrast, **reference-centroid tracking F1 0.9923** isolates the association component and must not be presented as an image-derived result. The tracker separately achieves edge F1 0.9943 on ALFI **expert-provided detections**, not on predicted image masks.
+
+The causal ALFI mitosis-stage classifier is an exploratory **expert-box** experiment: MI01–MI04 → MI05–MI08 yields macro-F1 0.5138 for static morphology versus 0.5676 with past-only motion. Real ALFI raw-image instance segmentation on four heldout frames gives at best F1 0.2282 among tested models and variants; this failure **blocks validated end-to-end ALFI state prediction**.
+
+New [CTC real phenotype stability audit](CTC_REAL_PHENOTYPE_STABILITY.md) on 126 image-derived trajectories shows median sequence-stratified trajectory-bootstrap ARI 0.945 with all tracks but 0.687 on 72 tracks with at least three observations. **43 original trajectories had only one frame**. The current package marks very short tracks as insufficient temporal evidence. These ARI numbers establish clustering repeatability/fragility, **not biological ground truth**.
+
+Competition scoring is qualitative expert review of the public code, writeup, video and technical report—there is no mandated universal prediction CSV or Kaggle leaderboard target for the chosen project category. The central research gap is reliable biological phenotype validation after unseen-domain instance segmentation, not improvement of an oracle association score.
+
 ## 1.1 Team information
 
 **Team (draft):** Chris Hotza (1 listed member)  
