@@ -22,7 +22,9 @@ A separate association-isolation experiment using perfect reference centroids re
 
 The phenotype layer generated 126 image-derived CTC trajectory profiles. Because 43 tracks have only one observation, the repository now applies confidence gates: 54 profiles are audit-only, 21 are descriptive low confidence, and 51 are descriptive computational groups. No biological cell-state claim is made without independent labels. Transfer to organ-on-a-chip data remains untested.
 
-## What a life-science researcher could do with this system
+## From cell tracking to dynamic phenotype
+
+### A concrete life-science research use case
 
 **Question:** In a time-lapse experiment, which individual cells persist in one direction, which change speed or direction, and which trajectories are too short to support interpretation? A single static image or an unlabeled track ID does not answer that question.
 
@@ -31,8 +33,6 @@ The phenotype layer generated 126 image-derived CTC trajectory profiles. Because
 **Testable future experiment, not an observed biological effect:** Compare treated versus control cell cultures imaged with matched acquisition settings. Predefine motion/persistence endpoints; blind or hold out independent wells and acquisition batches; evaluate segmentation and identity accuracy before comparing groups; then test whether predicted differences reproduce across batches against independently recorded condition labels. This experiment has **not** been conducted here, and no drug-response or organ-on-a-chip effect is claimed.
 
 **Why this is useful now:** the current result is an inspectable, reproducible *measurement and hypothesis-generation workflow*. Biologically meaningful conclusions require external validation. CellposeSAM-v2 supplies image segmentation; the submission's added value is the temporal feature, tracking, quality-gate and evidence-reporting layer. [Detailed use case and falsifiable validation plan](BIOLOGICAL_IMPACT_CASE.md).
-
-## From cell tracking to dynamic phenotype
 
 ### Problem
 
