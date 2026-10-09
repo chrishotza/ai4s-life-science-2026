@@ -47,9 +47,9 @@ Official detail reflected in this checklist:
 
 **Human-action handoff:** [final registration, video-publication, and Kaggle submission steps](FINAL_SUBMISSION_HANDOFF.md). Generated or privately hosted files are not a verified public submission.
 
-- [ ] Complete the required competition registration form
+- [x] Complete the required competition registration form — team leader confirmed completion on October 9, 2026 (self-reported; organizer receipt not independently inspected)
 - [x] Make competition repository public
-- [x] Verify final public repository URL (public GitHub repository confirmed)
+- [x] Verify final public repository URL (GitHub API confirms `private: false`, `visibility: public`, October 9, 2026)
 - [ ] Confirm the registered team has 1–5 members, one leader, and a roster matching the technical report
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Check whether the registered roster qualifies for the +0.5 cross-disciplinary bonus; do not claim it unless both expertise areas are represented
