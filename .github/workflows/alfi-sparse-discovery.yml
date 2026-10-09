@@ -12,7 +12,7 @@ permissions:
 jobs:
   discover:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 22
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -55,6 +55,32 @@ jobs:
                                 annotation_candidates=sorted(ann,key=lambda x:x["uncompressed_bytes"])[:150],
                                 largest_candidates=sorted(ann,key=lambda x:x["uncompressed_bytes"],reverse=True)[:30],
                                 warning="ZIP metadata only; no validation or full transfer")
+                  selected=[
+                      i for i in entries
+                      if i.filename.startswith("Data&Annotations/")
+                      and i.filename.lower().endswith(".csv")
+                      and "/._" not in i.filename
+                      and i.file_size < 300000
+                  ]
+                  filesdir=Path("external_biology/alfi_discovery/labels")
+                  filesdir.mkdir(parents=True, exist_ok=True)
+                  extracted=[]
+                  failures=[]
+                  for info in selected:
+                      try:
+                          raw=z.read(info.filename)
+                          target=filesdir / info.filename.rsplit("/",1)[-1]
+                          target.write_bytes(raw)
+                          extracted.append(dict(source_path=info.filename,
+                                                filename=target.name,
+                                                bytes=len(raw)))
+                          print("EXTRACTED",target.name,len(raw),flush=True)
+                      except Exception as e:
+                          failures.append(dict(path=info.filename,
+                                               message=str(e)[:250]))
+                          print("SKIPPED",info.filename,str(e)[:250],flush=True)
+                  result["extraction"]=dict(selected=len(selected),
+                                             extracted=extracted,failed=failures)
           except Exception as e:
               result.update(status="range_access_failed",
                             exception_type=type(e).__name__,
@@ -65,5 +91,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: alfi-remote-zip-annotation-manifest
-          path: external_biology/alfi_discovery/probe.json
+          path: |
+            external_biology/alfi_discovery/probe.json
+            external_biology/alfi_discovery/labels/*.csv
           if-no-files-found: error
