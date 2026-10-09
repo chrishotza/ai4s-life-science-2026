@@ -1,0 +1,287 @@
+# AI4S Life Science 2026 — Temporal Cellular Phenotype Engine
+
+**Category:** End-to-End System  
+**Impact area:** Single-cell Phenotype Analysis
+
+This project converts time-lapse microscopy into interpretable temporal cellular phenotype analysis.
+
+**Scope boundary:** empirical validation uses public Cell Tracking Challenge microscopy, not organ-on-a-chip data; transfer to organ-on-a-chip settings remains untested.
+
+## Core idea
+
+Most pipelines stop at segmentation or tracking. This system treats tracking as infrastructure and asks the downstream scientific question:
+
+> **What phenotype is a cell expressing over time, and how does that phenotype change across trajectories and lineages?**
+
+The engine combines transparent image preprocessing, temporal association, 3-D trajectory analysis, lineage/event inference, and unsupervised phenotype discovery.
+
+## System
+
+```
+microscopy time-lapse
+        ↓
+cell detection / segmentation
+        ↓
+temporal association
+        ↓
+3-D tracking
+        ↓
+lineage/event structure
+        ↓
+temporal phenotype features
+        ↓
+unsupervised phenotype discovery
+        ↓
+interpretable phenotype report
+```
+
+## Causal temporal-state readout (validated on expert boxes, exploratory)
+
+The phenotype library now exposes **past-only** morphology/motion features for each tracked bounding box, plus an optional supervised state readout. Frames and track IDs can come from external annotation or from a validated upstream detector/tracker.
+
+Input contract: sequence, track_id, frame, xmin, ymin, width, height; supervised training additionally requires label.
+
+```python
+import pandas as pd
+from ai4s_phenotype import causal_shape_motion_features, TemporalStateProbe
+
+training = pd.read_csv("train_expert_boxes_with_labels.csv")
+unseen = pd.read_csv("test_boxes_from_disjoint_sequences.csv")
+
+features = causal_shape_motion_features(unseen)
+model = TemporalStateProbe.fit(training, feature_set="static_motion")
+predictions = model.predict(unseen, require_heldout_sequences=True)
+```
+
+The equivalent runnable CLI is (also usable from Windows CMD):
+
+```bash
+python scripts/predict_cell_states.py --training-boxes train_expert_boxes_with_labels.csv --input-boxes test_boxes_from_disjoint_sequences.csv --output phenotype_state_predictions.csv --features static_motion
+```
+
+It produces a CSV and a companion provenance JSON with source SHA-256 hashes, training/test sequence IDs and the exact feature set. For precomputed masks, use the `instances_to_box_detections` adapter before tracking; a synthetic end-to-end contract test exercises this mask → tracker → causal state path.
+
+This produces per-frame inferred states and per-class model scores. These scores are **not calibrated biological probabilities**. The strict heldout check rejects any sequence present in the training set.
+
+[ALFI real-label product test](docs/ALFI_PRODUCT_TEMPORAL_PROBE_RESULTS.md): train MI01–MI04 expert tracks, test MI05–MI08 expert tracks. Static macro-F1 0.51379 vs static-plus-six-motion 0.56762; four-sequence bootstrap interval for delta [+0.0134,+0.1754]. The corpus and task had been explored earlier, so this is a **post-selection exploratory result**, not a confirmatory independent test. Critically, ALFI raw-image instance segmentation remains weak (see [ALFI model comparison](docs/ALFI_MODEL_SCOUT_AUDIT.md)); none of these scores represents end-to-end image-to-biology success.
+
+
+## Competition MVP
+
+The submission implementation contains explicit reproducible layers:
+
+1. **Microscopy baseline** — threshold + connected-component detection for 2-D+t or 3-D+t time-lapse volumes.
+2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, constant-velocity Hungarian, and an experimental KD-tree MNN variant.
+3. **Lineage + temporal phenotype** — duration, displacement, path length, speed, directional persistence, temporal-integrity diagnostics, parent/child structure, divisions and descendants.
+4. **Experimental gap branch** — bounded gap-closing Hungarian association for incomplete observations, isolated from the validated baseline.
+5. **Phenotype discovery** — standardized trajectory features clustered with K-Means, with a reusable fit/transform model for cross-cohort application.
+6. **Canonical orchestration + validation** — TemporalPhenotypeEngine, data contracts, benchmark harnesses, and CI quality gates.
+
+Tracking tables use:
+
+`t,z,y,x`
+
+and produce:
+
+`node_id,track_id,t,z,y,x`
+
+plus:
+
+`source_id,target_id,distance_um,edge_type`
+
+Distances can be evaluated in physical units through `voxel_size_um=(z,y,x)`.
+
+## Reproducible setup
+
+Requires Python 3.10+.
+
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+
+pip install -e .
+pip install -r requirements-dev.txt
+pytest -q
+python demo.py
+```
+
+The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups. For exact reproduction of the verified Python 3.11 environment, use `requirements-lock-py311.txt` and `requirements-dev-lock-py311.txt`.
+
+## Run on real microscopy TIFFs
+
+The repository includes a command-line entry point for running the canonical pipeline on an image sequence without editing Python code. Input can be a directory containing one grayscale `.tif/.tiff` file per frame (natural filename order) or a TIFF stack shaped `(t,y,x)` / `(t,z,y,x)`.
+
+```bash
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --min-area 12 --max-distance-um 5 \
+  --voxel-size-um 1 0.19 0.19 --clusters 3
+```
+
+The physical sampling values must match the dataset metadata; the example uses 0.19 µm/pixel in-plane and is not appropriate for every microscope. The default `--segmenter auto` preserves the lightweight behavior above: it uses the transparent threshold/connected-component detector unless paired supervised training images and masks are supplied.
+
+The same product entrypoint exposes three image backends:
+
+```bash
+# Lightweight transparent baseline
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --segmenter threshold --voxel-size-um 1 0.19 0.19
+
+# Fit the repository's supervised pixel classifier on a matching annotated domain
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --segmenter supervised \
+  --training-images ./train_images --training-masks ./train_masks \
+  --voxel-size-um 1 0.19 0.19
+
+# Optional pretrained Cellpose-SAM backend
+python scripts/analyze_microscopy.py ./my_sequence --output ./analysis_output \
+  --segmenter cellpose --cellpose-model cpsam_v2 \
+  --voxel-size-um 1 0.19 0.19
+```
+
+Cellpose is optional and intentionally not part of the lightweight core dependency set. Install a compatible CPU or GPU PyTorch build and Cellpose before selecting that backend; the GitHub Actions Cellpose validation workflow documents a reproducible CPU-only installation. Model weights are obtained from the upstream Cellpose project at runtime, so their source and licensing remain an explicit external dependency boundary.
+
+The output directory contains `nodes.csv`, `temporal_edges.csv`, `lineage_candidates.csv`, `phenotypes.csv`, `discovered_phenotypes.csv`, `summary.json`, `report.md`, and `overview.png`. Learned instance-segmentation backends also write `predicted_instances.tif`. The report keeps inferred lineage events and unsupervised groups clearly labeled as candidate/descriptive outputs rather than verified biological facts.
+
+## Quantitative validation
+
+The repository includes:
+
+- deterministic tracking regression tests;
+- link precision, recall and F1;
+- exact synthetic trajectory ground truth;
+- microscopy-to-detection tests;
+- phenotype discovery tests;
+- controlled synthetic perturbations;
+- end-to-end tracking-to-phenotype robustness under perturbed detections;
+- deterministic tracking-error taxonomy (identity switches, fragmentation, merges, missed/false links and temporal-gap diagnostics);
+- real Cell Tracking Challenge association benchmarking;
+- downstream temporal phenotype preservation benchmarking.
+
+See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
+
+### Evidence figure
+
+![Separate real-data validation protocols](docs/figures/validation-evidence.svg)
+
+This public figure keeps reference-centroid association, the supervised image-derived holdout, and the eight-frame Cellpose-SAM pilot separate. The protocols are not directly comparable, and none establishes biological phenotype validity.
+
+### Image-derived performance status
+
+The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. The [benchmark artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907638057/artifacts/11605411442) contains the JSON results. A separate strict temporal holdout failed its gates: segmentation F1 **0.14942**, detection F1 **0.43454**, tracking-edge F1 **0.30197**, and sparse-gold object recall **0.1132** ([artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907133446/artifacts/11605019590)). A bounded pretrained Cellpose-SAM run passed those 8 raw frames through the product's TemporalPhenotypeEngine and exported per-track temporal features, descriptive clusters, and reliability diagnostics, in addition to segmentation F1 **0.87490**, detection F1 **0.88810**, and tracking-edge F1 **0.89180** ([run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37925893949), [CSV/JSON/provenance artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37925893949/artifacts/11613698759)). This is an exploratory integration check on only four opening frames per sequence, not a stable generalization estimate or biological phenotype validation.
+
+**Subsequent complete-sequence Cellpose integration (84 frames per sequence; 168 total):** [Actions run 37930909373](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373) at commit [`ffc135c`](https://github.com/chrishotza/ai4s-life-science-2026/commit/ffc135c56fb5adcf2d23bcf4e8461ba284dcc870) produced the archived [`ctc-cellpose-e2e-evidence` artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373/artifacts/11622434978). Reported aggregate metrics: segmentation F1@IoU50 **0.9354**, detection F1 **0.9684**, and tracking-edge F1 **0.9808**. These are internal CTC end-to-end pipeline validation metrics, **not a Kaggle competition score, official CTC leaderboard scores, or independent biological phenotype validation**. This later run extends the eight-frame pilot; the distinct protocols and their results must not be averaged or conflated. A distinct earlier partial run covered 40 frames from sequence 01 and 14/40 from sequence 02, then was cancelled; its frame means were **0.92903** and **0.94621**, without aggregate evidence. Full protocols and claim boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
+
+
+## Real benchmark
+
+The CTC benchmark uses **DIC-C2DH-HeLa sequences 01 and 02**. The association experiment feeds the reference track centroids into the tracking stage, so it is explicitly a **tracking-association benchmark**, not an end-to-end segmentation score.
+
+The completed physical-unit sweep compared:
+
+- mutual nearest neighbor;
+- Hungarian assignment;
+- constant-velocity Hungarian assignment;
+- distance thresholds from 0.8 to 8.0 µm.
+
+The best measured configuration is **mutual nearest neighbor at 8.0 µm**, reaching:
+
+**mean precision 0.99135 · mean recall 0.99322 · mean F1 0.99228**
+
+Per sequence:
+
+- sequence 01: F1 0.99308;
+- sequence 02: F1 0.99149.
+
+The downstream phenotype-preservation experiment on the same reference centroids reports:
+
+**mean trajectory coverage 0.9451 · median coverage 1.0000 · directional-persistence MAE 0.0439**
+
+These phenotype values measure trajectory-feature preservation under tracking; they are not biological phenotype classification scores.
+
+### External CTC validation track
+
+The same 8.0 µm MNN association path was exported with CTC reference object geometry preserved and evaluated with the pinned `py-ctcmetrics==1.3.3` implementation. The captured reference-geometry association-isolation results were:
+
+- sequence 01: **TRA 0.997315 · LNK 0.979091**
+- sequence 02: **TRA 0.997207 · LNK 0.978239**
+
+These values are independently reproduced CTC-metrics evidence, not end-to-end segmentation or biological phenotype results, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains a separate boundary. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md). A no-oracle lineage sensitivity control produced exactly the same TRA/LNK values on both sequences, removing lineage-metadata dependence for this benchmark.
+
+### Missing-observation stress test
+
+The experimental bounded-gap Hungarian branch was evaluated separately under controlled synthetic dropout. At 5%, 10%, and 15% dropout it reduced fragmented reference tracks from 24/29/30 with the MNN baseline to 1/7/19 respectively, while preserving reference identity for every measured gap link in those runs. The corresponding phenotype-group ARI was 0.4879, 0.3584, and -0.0114 for the gap branch versus -0.0184, -0.0102, and 0.0007 for MNN.
+
+A separate CTC PhC-C2DL-PSC reference-centroid benchmark found mean cross-sequence trajectory-identity F1 of 0.77858 for the experimental two-frame-window `gap_hungarian` candidate versus 0.76879 for velocity Hungarian. Its identity precision is lower (0.73855 vs 0.82554), so it remains experimental and is not the default tracker; these results do not evaluate raw-image segmentation. See [docs/RESULTS.md](docs/RESULTS.md).
+
+This is computational stress-test evidence only; the bounded-gap branch remains experimental and does not replace the validated 8.0 µm MNN real-data result.
+
+The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.
+
+A separate PhC-C2DL-PSC benchmark evaluates raw-image-to-instance-mask segmentation with strict cross-sequence holdout and one-to-one instance matching (IoU ≥ 0.5); the protocol and measured outputs are documented in [docs/RESULTS.md](docs/RESULTS.md), with silver and sparse gold annotations reported separately.
+
+The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
+
+The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and are not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+
+## Demo video
+
+A reproducible demo-video renderer is included in `scripts/make_demo_video.py`. It downloads the public DIC-C2DH-HeLa sequence, overlays the deterministic tracking trajectories on real microscopy frames, and appends a measured validation summary card.
+
+The GitHub Actions workflow `.github/workflows/demo-video.yml` produces the MP4 as a workflow artifact. The rendered sequence now shows real microscopy with tracks, an unsupervised temporal-phenotype view, and the measured validation summary.
+
+## Scientific output
+
+The final output is not merely a track ID. For each cell trajectory the engine produces an interpretable temporal phenotype profile, including:
+
+- persistence and motility;
+- displacement and path geometry;
+- temporal duration;
+- lineage relationships;
+- division events;
+- descendant structure;
+- temporal integrity and tracking-link confidence diagnostics;
+- bounded trajectory-integrity and phenotype-reliability scores;
+- unsupervised phenotype group.
+
+This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments. The intended scientific unit is the cell trajectory: the engine converts temporal motion, persistence, gaps, and lineage context into reproducible per-cell features that can be compared across cohorts and experimental conditions.
+
+The current submission deliberately stops short of claiming clinical diagnosis or biologically named phenotypes without independent labels. Its value proposition is a transparent analysis substrate that turns image sequences into quantitative, inspectable behavioral representations that downstream biological studies can test.
+
+## Research provenance
+
+The private BioHub project contains earlier learned temporal-association research. This competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
+
+## Architecture hardening
+
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture, and **[docs/RUBRIC_SCORECARD.md](docs/RUBRIC_SCORECARD.md)** for the judge-facing evidence map.
+
+The submission system has explicit boundaries between:
+
+1. **Data contracts** — node/edge schema validation and a single physical coordinate transform.
+2. **Detection** — microscopy-to-centroid preprocessing.
+3. **Tracking** — deterministic temporal association with physical-unit gating.
+4. **Lineage** — candidate division inference using the same physical coordinate system.
+5. **Phenotype** — trajectory and lineage-derived feature extraction.
+6. **Discovery** — reproducible unsupervised phenotype clustering.
+7. **Orchestration** — TemporalPhenotypeEngine exposes one canonical path from detections to the complete phenotype result.
+8. **Evaluation** — regression tests and benchmark protocols remain separate from the production pipeline.
+
+This separation prevents benchmark-specific scaling, duplicate scoring logic, and demo-specific orchestration from silently becoming part of the scientific method.
+
+## Competition positioning
+
+**Category:** End-to-End System  
+**Impact:** Single-cell Phenotype Analysis
+
+The intended contribution is a reproducible pipeline that moves from microscopy to **dynamic, interpretable single-cell phenotype**, rather than treating cell tracking as the final objective.
+
+## Finalization status
+
+1. Phenotype stability stress test: completed.
+2. Real-data phenotype visualization: integrated into the demo renderer.
+3. Lineage/division representation validation: added as a dedicated GitHub Actions benchmark.
+4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
+5. Remaining submission blockers: required competition registration; confirming the registered team roster; pasting the Kaggle Writeup; submitting the final technical report; and producing a public demo video (max 5 minutes). The layered validation figure above is committed as a public SVG.
