@@ -262,7 +262,7 @@ def render_title(path: Path) -> None:
     )
     ax.text(
         0.05, 0.22,
-        "Real DIC-C2DH-HeLa microscopy with a deterministic, reproducible baseline.",
+        "Supervised masks on held-out DIC-C2DH-HeLa microscopy; train sequence 02, infer sequence 01.",
         fontsize=10,
     )
     fig.tight_layout()
@@ -618,4 +618,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# Render protocol v6: intro + real microscopy + phenotype + synthetic cohort-method validation + validation summary.
+# Render protocol v7: title + 48 held-out microscopy frames + instance masks + phenotype view + evidence notes + per-run metrics.
