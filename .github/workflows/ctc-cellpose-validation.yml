@@ -1,31 +1,6 @@
 name: CTC Cellpose End-to-End Validation
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/ctc-cellpose-validation.yml"
-      - "scripts/benchmark_ctc_cellpose.py"
-      - "src/ai4s_imaging/cellpose_backend.py"
-      - "src/ai4s_imaging/__init__.py"
-      - "scripts/benchmark_ctc_tra_supervised.py"
-      - "scripts/benchmark_ctc_image_e2e.py"
-      - "src/ai4s_tracking/**"
-      - "src/ai4s_io/**"
-      - "pyproject.toml"
-      - "requirements.txt"
-  push:
-    branches: ["main"]
-    paths:
-      - ".github/workflows/ctc-cellpose-validation.yml"
-      - "scripts/benchmark_ctc_cellpose.py"
-      - "src/ai4s_imaging/cellpose_backend.py"
-      - "src/ai4s_imaging/__init__.py"
-      - "scripts/benchmark_ctc_tra_supervised.py"
-      - "scripts/benchmark_ctc_image_e2e.py"
-      - "src/ai4s_tracking/**"
-      - "src/ai4s_io/**"
-      - "pyproject.toml"
-      - "requirements.txt"
   workflow_dispatch:
 
 concurrency:
@@ -35,7 +10,8 @@ concurrency:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    # The CPU benchmark is intentionally manual: the full two-sequence run is costly.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
