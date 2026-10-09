@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/alfi-expert-label-validation.yml"
+      - "scripts/evaluate_alfi_assay_robustness.py"
+      - "tests/test_alfi_assay_robustness.py"
   workflow_dispatch:
 
 permissions:
@@ -65,6 +67,12 @@ jobs:
           python -u -m scripts.evaluate_alfi_expert_labels \
             --annotations external_biology/alfi_expert/labels \
             --output external_biology/alfi_expert/metrics.json --bootstrap 300
+      - name: Assay-stratified, sequence-heldout motion-only control (post-hoc)
+        run: |
+          python -u -m scripts.evaluate_alfi_assay_robustness \
+            --annotations external_biology/alfi_expert/labels \
+            --out external_biology/alfi_expert/assay_robustness.json \
+            --bootstrap 10000
       - name: Preserve labels, source checksums and all model metrics
         if: always()
         uses: actions/upload-artifact@v4
@@ -73,6 +81,7 @@ jobs:
           path: |
             external_biology/alfi_expert/source_manifest.json
             external_biology/alfi_expert/metrics.json
+            external_biology/alfi_expert/assay_robustness.json
             external_biology/alfi_expert/labels/*.csv
           if-no-files-found: warn
           retention-days: 30
