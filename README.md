@@ -35,6 +35,29 @@ unsupervised phenotype discovery
 interpretable phenotype report
 ```
 
+## Causal temporal-state readout (validated on expert boxes, exploratory)
+
+The phenotype library now exposes **past-only** morphology/motion features for each tracked bounding box, plus an optional supervised state readout. Frames and track IDs can come from external annotation or from a validated upstream detector/tracker.
+
+Input contract: sequence, track_id, frame, xmin, ymin, width, height; supervised training additionally requires label.
+
+```python
+import pandas as pd
+from ai4s_phenotype import causal_shape_motion_features, TemporalStateProbe
+
+training = pd.read_csv("train_expert_boxes_with_labels.csv")
+unseen = pd.read_csv("test_boxes_from_disjoint_sequences.csv")
+
+features = causal_shape_motion_features(unseen)
+model = TemporalStateProbe.fit(training, feature_set="static_motion")
+predictions = model.predict(unseen, require_heldout_sequences=True)
+```
+
+This produces per-frame inferred states and per-class model scores. These scores are **not calibrated biological probabilities**. The strict heldout check rejects any sequence present in the training set.
+
+[ALFI real-label product test](docs/ALFI_PRODUCT_TEMPORAL_PROBE_RESULTS.md): train MI01–MI04 expert tracks, test MI05–MI08 expert tracks. Static macro-F1 0.51379 vs static-plus-six-motion 0.56762; four-sequence bootstrap interval for delta [+0.0134,+0.1754]. The corpus and task had been explored earlier, so this is a **post-selection exploratory result**, not a confirmatory independent test. Critically, ALFI raw-image instance segmentation remains weak (see [ALFI model comparison](docs/ALFI_MODEL_SCOUT_AUDIT.md)); none of these scores represents end-to-end image-to-biology success.
+
+
 ## Competition MVP
 
 The submission implementation contains explicit reproducible layers:
