@@ -274,7 +274,6 @@ def score_frame(gt: np.ndarray, pred: np.ndarray) -> dict[str, float]:
     f1 = 2.0 * precision * recall / (precision + recall) if precision + recall else 0.0
 
     gt_best = matrix.max(axis=1) if matrix.shape[1] else np.zeros(matrix.shape[0])
-    pred_best = matrix.max(axis=0) if matrix.shape[0] else np.zeros(matrix.shape[1])
     return {
         "gt_objects": float(gt_count),
         "pred_objects": float(pred_count),
