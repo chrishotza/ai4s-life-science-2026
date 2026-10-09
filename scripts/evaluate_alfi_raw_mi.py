@@ -22,7 +22,7 @@ from ai4s_imaging.supervised import Supervised2DSegmenter
 
 FRAMES = (1, 5, 9, 13)
 TRAIN = "MI01"
-TEST = "MI02"
+TESTS = ("MI02", "MI03", "MI04")
 
 
 def load_pair(directory: Path, seq: str, frame: int) -> tuple[np.ndarray, np.ndarray]:
@@ -101,11 +101,51 @@ def save_overlay(image: np.ndarray, mask: np.ndarray, pred: np.ndarray, dest: Pa
     Image.fromarray(rgb).save(dest)
 
 
+
+def train_area_gate(instances: list[np.ndarray]) -> int:
+    """Size cutoff fixed using only MI01 expert-mask areas; no test-mask tuning."""
+    areas = np.concatenate([
+        np.bincount(mask.ravel())[1:] for mask in instances
+    ])
+    areas = areas[areas >= 12]
+    if not len(areas):
+        raise ValueError("Training masks contain no valid cell instances")
+    return int(max(12, np.floor(0.35 * np.percentile(areas, 10))))
+
+
+def filter_small_predictions(instances: np.ndarray, cutoff: int) -> np.ndarray:
+    labels = np.asarray(instances, dtype=np.int32)
+    counts = np.bincount(labels.ravel())
+    valid = np.flatnonzero(counts >= cutoff)
+    valid = valid[valid > 0]
+    remap = np.zeros(len(counts), dtype=np.int32)
+    remap[valid] = np.arange(1, len(valid) + 1)
+    return remap[labels]
+
+
+def aggregate(rows: list[dict]) -> dict:
+    if not rows:
+        return {}
+    return dict(
+        frames=len(rows),
+        mean_dice=float(np.mean([x["dice"] for x in rows])),
+        mean_iou=float(np.mean([x["foreground_iou"] for x in rows])),
+        mean_instance_f1_iou50=float(np.mean([x["instance_f1_iou50"] for x in rows])),
+        total_gt_instances=int(sum(x["gt_instances"] for x in rows)),
+        total_predicted_instances=int(sum(x["predicted_instances"] for x in rows)),
+        total_matched_iou50=int(sum(x["matched_iou50"] for x in rows)),
+        mean_mitosis_recall=(
+            float(np.mean([x["mitosis_recall"] for x in rows
+                           if x["mitosis_recall"] is not None]))
+            if any(x["mitosis_recall"] is not None for x in rows) else None
+        ),
+    )
+
 def run(directory: Path, output: Path) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     train_x, train_y = [], []
     sha = []
-    for seq in (TRAIN, TEST):
+    for seq in (TRAIN, *TESTS):
         for t in FRAMES:
             for name in ("image", "mask"):
                 file = directory / f"{seq}_{name}_{t:04d}.png"
@@ -121,59 +161,76 @@ def run(directory: Path, output: Path) -> dict:
         max_training_frames=4, min_instance_area=12,
         max_instance_area=50000, random_state=42,
     ).fit(np.stack(train_x), np.stack(train_y))
+    area_gate = train_area_gate(train_y)
     records = []
-    for t in FRAMES:
-        image, gt = load_pair(directory, TEST, t)
-        pred_model = model.predict_instances(image)
-        # Reproducible intensity threshold: fixed per-image bright 92nd percentile.
-        baseline = instances_from_binary(image >= np.percentile(image, 92))
-        for name, prediction in (("repo_supervised", pred_model),
-                                 ("brightness_p92", baseline)):
-            metrics = semantic_metrics(gt, prediction)
-            detection = instance_f1_iou50(
-                instances_from_binary(gt > 0), prediction
-            )
-            records.append(dict(
-                sequence=TEST, frame=t, model=name,
-                **metrics, **detection,
-            ))
-            if t in (1, 9):
-                save_overlay(image, gt, prediction, output/f"MI02_T{t:04d}_{name}_qc.png")
-        print(f"MI02 T{t:04d} true mask={int(np.count_nonzero(gt))} pixels; "
-              f"repo Dice={records[-2]['dice']:.4f}, "
-              f"baseline Dice={records[-1]['dice']:.4f}", flush=True)
+    for seq in TESTS:
+        for t in FRAMES:
+            image, gt = load_pair(directory, seq, t)
+            predicted = model.predict_instances(image)
+            predictions = {
+                "repo_supervised_raw": predicted,
+                "repo_supervised_train_qc_gate":
+                    filter_small_predictions(predicted, area_gate),
+                "brightness_p92": instances_from_binary(
+                    image >= np.percentile(image, 92)
+                ),
+            }
+            for name, proposal in predictions.items():
+                metrics = semantic_metrics(gt, proposal)
+                detections = instance_f1_iou50(
+                    instances_from_binary(gt > 0), proposal
+                )
+                records.append(dict(
+                    sequence=seq, frame=t, model=name,
+                    **metrics, **detections,
+                ))
+                if t in (1, 9):
+                    save_overlay(
+                        image, gt, proposal,
+                        output/f"{seq}_T{t:04d}_{name}_qc.png"
+                    )
+            results = [x for x in records if x["sequence"] == seq and x["frame"] == t]
+            print(f"{seq} T{t:04d}: model Dice={results[0]['dice']:.4f}, "
+                  f"gated Dice={results[1]['dice']:.4f}, "
+                  f"brightness baseline Dice={results[2]['dice']:.4f}, "
+                  f"gated instance F1={results[1]['instance_f1_iou50']:.4f}",
+                  flush=True)
     with (output/"per_frame_metrics.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(records[0]))
         writer.writeheader()
         writer.writerows(records)
-    models = {}
-    for name in ("repo_supervised", "brightness_p92"):
-        rows = [x for x in records if x["model"] == name]
-        models[name] = dict(
-            mean_dice=float(np.mean([x["dice"] for x in rows])),
-            mean_iou=float(np.mean([x["foreground_iou"] for x in rows])),
-            mean_instance_f1_iou50=float(np.mean([x["instance_f1_iou50"] for x in rows])),
-            total_gt_instances=int(sum(x["gt_instances"] for x in rows)),
-            total_predicted_instances=int(sum(x["predicted_instances"] for x in rows)),
-            total_matched_iou50=int(sum(x["matched_iou50"] for x in rows)),
-            mean_mitosis_recall=float(np.mean([x["mitosis_recall"] for x in rows
-                                               if x["mitosis_recall"] is not None])),
-        )
+    model_names = ("repo_supervised_raw", "repo_supervised_train_qc_gate",
+                   "brightness_p92")
     report = dict(
-        status="RAW_IMAGE_SUPERVISED_SEGMENTATION_WITH_EXPERT_MASKS",
-        dataset="ALFI CC BY", train_sequence=TRAIN, heldout_sequence=TEST,
+        status="RAW_IMAGE_HELDOUT_MULTI_SEQUENCE_SUPERVISED_SEGMENTATION",
+        dataset="ALFI CC BY", train_sequence=TRAIN, heldout_sequences=list(TESTS),
+        development_sequence="MI02",
+        new_untouched_assessment_sequences=["MI03", "MI04"],
         train_frames=list(FRAMES), heldout_frames=list(FRAMES),
-        image_resolution="original image sampled every 2 pixels in x and y",
-        image_count=8, gt_mask_classes={"0":"background","128":"interphase",
-                                       "255":"mitosis"},
-        model="repo Supervised2DSegmenter; 35 RF trees; MI01 masks only",
-        metrics=models,
-        warnings=(
-            "Very small, deliberately selected smoke-test of 2 sequences and 4 "
-            "frames per sequence; not independent external validation, "
-            "not raw-image phase-of-mitosis classification, not a phenotype or "
-            "tracking benchmark. Foreground masks include annotated interphase "
-            "and mitosis cells only; unannotated structures count as background."
+        image_resolution="original 1024x1280 pixel image subsampled every 2 pixels",
+        image_count=(len(TESTS)+1)*len(FRAMES),
+        gt_mask_classes={"0":"background","128":"interphase","255":"mitosis"},
+        training_mask_area_gate_min_pixels=area_gate,
+        gate_rule="35% of MI01 training mask object-area 10th percentile, floor >=12",
+        models={
+            name: aggregate([x for x in records if x["model"] == name])
+            for name in model_names
+        },
+        per_sequence={
+            seq: {
+                name: aggregate([
+                    x for x in records if x["model"] == name and x["sequence"] == seq
+                ]) for name in model_names
+            } for seq in TESTS
+        },
+        limitations=(
+            "MI02 was inspected when deciding to study filtering. MI03 and MI04 "
+            "were not used for parameter choice. Train masks from MI01 only. "
+            "Four sparse frames per sequence, half original resolution. "
+            "This measures image segmentation, not phenotype classification "
+            "or cell tracking. ALFI masks contain annotated interphase/mitosis "
+            "objects but unannotated cellular structures may remain. "
+            "No claim of a general segmentation or biomedical predictor."
         ),
     )
     (output/"summary.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
