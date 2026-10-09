@@ -10,6 +10,8 @@ The canonical engine can start from microscopy frames and execute the public det
 
 On DIC-C2DH-HeLa sequences 01 and 02, mutual-nearest-neighbor association with an 8.0 µm gate achieved **0.99135 mean precision, 0.99322 mean recall, and 0.99228 mean F1**. Downstream phenotype preservation on the same reference centroids achieved **0.9451 mean trajectory coverage, 1.0000 median coverage, and 0.0439 directional-persistence MAE**.
 
+A separate exploratory Cellpose-SAM pilot on only four frames per sequence (eight total) measured segmentation F1@IoU50 **0.87490**, image-derived detection F1 **0.88810**, and tracking-edge F1 **0.89180**. These pilot results do not establish stable generalization or biological phenotype validity.
+
 The same association path was independently evaluated with pinned **py-ctcmetrics==1.3.3** using preserved reference object geometry: **sequence 01 TRA 0.997315 / LNK 0.979091; sequence 02 TRA 0.997207 / LNK 0.978239**.
 
 These are reference-geometry association-isolation results, not end-to-end segmentation or biological phenotype classification and **not official Cell Tracking Challenge leaderboard scores**. Biological phenotype validity still requires independent biological labels or perturbation annotations. A no-oracle sensitivity control produced identical TRA/LNK values on both sequences.
