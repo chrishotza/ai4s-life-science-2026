@@ -139,6 +139,8 @@ This is computational stress-test evidence only; the bounded-gap branch remains 
 
 The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.
 
+A separate PhC-C2DL-PSC benchmark evaluates raw-image-to-instance-mask segmentation with strict cross-sequence holdout and one-to-one instance matching (IoU ≥ 0.5); the protocol and measured outputs are documented in [docs/RESULTS.md](docs/RESULTS.md), with silver and sparse gold annotations reported separately.
+
 The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
 The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and are not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).

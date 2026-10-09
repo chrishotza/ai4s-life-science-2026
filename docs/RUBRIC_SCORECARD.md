@@ -38,6 +38,7 @@ This document maps each AI4S Open Innovation judging criterion to concrete evide
 - No-oracle sensitivity control: unchanged TRA/LNK.
 - Downstream trajectory-feature preservation: coverage and persistence error.
 - Cross-sequence image-to-tracking benchmark: raw microscopy is segmented before evaluation, with sequence-level holdout.
+- Cross-sequence PhC-C2DL-PSC raw-image-to-instance-mask validation with one-to-one object matching at IoU ≥ 0.5; silver-mask primary evaluation and sparse gold-mask cross-check are kept distinct.
 
 **Controlled validation**
 - Synthetic tracking regression.
