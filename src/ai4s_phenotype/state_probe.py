@@ -32,7 +32,8 @@ class TemporalStateProbe:
     feature_columns: tuple[str, ...]
 
     @classmethod
-    def fit(cls, labeled_boxes: pd.DataFrame, *, c: float = 0.25) -> "TemporalStateProbe":
+    def fit(cls, labeled_boxes: pd.DataFrame, *, c: float = 0.25,
+            feature_set: str = "static_motion") -> "TemporalStateProbe":
         if "label" not in labeled_boxes:
             raise ValueError("Fitting a phenotype probe requires a label column")
         if not np.isfinite(c) or c <= 0:
@@ -42,7 +43,10 @@ class TemporalStateProbe:
             raise ValueError("No valid labeled training cells")
         if measured["label"].nunique() < 2:
             raise ValueError("At least two distinct biological labels are required")
-        names = tuple(STATIC_FEATURES + MOTION_FEATURES)
+        if feature_set not in ("static", "static_motion"):
+            raise ValueError("feature_set must be static or static_motion")
+        names = tuple(STATIC_FEATURES if feature_set == "static" else
+                      STATIC_FEATURES + MOTION_FEATURES)
         model = make_pipeline(
             SimpleImputer(strategy="median"),
             StandardScaler(),
