@@ -241,35 +241,51 @@ def score_frame(gt: np.ndarray, pred: np.ndarray) -> dict[str, float]:
     gt_count = int(np.count_nonzero(np.unique(gt) > 0))
     pred_count = int(np.count_nonzero(np.unique(pred) > 0))
     matrix = iou_matrix(gt, pred)
-    if matrix.size == 0:
-        return {
-            "gt_objects": float(gt_count),
-            "pred_objects": float(pred_count),
-            "mean_gt_best_iou": 0.0,
-            "mean_matched_iou": 0.0,
-            "gt_recall_iou50": 0.0 if gt_count else 1.0,
-            "pred_precision_iou50": 0.0 if pred_count else 1.0,
-        }
 
-    rows, cols = linear_sum_assignment(1.0 - matrix)
-    matched = [
-        float(matrix[r, c])
-        for r, c in zip(rows, cols)
-        if float(matrix[r, c]) >= IOU_MATCH_THRESHOLD
-    ]
+    # Maximize the number of valid one-to-one matches first, then IoU.
+    # A per-object best-IoU threshold would wrongly let one predicted mask
+    # count as recovering multiple reference instances after a merge.
+    matched: list[float] = []
+    if matrix.size:
+        match_bonus = float(min(matrix.shape) + 1)
+        assignment_score = matrix + match_bonus * (
+            matrix >= IOU_MATCH_THRESHOLD
+        )
+        rows, cols = linear_sum_assignment(assignment_score, maximize=True)
+        matched = [
+            float(matrix[r, c])
+            for r, c in zip(rows, cols)
+            if float(matrix[r, c]) >= IOU_MATCH_THRESHOLD
+        ]
+
+    tp = len(matched)
+    fp = pred_count - tp
+    fn = gt_count - tp
+    precision = (
+        tp / pred_count
+        if pred_count
+        else (1.0 if gt_count == 0 else 0.0)
+    )
+    recall = (
+        tp / gt_count
+        if gt_count
+        else (1.0 if pred_count == 0 else 0.0)
+    )
+    f1 = 2.0 * precision * recall / (precision + recall) if precision + recall else 0.0
+
     gt_best = matrix.max(axis=1) if matrix.shape[1] else np.zeros(matrix.shape[0])
     pred_best = matrix.max(axis=0) if matrix.shape[0] else np.zeros(matrix.shape[1])
     return {
-        "gt_objects": float(len(gt_best)),
-        "pred_objects": float(len(pred_best)),
+        "gt_objects": float(gt_count),
+        "pred_objects": float(pred_count),
+        "object_tp_iou50": float(tp),
+        "object_fp_iou50": float(fp),
+        "object_fn_iou50": float(fn),
         "mean_gt_best_iou": float(gt_best.mean() if len(gt_best) else 0.0),
         "mean_matched_iou": float(np.mean(matched) if matched else 0.0),
-        "gt_recall_iou50": float(
-            np.mean(gt_best >= IOU_MATCH_THRESHOLD) if len(gt_best) else 0.0
-        ),
-        "pred_precision_iou50": float(
-            np.mean(pred_best >= IOU_MATCH_THRESHOLD) if len(pred_best) else 0.0
-        ),
+        "gt_recall_iou50": float(recall),
+        "pred_precision_iou50": float(precision),
+        "object_f1_iou50": float(f1),
     }
 
 
@@ -378,6 +394,7 @@ def metric_means(holdout: list[dict[str, object]], key: str) -> dict[str, float]
         "mean_matched_iou",
         "gt_recall_iou50",
         "pred_precision_iou50",
+        "object_f1_iou50",
         "gt_objects",
         "pred_objects",
     )
@@ -444,6 +461,7 @@ def main() -> None:
                         "mean_matched_iou",
                         "gt_recall_iou50",
                         "pred_precision_iou50",
+                        "object_f1_iou50",
                     )
                 },
             }
