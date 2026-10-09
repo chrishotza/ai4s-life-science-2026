@@ -39,6 +39,7 @@ This document maps each AI4S Open Innovation judging criterion to concrete evide
 - Downstream trajectory-feature preservation: coverage and persistence error.
 - Cross-sequence image-to-tracking benchmark: raw microscopy is segmented before evaluation, with sequence-level holdout.
 - Cross-sequence PhC-C2DL-PSC raw-image-to-instance-mask validation with one-to-one object matching at IoU ≥ 0.5; silver-mask primary evaluation and sparse gold-mask cross-check are kept distinct.
+- Exploratory Cellpose-SAM DIC-C2DH-HeLa pilot on 4 frames per sequence (8 total): segmentation F1@IoU50 0.87490, image-derived detection F1 0.88810, and tracking-edge F1 0.89180. This is a small pilot, not stable generalization or biological phenotype validation ([run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248), [artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248/artifacts/11608135086)).
 
 **Controlled validation**
 - Synthetic tracking regression.
