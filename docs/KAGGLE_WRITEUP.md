@@ -24,6 +24,16 @@ The phenotype layer generated 126 image-derived CTC trajectory profiles. Because
 
 ## From cell tracking to dynamic phenotype
 
+### A concrete life-science research use case
+
+**Question:** In a time-lapse experiment, which individual cells persist in one direction, which change speed or direction, and which trajectories are too short to support interpretation? A single static image or an unlabeled track ID does not answer that question.
+
+**Runnable computational workflow:** Given a microscopy sequence, the engine produces instance observations, temporal associations, per-cell duration, motion and directional-persistence features, candidate lineage events, and confidence-gated descriptive groups. A researcher can review and compare these outputs before deciding which cells warrant closer biological investigation. The strongest image-derived CTC run analyzed **168 real frames**, yielding segmentation F1 **0.9354**, detection F1 **0.9684**, and temporal-link F1 **0.9808** under its documented internal protocol. From the resulting **126 profiles**, only **51** passed the project's descriptive-computational confidence gate; 21 were downgraded and 54 were audit-only.
+
+**Testable future experiment, not an observed biological effect:** Compare treated versus control cell cultures imaged with matched acquisition settings. Predefine motion/persistence endpoints; blind or hold out independent wells and acquisition batches; evaluate segmentation and identity accuracy before comparing groups; then test whether predicted differences reproduce across batches against independently recorded condition labels. This experiment has **not** been conducted here, and no drug-response or organ-on-a-chip effect is claimed.
+
+**Why this is useful now:** the current result is an inspectable, reproducible *measurement and hypothesis-generation workflow*. Biologically meaningful conclusions require external validation. CellposeSAM-v2 supplies image segmentation; the submission's added value is the temporal feature, tracking, quality-gate and evidence-reporting layer. [Detailed use case and falsifiable validation plan](BIOLOGICAL_IMPACT_CASE.md).
+
 ### Problem
 
 Time-lapse microscopy captures rich cellular behavior, but conventional pipelines often stop at segmentation or tracking. A track ID tells us where a cell went; it does not directly describe how the cell behaved.

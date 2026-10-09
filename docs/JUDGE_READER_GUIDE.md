@@ -10,6 +10,10 @@ Time-lapse microscopy can show more than where a cell is. It can show how a cell
 
 The current answer is a measured computational prototype: it can generate trajectory-derived phenotype profiles and confidence-gated descriptive groups from real microscopy tracks. It does **not** claim validated biological cell states, drug response, clinical probabilities, or organ-on-a-chip transfer.
 
+## Practical single-cell research use case
+
+Imagine comparing cell migration in microscopy time series. A researcher needs to know not just where each cell appears, but how far it moves, whether it persists in one direction, and whether its history is complete enough to trust. This engine provides those **computational descriptors** and explicitly marks insufficient histories. Its image-derived CTC data support that measurement path; **no treated-versus-control experiment or biologically confirmed state labels are included**. See [the concrete research use case and validation proposal](BIOLOGICAL_IMPACT_CASE.md) for the difference between what is measured today and the next falsifiable biology experiment.
+
 ## What to read first
 
 1. `README.md` for the public-facing summary and quick reproduction path.

@@ -8,6 +8,8 @@ This publicly auditable research prototype treats tracking as infrastructure for
 
 > **The strongest image-derived evidence:** CellposeSAM-v2 followed by the actual tracking and phenotype pipeline was run on **168 raw DIC-C2DH-HeLa images** (84 frames in each of two Cell Tracking Challenge sequences). It achieved mean **segmentation F1@IoU≥0.5 = 0.9354**, **detection F1 = 0.9684** and **tracking-edge F1 = 0.9808**. Reference annotations were used for evaluation, **not as input detections**. These are internal CTC metrics—not an official leaderboard score, an organ-on-a-chip validation, or proof of biological phenotype discovery. [Completed run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373) · [Audit and protocol](docs/CTC_CELLPOSE_ARTIFACT_AUDIT.md).
 
+**A concrete biological-use scenario:** a researcher studying time-dependent cell migration can use the exported tracks to inspect which cells move faster, reverse direction, or have too little temporal evidence to interpret. This is an **analysis workflow**, not evidence that treatment effects or biological states have been discovered. [See the proposed validation experiment](docs/BIOLOGICAL_IMPACT_CASE.md).
+
 **Reviewer shortcut:** start with the [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
 
 ## What it does
