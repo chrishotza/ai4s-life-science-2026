@@ -201,7 +201,7 @@ def _track_gap_hungarian(
                 tr = eligible[row_idx]
                 src = int(active[tr][0])
                 dst = int(cur_idx[col_idx])
-                confidence = max(0.0, 1.0 - distance / allowed)
+                confidence = max(0.0, 1.0 - distance / float(allowed[row_idx, col_idx]))
                 df.loc[dst, "track_id"] = tr
                 assigned_current.add(int(col_idx))
                 next_active[tr] = (dst, int(t))
