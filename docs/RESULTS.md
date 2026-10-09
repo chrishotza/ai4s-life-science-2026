@@ -165,6 +165,12 @@ The completed two-way sequence holdout trained on one sequence and tested on the
 
 These are weak end-to-end image-derived results. They show that the current supervised baseline does not yet reliably connect raw DIC images to tracks. The success status of the workflow means the benchmark completed, not that its accuracy is adequate.
 
+### Strict non-overlapping temporal holdout
+
+A completed temporal holdout trained on earlier frames and evaluated on later, non-overlapping frames of the same CTC sequences. Its mean image-derived segmentation F1 at IoU ≥ 0.5 was **0.14942**, detection F1 was **0.43454**, tracking-edge F1 was **0.30197**, and sparse-gold object recall at IoU ≥ 0.5 was **0.1132**. The predefined quality gate required segmentation F1 ≥ 0.25, detection F1 ≥ 0.50, and sparse-gold recall ≥ 0.20, so the gate correctly **failed**. The benchmark completed and uploaded [artifact 11605019590 from Actions run 37907133446](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907133446/artifacts/11605019590).
+
+This is a distinct temporal-split protocol from the sequence-held-out supervised result above; their numbers are not directly comparable. Both show that current image-derived baselines do not yet meet the desired end-to-end performance.
+
 ### Pretrained Cellpose-SAM partial run
 
 A separate run evaluated `cpsam_v2` on raw DIC-C2DH-HeLa frames with one-to-one instance matching at IoU ≥ 0.5. Before cancellation, it completed 40/40 sampled frames from sequence 01 (mean frame F1 **0.92903**) and 14/40 from sequence 02 (mean frame F1 **0.94621**). The [Actions log](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37899689242) contains these per-frame outputs.
