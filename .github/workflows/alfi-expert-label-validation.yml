@@ -1,0 +1,77 @@
+name: ALFI external expert-label heldout benchmark
+
+on:
+  push:
+    paths:
+      - ".github/workflows/alfi-expert-label-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  alfi-expert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install code, tests and HTTP range zip reader
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . -r requirements-dev.txt remotezip requests
+      - name: Test past-only temporal features and isolated sequence folds
+        run: python -m pytest -q tests/test_alfi_expert_labels.py
+      - name: Extract 29 expert phenotype tables, without downloading 8.4 GB images
+        run: |
+          mkdir -p external_biology/alfi_expert/labels
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from remotezip import RemoteZip
+
+          url = "https://ndownloader.figshare.com/files/41740227"
+          root = Path("external_biology/alfi_expert")
+          records = []
+          with RemoteZip(url, support_suffix_range=True, timeout=55) as archive:
+              files = sorted(info for info in archive.infolist()
+                             if info.filename.endswith("_PhenoTruth.csv")
+                             and info.filename.startswith("Data&Annotations/"))
+              if len(files) != 29:
+                  raise ValueError(f"Expected 29 ALFI expert phenotype CSVs, found {len(files)}")
+              for info in files:
+                  raw = archive.read(info.filename)
+                  if not raw.startswith(b"ImNo,"):
+                      raise ValueError(f"Non-CSV ground truth {info.filename}")
+                  target = root / "labels" / info.filename.split("/")[-1]
+                  target.write_bytes(raw)
+                  records.append(dict(source=info.filename, name=target.name,
+                                      bytes=len(raw),
+                                      sha256=hashlib.sha256(raw).hexdigest()))
+                  print(f"EXPERT_LABELS {target.name}: {len(raw)} B", flush=True)
+          (root / "source_manifest.json").write_text(
+              json.dumps(dict(source=url, dataset_doi="10.6084/m9.figshare.23798451.v1",
+                              license="CC BY", files=records), indent=2),
+              encoding="utf-8",
+          )
+          PY
+      - name: Five-fold heldout-by-sequence real-label baseline ablation
+        run: |
+          python -u -m scripts.evaluate_alfi_expert_labels \
+            --annotations external_biology/alfi_expert/labels \
+            --output external_biology/alfi_expert/metrics.json --bootstrap 300
+      - name: Preserve labels, source checksums and all model metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfi-29-sequence-expert-phenotype-baseline
+          path: |
+            external_biology/alfi_expert/source_manifest.json
+            external_biology/alfi_expert/metrics.json
+            external_biology/alfi_expert/labels/*.csv
+          if-no-files-found: warn
+          retention-days: 30
