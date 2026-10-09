@@ -1,48 +1,155 @@
 # Temporal Cellular Phenotype Engine
 
-**Submission category: End-to-End System**  
-**Impact area: Single-cell Phenotype Analysis**
+## From cell tracking to dynamic phenotype
 
-## Demo video (required)
+### Problem
 
-**Public video URL:** [ADD FINAL PUBLIC VIDEO URL — maximum duration 5 minutes]
+Time-lapse microscopy captures rich cellular behavior, but conventional pipelines often stop at segmentation or tracking. A track ID tells us where a cell went; it does not directly describe how the cell behaved.
 
-The video must play without login, permission requests, or payment. It demonstrates the real workflow, input microscopy, trajectory/phenotype outputs, measured results, and limitations.
+The goal of this project is to turn temporal microscopy into an interpretable **single-cell phenotype representation**.
 
-## Public code repository (required)
+### Approach
 
-**Repository:** https://github.com/chrishotza/ai4s-life-science-2026
+The system is organized as an end-to-end pipeline:
 
-**Important:** The repository was private at the last verified check. Change visibility to public and verify anonymous access before submitting this URL.
+1. microscopy frame preprocessing;
+2. cell detection;
+3. temporal association;
+4. 3-D trajectory reconstruction;
+5. lineage and division-event inference;
+6. temporal phenotype extraction;
+7. unsupervised phenotype discovery.
 
-## Project summary
+The public implementation is deliberately deterministic and reproducible.
 
-Time-lapse microscopy contains information about how cells move and change, but segmentation and tracking alone do not provide an interpretable description of cellular behavior. The Temporal Cellular Phenotype Engine is a reproducible end-to-end pipeline that transforms microscopy observations into trajectory-level temporal phenotype profiles.
+### What is novel about the submission
 
-The system combines transparent image preprocessing, cell detection, deterministic temporal association, trajectory reconstruction, lineage/event representation, temporal feature extraction, and unsupervised phenotype discovery. For each trajectory, it reports measurements such as duration, displacement, path geometry, mean speed, directional persistence, temporal integrity, and lineage-derived context where available. The goal is to make cellular dynamics easier to compare and inspect, rather than treating a track ID as the final scientific output.
+The main contribution is not another isolated tracker. Tracking is treated as infrastructure for a downstream phenotype layer.
 
-On DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge, a physical-unit sweep selected mutual-nearest-neighbor association with an 8.0 µm gate. Using reference track centroids as detections, this association-isolation benchmark achieved mean precision 0.99135, mean recall 0.99322, and mean edge F1 0.99228. In a downstream trajectory-feature preservation experiment on the same reference centroids, mean trajectory coverage was 0.9451, median coverage 1.0000, and directional-persistence MAE 0.0439.
+For each trajectory, the engine derives:
 
-A separate CTC-maintained reference-geometry association-isolation check measured sequence 01 TRA 0.997315 / LNK 0.979091 and sequence 02 TRA 0.997207 / LNK 0.978239. These are not official Cell Tracking Challenge leaderboard scores. All reported CTC association results preserve reference object geometry and are not segmentation scores or biological phenotype classification scores. Controlled synthetic perturbation experiments assess robustness but do not substitute for independent biological validation.
+- duration;
+- displacement;
+- path geometry;
+- mean speed;
+- directional persistence;
+- parent/child relationships;
+- division events;
+- descendant structure.
 
-The implementation includes reproducible setup, tests, benchmark scripts, CI, Docker support, and a direct demo entry point. The next validation step is to test phenotype profiles against independently annotated biological perturbations.
+These features form a compact temporal phenotype profile that can be clustered into interpretable behavioral groups.
 
-## Technical report
+### End-to-end implementation boundary
 
-**Full technical report:** [ADD PUBLIC REPORT URL IF HOSTED SEPARATELY; otherwise paste the report below this section.]
+The public engine provides a canonical image-to-phenotype path through baseline detection, while the real CTC experiment intentionally bypasses segmentation by using reference centroids. This separation makes the quantitative association result interpretable instead of presenting a centroid benchmark as an image-segmentation score.
 
-The report should cover problem and use case, data sources and licenses, architecture, methods, implementation, experimental protocol, results, failure modes and limitations, potential impact, and exact reproduction commands. The repository currently contains the draft at `docs/TECHNICAL_REPORT.md`.
+### Real benchmark evidence
 
-## Reproducibility
+The system was evaluated on DIC-C2DH-HeLa sequences 01 and 02 from the Cell Tracking Challenge.
 
-The repository README documents environment setup and the `python demo.py` entry point. Quantitative experiments and their claim boundaries are documented in `docs/RESULTS.md` and `docs/CTC_OFFICIAL_VALIDATION.md`. The evaluated CTC association benchmark uses reference centroids as detections, isolating association from segmentation.
+The association benchmark uses the reference centroids as detections, intentionally isolating temporal association from segmentation.
 
-## Data use and limitations
+A physical-unit sweep compared mutual nearest neighbor, Hungarian assignment, and constant-velocity Hungarian association.
 
-The CTC microscopy sequences are public benchmark data downloaded transiently for evaluation and are not redistributed in this repository. Dataset provenance and evaluator versions are recorded in the technical documentation.
+The best measured configuration was mutual nearest neighbor with an 8.0 µm gate:
 
-The public baseline uses threshold-based segmentation, which is not universal across microscopy modalities. Tracking can fail under crowding, rapid motion, and missing observations; the bounded-gap branch remains experimental. Lineage events are candidate inferences unless validated against reference annotations. Unsupervised phenotype groups are descriptive, and biological validity requires independent labels or perturbation metadata.
+- mean precision: **0.99135**
+- mean recall: **0.99322**
+- mean F1: **0.99228**
 
-## Required external registration
+Per-sequence F1:
 
-The competition page requires a separate team registration form in addition to the Kaggle Writeup. Complete it before the final submission.
+- sequence 01: **0.99308**
+- sequence 02: **0.99149**
+
+The improvement over the initial restrictive-gate baseline was substantial: mean F1 increased from approximately 0.9183 to 0.9923.
+
+### External CTC TRA/LNK validation
+
+The selected 8.0 µm MNN association path was also exported with the **reference CTC object geometry preserved** and evaluated with the pinned `py-ctcmetrics==1.3.3` implementation. The captured association-isolation results were:
+
+- sequence 01: **TRA 0.997315**, **LNK 0.979091**;
+- sequence 02: **TRA 0.997207**, **LNK 0.978239**.
+
+These values are reported separately from the custom F1 because TRA/LNK and the repository's edge F1 are different metrics. They are not end-to-end segmentation results, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official submission evaluator was not used. A no-oracle sensitivity control removed all reference parent edges and produced identical TRA/LNK values on both sequences.
+
+### Downstream phenotype preservation
+
+The selected tracker was then evaluated through the phenotype layer on the same real sequences.
+
+For matched trajectories:
+
+- mean trajectory coverage: **0.9451**
+- median trajectory coverage: **1.0000**
+- directional-persistence MAE: **0.0439**
+- mean-speed MAE: **0.1206 µm/frame**
+
+This experiment demonstrates reproducible preservation of trajectory-derived phenotype features.
+
+It does **not** claim biological phenotype classification. That requires independent biological labels or perturbation annotations.
+
+### Lineage and division evidence
+
+The public phenotype layer also represents parent/child structure, division events, and descendant counts. A dedicated CTC validation benchmark now checks that these features reproduce the reference lineage annotations for sequences 01 and 02. This is a representation-level validation using the CTC reference lineage graph; it is not presented as an end-to-end biological division detector result.
+
+The benchmark is executed in CI through scripts/benchmark_ctc_lineage.py, with exact child-count and descendant-count checks alongside division-parent precision, recall, and F1.
+
+### Missing-observation robustness
+
+We also stress-tested the temporal association layer under controlled synthetic detection dropout.
+
+At 5% dropout, mutual-nearest-neighbor tracking fragmented 24 reference tracks, while the experimental bounded-gap Hungarian branch fragmented only 1. At 10% dropout the counts were 29 versus 7, and at 15% dropout 30 versus 19.
+
+The corresponding phenotype-group ARI was also substantially better for the bounded-gap branch at 5% and 10% dropout (0.4879 vs -0.0184 and 0.3584 vs -0.0102). In the same runs, every measured gap link preserved reference identity.
+
+This branch remains experimental and is reported separately from the validated real-data CTC association result.
+
+### Phenotype-discovery robustness
+
+The phenotype layer was also stress-tested under controlled synthetic trajectory perturbations. Standard scaling + K-Means had the strongest measured stability among the tested configurations, with mean ARI 0.7839 and minimum ARI 0.5312 across the perturbation sweep. More complex robust-scaling variants were tested and rejected because they performed worse in this controlled experiment.
+
+This is computational robustness evidence, not biological phenotype validation.
+
+### Why this matters
+
+The practical value of the system is the transition from:
+
+**microscopy → track IDs**
+
+to:
+
+**microscopy → temporal cellular behavior → interpretable phenotype**
+
+That representation can support motility analysis, state characterization, abnormal-behavior screening, lineage-aware studies, and downstream biological investigation.
+
+### Reproducibility
+
+The repository contains:
+
+- complete source code;
+- public benchmark loader;
+- deterministic synthetic tests;
+- quantitative evaluation;
+- Docker support;
+- GitHub Actions CI;
+- reproducible benchmark workflows;
+- technical report;
+- five-minute demo script.
+
+The microscopy datasets are downloaded transiently for evaluation and are not redistributed in the repository.
+
+### Limitations
+
+The current public baseline has transparent limitations:
+
+- threshold-based image segmentation is not universal;
+- association can fail under severe crowding or missing detections;
+- lineage events remain candidate inferences;
+- unsupervised phenotype clusters are descriptive;
+- CTC association results use reference centroids and are not a full image-to-phenotype score.
+
+These limitations are explicitly reported rather than hidden.
+
+### Future direction
+
+The strongest next step is to validate the phenotype layer on an independently labeled biological perturbation dataset and compare temporal phenotype distributions between conditions.
