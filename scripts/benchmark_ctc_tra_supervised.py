@@ -316,8 +316,10 @@ def main() -> None:
             "detection_match": f"one-to-one centroid distance <= {CENTER_RADIUS_PX} px",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
             "claim_boundary": (
-                "Cross-sequence raw-image-to-instance-mask-to-tracking evaluation. "
-                "Not an official CTC leaderboard score or biological phenotype-label validation."
+                "Cross-sequence raw-image-to-instance-mask-to-tracking evaluation. Segmentation "
+                "scores are measured against dense CTC silver ST/SEG labels as a proxy, while "
+                "detection and links are checked against GT/TRA tracking identities. This is not "
+                "an official CTC leaderboard score or independent manual segmentation validation."
             ),
         },
         "folds": folds,
