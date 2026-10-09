@@ -89,3 +89,4 @@ The image-derived demonstration and association-isolation benchmark answer diffe
 - Do not describe unsupervised clusters as validated biological phenotypes.
 - Do not call the CTC TRA/LNK values official leaderboard scores.
 - Verify all visual and data/model-output rights before public release.
+- A synthetic method validation panel is not in the current renderer; if added later, label it “synthetic method validation” and “not a biological treatment result.”
