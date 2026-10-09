@@ -61,30 +61,82 @@ def score(
     }
 
 
+def trajectory_identity_metrics(
+    predicted_nodes: pd.DataFrame,
+    reference_column: str = "reference_track_id",
+) -> dict[str, float | int]:
+    """Score preservation of annotated track identity using pairwise co-assignment."""
+    if reference_column not in predicted_nodes or "track_id" not in predicted_nodes:
+        raise ValueError("predicted nodes must include reference and predicted track IDs")
+    if predicted_nodes.empty:
+        raise ValueError("identity metrics require at least one annotated detection")
+
+    contingency = pd.crosstab(
+        predicted_nodes[reference_column].astype(int),
+        predicted_nodes["track_id"].astype(int),
+    ).to_numpy(dtype=np.int64)
+
+    def choose_two(values: np.ndarray) -> int:
+        return int(np.sum(values * (values - 1) // 2))
+
+    true_positive_pairs = choose_two(contingency.ravel())
+    predicted_positive_pairs = choose_two(contingency.sum(axis=0))
+    reference_positive_pairs = choose_two(contingency.sum(axis=1))
+    precision = (
+        true_positive_pairs / predicted_positive_pairs
+        if predicted_positive_pairs
+        else 0.0
+    )
+    recall = (
+        true_positive_pairs / reference_positive_pairs
+        if reference_positive_pairs
+        else 0.0
+    )
+    f1 = (
+        2.0 * precision * recall / (precision + recall)
+        if precision + recall
+        else 0.0
+    )
+    predicted_track_count = int(contingency.shape[1])
+    reference_track_count = int(contingency.shape[0])
+    return {
+        "identity_precision": float(precision),
+        "identity_recall": float(recall),
+        "identity_f1": float(f1),
+        "track_count_ratio": float(predicted_track_count / max(1, reference_track_count)),
+        "merged_predicted_tracks": int(np.sum(np.count_nonzero(contingency, axis=0) > 1)),
+        "fragmented_reference_tracks": int(np.sum(np.count_nonzero(contingency, axis=1) > 1)),
+    }
+
+
 def evaluate_sequence(dataset_root: Path, sequence: str) -> list[dict[str, object]]:
     truth_dir = dataset_root / f"{sequence}_GT" / "TRA"
     truth_nodes, _, metadata = load_ctc_tracking(truth_dir)
     detections = (
         truth_nodes[["t", "z", "y", "x", "track_id"]]
+        .rename(columns={"track_id": "reference_track_id"})
         .sort_values(["t", "z", "y", "x"])
         .reset_index(drop=True)
     )
-    truth_edges: set[tuple[int, int]] | None = None
+    truth_edge_nodes = detections.rename(columns={"reference_track_id": "track_id"})
+    truth_edges, _ = link_sets(
+        truth_edge_nodes,
+        pd.DataFrame(columns=["source_id", "target_id"]),
+    )
     rows: list[dict[str, object]] = []
 
     for distance_um in DISTANCES_UM:
         predicted_nodes, predicted_edges = track_detections(
-            detections[["t", "z", "y", "x"]],
+            detections[["t", "z", "y", "x", "reference_track_id"]],
             TrackingConfig(
                 max_distance_um=distance_um,
                 method=METHOD,
                 voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
             ),
         )
-        if truth_edges is None:
-            truth_edges, _ = link_sets(detections, pd.DataFrame(columns=["source_id", "target_id"]))
-        _, predicted_edge_set = link_sets(detections, predicted_edges)
-        metrics = score(truth_edges, predicted_edge_set)
+        _, predicted_edge_set = link_sets(truth_edge_nodes, predicted_edges)
+        edge_metrics = score(truth_edges, predicted_edge_set)
+        identity_metrics = trajectory_identity_metrics(predicted_nodes)
         rows.append(
             {
                 "dataset": "PhC-C2DL-PSC",
@@ -95,20 +147,23 @@ def evaluate_sequence(dataset_root: Path, sequence: str) -> list[dict[str, objec
                 "detections": int(len(detections)),
                 "ground_truth_tracks": int(metadata["track_id"].nunique()),
                 "predicted_tracks": int(predicted_nodes["track_id"].nunique()),
-                **metrics,
+                **edge_metrics,
+                "edge_f1": float(edge_metrics["f1"]),
+                **identity_metrics,
             }
         )
     return rows
 
 
 def select_gate(rows: list[dict[str, object]], sequence: str) -> float:
+    """Select gate by track-identity F1, using edge F1 as a secondary criterion."""
     candidates = [row for row in rows if row["sequence"] == sequence]
     best = max(
         candidates,
         key=lambda row: (
-            float(row["f1"]),
-            float(row["precision"]),
-            float(row["recall"]),
+            float(row["identity_f1"]),
+            float(row["edge_f1"]),
+            float(row["identity_precision"]),
         ),
     )
     return float(best["max_distance_um"])
@@ -141,10 +196,15 @@ def main() -> None:
     fixed_gate_rows = [
         row for row in rows if float(row["max_distance_um"]) == 8.0
     ]
+    fixed_frame = pd.DataFrame(fixed_gate_rows)
     fixed_gate = {
-        "mean_precision": float(pd.DataFrame(fixed_gate_rows)["precision"].mean()),
-        "mean_recall": float(pd.DataFrame(fixed_gate_rows)["recall"].mean()),
-        "mean_f1": float(pd.DataFrame(fixed_gate_rows)["f1"].mean()),
+        "mean_edge_precision": float(fixed_frame["precision"].mean()),
+        "mean_edge_recall": float(fixed_frame["recall"].mean()),
+        "mean_edge_f1": float(fixed_frame["edge_f1"].mean()),
+        "mean_identity_precision": float(fixed_frame["identity_precision"].mean()),
+        "mean_identity_recall": float(fixed_frame["identity_recall"].mean()),
+        "mean_identity_f1": float(fixed_frame["identity_f1"].mean()),
+        "mean_track_count_ratio": float(fixed_frame["track_count_ratio"].mean()),
     }
     holdout_frame = pd.DataFrame(holdout)
     output = {
@@ -159,7 +219,10 @@ def main() -> None:
             "input": "CTC reference track centroids as detections",
             "method": METHOD,
             "distance_sweep_um": list(DISTANCES_UM),
-            "selection": "cross-sequence gate selection; fit/select on one sequence, report on the other",
+            "selection": (
+                "cross-sequence gate selection; maximize pairwise trajectory identity F1 on one "
+                "sequence, use edge F1 as tie-breaker, report on the other"
+            ),
             "fixed_gate_control": "canonical 8.0 µm gate reported without per-sequence tuning",
             "claim_boundary": (
                 "Temporal association generalization only. This benchmark does not evaluate "
@@ -170,9 +233,13 @@ def main() -> None:
         "fixed_8um_control": fixed_gate,
         "cross_sequence_holdout": holdout,
         "holdout_aggregate": {
-            "mean_precision": float(holdout_frame["precision"].mean()),
-            "mean_recall": float(holdout_frame["recall"].mean()),
-            "mean_f1": float(holdout_frame["f1"].mean()),
+            "mean_edge_precision": float(holdout_frame["precision"].mean()),
+            "mean_edge_recall": float(holdout_frame["recall"].mean()),
+            "mean_edge_f1": float(holdout_frame["edge_f1"].mean()),
+            "mean_identity_precision": float(holdout_frame["identity_precision"].mean()),
+            "mean_identity_recall": float(holdout_frame["identity_recall"].mean()),
+            "mean_identity_f1": float(holdout_frame["identity_f1"].mean()),
+            "mean_track_count_ratio": float(holdout_frame["track_count_ratio"].mean()),
         },
     }
     (ROOT / "ctc_phc_psc_association_results.json").write_text(json.dumps(output, indent=2))
