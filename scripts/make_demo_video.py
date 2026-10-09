@@ -146,7 +146,6 @@ def segmentation_f1(gt: np.ndarray, pred: np.ndarray, threshold: float = 0.5) ->
         bonus = float(min(iou.shape) + 1)
         rows, cols = linear_sum_assignment(iou + bonus * (iou >= threshold), maximize=True)
         tp = sum(float(iou[r, c]) >= threshold for r, c in zip(rows, cols))
-    fp, fn = len(pred_ids) - tp, len(gt_ids) - tp
     precision = tp / len(pred_ids) if len(pred_ids) else (1.0 if not len(gt_ids) else 0.0)
     recall = tp / len(gt_ids) if len(gt_ids) else (1.0 if not len(pred_ids) else 0.0)
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
