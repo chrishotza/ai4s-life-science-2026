@@ -33,8 +33,14 @@ def parse_csv(path: Path, sequence: str) -> pd.DataFrame:
         df[c] = pd.to_numeric(df[c], errors="raise")
     if df[list(needed)].isna().any().any():
         raise ValueError("Non-numeric expert DTL annotation")
-    if df.duplicated(["ImNo", "ID"]).any():
-        raise ValueError(f"Duplicate frame/ID expert annotation in {sequence}")
+    ambiguous = set(df.loc[
+        df.duplicated(["ImNo", "ID"], keep=False), "ID"
+    ])
+    excluded = int(df["ID"].isin(ambiguous).sum())
+    if ambiguous:
+        df = df.loc[~df["ID"].isin(ambiguous)].copy()
+    df.attrs["ambiguous_expert_id_tracks_excluded"] = len(ambiguous)
+    df.attrs["ambiguous_expert_rows_excluded"] = excluded
     if (df[["width", "height"]] <= 0).any().any():
         raise ValueError(f"Invalid expert cell dimensions in {sequence}")
     return df
@@ -88,11 +94,18 @@ def evaluate_sequence(expert: pd.DataFrame, method: str) -> dict:
 def run(directory: Path) -> dict:
     prepared = {}
     sha = {}
+    annotation_qc = {}
     for seq in SEQUENCES:
         path = directory/f"{seq}_DTLTruth.csv"
         prepared[seq] = parse_csv(path, seq).reset_index(drop=True)
         prepared[seq]["observation_id"] = np.arange(len(prepared[seq]), dtype=int)
         sha[seq] = hashlib.sha256(path.read_bytes()).hexdigest()
+        annotation_qc[seq] = dict(
+            ambiguous_tracks_excluded=prepared[seq].attrs.get(
+                "ambiguous_expert_id_tracks_excluded", 0),
+            ambiguous_rows_excluded=prepared[seq].attrs.get(
+                "ambiguous_expert_rows_excluded", 0),
+        )
     experiments = {}
     for method in METHODS:
         individual = {
@@ -119,6 +132,7 @@ def run(directory: Path) -> dict:
         max_frame_gap=1,
         methods=experiments,
         source_sha256=sha,
+        annotation_qc=annotation_qc,
         limits=(
             "Expert boxes and identity annotations provided every detection; "
             "no raw image detection. This isolates only the repo's tracking "
