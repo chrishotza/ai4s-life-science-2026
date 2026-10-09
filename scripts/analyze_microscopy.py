@@ -18,7 +18,7 @@ import tifffile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from ai4s_imaging import Supervised2DSegmenter, instances_to_detections
+from ai4s_imaging import CellposeSegmenter, Supervised2DSegmenter, instances_to_detections
 from ai4s_pipeline import PipelineConfig, TemporalPhenotypeEngine
 from ai4s_tracking import TrackingConfig
 
@@ -265,6 +265,43 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("input", type=Path, help="TIFF stack (.tif/.tiff) or frame directory")
     parser.add_argument("--output", type=Path, required=True, help="Output directory")
     parser.add_argument(
+        "--segmenter",
+        choices=("auto", "threshold", "supervised", "cellpose"),
+        default="auto",
+        help=(
+            "Image-to-instance backend. 'auto' preserves legacy behavior: supervised when "
+            "training image/mask directories are supplied, otherwise threshold."
+        ),
+    )
+    parser.add_argument(
+        "--cellpose-model",
+        default="cpsam_v2",
+        help="Upstream Cellpose model name when --segmenter cellpose is selected",
+    )
+    parser.add_argument(
+        "--cellpose-min-size",
+        type=int,
+        default=200,
+        help="Minimum Cellpose object size in pixels",
+    )
+    parser.add_argument(
+        "--cellpose-flow-threshold",
+        type=float,
+        default=0.4,
+        help="Cellpose flow-consistency threshold",
+    )
+    parser.add_argument(
+        "--cellpose-cellprob-threshold",
+        type=float,
+        default=0.0,
+        help="Cellpose cell-probability threshold",
+    )
+    parser.add_argument(
+        "--cellpose-invert",
+        action="store_true",
+        help="Invert grayscale intensities before Cellpose inference",
+    )
+    parser.add_argument(
         "--threshold",
         type=float,
         default=None,
@@ -334,6 +371,31 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit("--samples-per-class must be >= 1")
     if (args.training_images is None) != (args.training_masks is None):
         raise SystemExit("--training-images and --training-masks must be supplied together")
+    if args.cellpose_min_size < 1:
+        raise SystemExit("--cellpose-min-size must be >= 1")
+    if args.cellpose_flow_threshold < 0:
+        raise SystemExit("--cellpose-flow-threshold must be >= 0")
+
+    requested_segmenter = args.segmenter
+    if requested_segmenter == "auto":
+        requested_segmenter = (
+            "supervised"
+            if args.training_images is not None and args.training_masks is not None
+            else "threshold"
+        )
+    if requested_segmenter == "supervised" and (
+        args.training_images is None or args.training_masks is None
+    ):
+        raise SystemExit(
+            "--segmenter supervised requires --training-images and --training-masks"
+        )
+    if requested_segmenter != "supervised" and (
+        args.training_images is not None or args.training_masks is not None
+    ):
+        raise SystemExit(
+            "--training-images/--training-masks are only valid with --segmenter supervised "
+            "(or --segmenter auto)"
+        )
 
     frames, input_files = load_image_sequence(args.input)
     output_dir = args.output.expanduser().resolve()
@@ -352,7 +414,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         phenotype_random_state=args.random_state,
     )
     detector_metadata: dict[str, object]
-    if args.training_images is not None and args.training_masks is not None:
+    if requested_segmenter == "supervised":
         if frames.ndim != 3:
             raise SystemExit(
                 "Supervised instance segmentation currently supports 2-D+t input only; "
@@ -389,6 +451,45 @@ def main(argv: Sequence[str] | None = None) -> int:
             "training_mask_files": train_mask_paths,
             "predicted_instance_masks": "predicted_instances.tif",
         }
+    elif requested_segmenter == "cellpose":
+        if frames.ndim != 3:
+            raise SystemExit(
+                "Cellpose integration currently supports 2-D+t input only; "
+                f"got stack shape {frames.shape}"
+            )
+        try:
+            segmenter = CellposeSegmenter(
+                model_name=args.cellpose_model,
+                min_size=args.cellpose_min_size,
+                flow_threshold=args.cellpose_flow_threshold,
+                cellprob_threshold=args.cellpose_cellprob_threshold,
+                invert=args.cellpose_invert,
+            )
+        except RuntimeError as exc:
+            raise SystemExit(str(exc)) from exc
+        predicted_masks = np.stack(
+            [segmenter.predict_instances(frame) for frame in frames],
+            axis=0,
+        )
+        detections = instances_to_detections(frames, predicted_masks)
+        result = TemporalPhenotypeEngine(config).run(detections)
+        tifffile.imwrite(
+            output_dir / "predicted_instances.tif",
+            predicted_masks.astype(np.uint32, copy=False),
+        )
+        detector_metadata = {
+            "method": "cellpose_pretrained",
+            "model_name": args.cellpose_model,
+            "min_size": int(args.cellpose_min_size),
+            "flow_threshold": float(args.cellpose_flow_threshold),
+            "cellprob_threshold": float(args.cellpose_cellprob_threshold),
+            "invert": bool(args.cellpose_invert),
+            "predicted_instance_masks": "predicted_instances.tif",
+            "dependency_note": (
+                "Cellpose is optional and loaded lazily. Install the documented optional "
+                "dependency stack before selecting this backend."
+            ),
+        }
     else:
         result = TemporalPhenotypeEngine(config).run_frames(frames)
         detector_metadata = {
@@ -396,8 +497,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             "threshold": args.threshold,
             "min_area": args.min_area,
             "note": (
-                "Transparent baseline detector; use paired annotated training images/masks "
-                "for supervised segmentation in a matching 2-D microscopy domain."
+                "Transparent baseline detector; use --segmenter supervised with paired "
+                "annotated images/masks or --segmenter cellpose for a learned image backend."
             ),
         }
 
@@ -423,6 +524,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "voxel_size_um": voxel_size,
             "phenotype_clusters": args.clusters,
             "random_state": args.random_state,
+            "segmenter": requested_segmenter,
         },
         "detector": detector_metadata,
         "pipeline": result.summary(),
