@@ -16,7 +16,7 @@
 
 - [x] **Submit organizer registration form.** Team leader confirmed this completed on October 9, 2026; this is self-reported and the form's confirmation receipt was not independently inspected.
 - [ ] Verify registered team roster **and one leader** match the report; report currently contains **Chris Hotza as the single draft member**, not verified registration.
-- [ ] Make the V10 **video publicly viewable without login/permission/payment**, and confirm media/data/weight usage rights. A private ElevenLabs editor link is **not** a public competition demo link.
+- [x] **Publish the V10 narrated demo publicly:** https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo; public dataset with MP4 in-browser player, verified from signed-out Kaggle session on October 9, 2026. **Upstream dataset and model-weight usage rights still require review** before final competition submission.
 - [ ] Paste and submit the Kaggle Writeup with **the public video URL**, public code URL, category declaration and technical-report content or valid public PDF.
 - [ ] Reopen the Writeup and video links in a logged-out/private browsing session to verify external judges can access them.
 - [ ] Check that Kaggle reports the submission as actually submitted (not a saved draft).
