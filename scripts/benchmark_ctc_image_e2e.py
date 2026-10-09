@@ -210,7 +210,8 @@ def framewise_match(
         fp += len(pred) - matched
         fn += len(gt) - matched
 
-    return tp, fp, fn, float(np.mean(distances) if distances else 0.0), pred_to_truth
+    mean_distance = float(np.mean(distances)) if distances else None
+    return tp, fp, fn, mean_distance, pred_to_truth
 
 def truth_edges(truth: pd.DataFrame) -> set[tuple[int, int]]:
     edges: set[tuple[int, int]] = set()
