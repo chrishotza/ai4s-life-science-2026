@@ -69,12 +69,12 @@ jobs:
                   for info in selected:
                       try:
                           raw=z.read(info.filename)
-                          target=filesdir / info.filename.rsplit("/",1)[-1]
-                          target.write_bytes(raw)
+                          label_file=filesdir / info.filename.rsplit("/",1)[-1]
+                          label_file.write_bytes(raw)
                           extracted.append(dict(source_path=info.filename,
-                                                filename=target.name,
+                                                filename=label_file.name,
                                                 bytes=len(raw)))
-                          print("EXTRACTED",target.name,len(raw),flush=True)
+                          print("EXTRACTED",label_file.name,len(raw),flush=True)
                       except Exception as e:
                           failures.append(dict(path=info.filename,
                                                message=str(e)[:250]))
