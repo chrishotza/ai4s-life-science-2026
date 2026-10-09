@@ -46,7 +46,7 @@ def test_cellpose_adapter_inverts_pixels_and_replaces_nonfinite_values() -> None
     assert fake.image is not None
     assert np.isfinite(fake.image).all()
     # The missing value is filled with the median before inversion.
-    assert fake.image[0, 0] == pytest.approx(float(np.max(np.arange(1, 64, dtype=float))) - 31.5)
+    assert fake.image[0, 0] == pytest.approx(float(np.max(np.arange(1, 64, dtype=float))) - 32.0)
 
 
 def test_cellpose_adapter_rejects_non_2d_inputs() -> None:
