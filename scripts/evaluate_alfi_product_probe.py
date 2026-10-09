@@ -11,7 +11,6 @@ import argparse
 import json
 from pathlib import Path
 
-import numpy as np
 from sklearn.metrics import f1_score, balanced_accuracy_score, confusion_matrix
 
 from ai4s_phenotype import TemporalStateProbe
