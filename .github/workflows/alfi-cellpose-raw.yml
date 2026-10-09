@@ -1,0 +1,70 @@
+name: ALFI pretrained Cellpose raw-image instance check
+
+on:
+  push:
+    paths:
+      - ".github/workflows/alfi-cellpose-raw.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cellpose-alfi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project and validated CPU Cellpose environment
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install fastremap roifile fill-voids segment_anything opencv-python-headless natsort tqdm remotezip
+          pip install --no-deps "cellpose==4.2.1.1"
+      - name: Download six predetermined ALFI frames, no bulk 8GB archive
+        run: |
+          python -u - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          from remotezip import RemoteZip
+
+          url="https://ndownloader.figshare.com/files/41740227"
+          root=Path("external_biology/alfi_cellpose/input")
+          root.mkdir(parents=True,exist_ok=True)
+          manifest=[]
+          with RemoteZip(url,support_suffix_range=True,timeout=55) as archive:
+              known={i.filename for i in archive.infolist()}
+              for seq in ("MI02","MI03","MI04"):
+                  for t in (1,9):
+                      for kind,dirn,prefix in (("image","Images","I"),
+                                              ("mask","Masks","M")):
+                          path=f"Data&Annotations/{seq}/{dirn}/{prefix}_{seq}_{t:04d}.png"
+                          if path not in known: raise ValueError("missing "+path)
+                          raw=archive.read(path)
+                          dest=root/f"{seq}_{kind}_{t:04d}.png"
+                          dest.write_bytes(raw)
+                          manifest.append(dict(path=path,bytes=len(raw),
+                                               sha256=hashlib.sha256(raw).hexdigest()))
+                          print(seq,t,kind,len(raw),flush=True)
+          (root.parent/"manifest.json").write_text(json.dumps(manifest,indent=2))
+          PY
+      - name: Evaluate frozen pre-trained Cellpose-SAM on heldout MI images
+        run: |
+          python -u -m scripts.benchmark_alfi_cellpose \
+            --inputs external_biology/alfi_cellpose/input \
+            --out external_biology/alfi_cellpose/output
+      - name: Upload evidence even on failed inference
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfi-pretrained-cellpose-real-image-instance-evidence
+          path: |
+            external_biology/alfi_cellpose/manifest.json
+            external_biology/alfi_cellpose/output/
+          if-no-files-found: warn
+          retention-days: 30
