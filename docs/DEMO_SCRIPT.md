@@ -1,71 +1,79 @@
-# 5-Minute Demo Script
+# Five-Minute Demo Script — Competition Version
 
-The repository renderer produces a concise proof clip of the core system. The final submission can use that clip as the visual backbone while the 5-minute narration follows the sections below.
+**Category: End-to-End System**  
+**Target runtime: 4:40–4:55.** Keep the final rendered video at or below 5:00.
 
-## 0:00–0:30 — Problem
+This script is designed around the AI4S evaluation dimensions: impact (30%), technical approach and innovation (30%), results and validation (20%), reproducibility (10%), and presentation (10%). Show real operation and results rather than relying on slides alone.
 
-Use the rendered intro card and first real-microscopy frames as the visual hook.
+## 0:00–0:25 — The scientific problem
 
-"Microscopy produces huge volumes of cell observations, but segmentation or tracking alone does not answer the biological question. We want to recover how each cell behaves over time."
+**Visual:** Real DIC-C2DH-HeLa microscopy frames; show the raw input before overlays.
 
-Show one microscopy sequence and the target phenotype report.
+**Narration:**  
+“Time-lapse microscopy captures how cells move and change, but a segmentation mask or track ID is not yet a useful description of cellular behavior. Our goal is to turn temporal observations into an interpretable phenotype profile for each cell trajectory.”
 
-## 0:30–1:15 — End-to-end pipeline
+## 0:25–1:05 — Run the system
 
-Show:
+**Visual:** Terminal running `python demo.py`, followed by the actual output artefacts.
 
-microscopy → detection → temporal association → tracking → lineage/events → phenotype features → phenotype discovery.
+**Narration:**  
+“The Temporal Cellular Phenotype Engine connects image preprocessing, detection, temporal association, trajectory reconstruction, lineage representation, feature extraction, and unsupervised phenotype discovery in one reproducible workflow.”
 
-Run:
+**On-screen pipeline:**  
+Microscopy → detection → temporal association → trajectories → lineage/events → temporal features → phenotype groups.
 
-```bash
-python demo.py
-```
+## 1:05–1:45 — Show the core output
 
-## 1:15–2:00 — Tracking
+**Visual:** Real image sequence with overlays and a phenotype table/trajectory view.
 
-Show trajectories and explain that the public baseline is deterministic and reproducible.
+**Narration:**  
+“For each trajectory, the engine describes duration, displacement, path length, speed, directional persistence, temporal integrity, and available lineage context. The central output is not the track ID itself; it is a transparent, time-dependent behavioral representation.”
 
-Highlight:
+## 1:45–2:25 — What is technically distinctive
 
-- track continuity;
-- spatial association;
-- candidate division events.
+**Visual:** Brief comparison of MNN, Hungarian, and constant-velocity Hungarian methods, then show the physical-unit gate.
 
-## 2:00–3:00 — Temporal phenotype
+**Narration:**  
+“We compared simple and more complex association methods rather than assuming that complexity would improve performance. The best measured configuration on our two evaluated CTC sequences was mutual-nearest-neighbor association with an 8-micrometre gate. The selected configuration is explicit, deterministic, and physically calibrated.”
 
-Show the phenotype table.
+## 2:25–3:10 — Measured validation
 
-Highlight:
+**Visual:** Results card with the exact metric names and a small per-sequence breakdown.
 
-- mean speed;
-- displacement;
-- directional persistence;
-- duration;
-- lineage structure.
+**On-screen values:**
+- Mean association precision: **0.99135**
+- Mean association recall: **0.99322**
+- Mean association F1: **0.99228**
+- Mean trajectory coverage: **0.9451**
+- Median trajectory coverage: **1.0000**
+- Directional-persistence MAE: **0.0439**
 
-Explain that the scientific output is the dynamic phenotype, not the track ID.
+**Narration:**  
+“These association numbers come from DIC-C2DH-HeLa sequences 01 and 02, with reference centroids supplied as detections. This isolates temporal association; it is not a segmentation score. The phenotype-preservation measurements likewise describe trajectory-derived features, not biological phenotype classification.”
 
-## 3:00–3:45 — AI phenotype discovery
+## 3:10–3:45 — Reliability and limitations
 
-Show the unsupervised clusters.
+**Visual:** Show the controlled missing-observation stress test and label it synthetic.
 
-Explain that temporal features are standardized and grouped into interpretable behavioral phenotypes without requiring manually assigned phenotype labels.
+**Narration:**  
+“We also tested controlled detection dropout. A bounded-gap association branch reduced track fragmentation under mild and moderate synthetic dropout, but we keep it experimental because those tests do not establish improved performance on real biological data. Unsupervised clusters are descriptive groups, not validated biological labels.”
 
-## 3:45–4:30 — Validation
+## 3:45–4:25 — Reproducibility
 
-Show the synthetic benchmark and the real public microscopy benchmark.
+**Visual:** GitHub tree with README, requirements, tests, benchmark scripts, CI, and technical report.
 
-Display only measured values:
+**Narration:**  
+“The repository provides installation instructions, a direct demo entry point, tests, benchmark scripts, Docker support, and continuous integration. Dataset sources and evidence boundaries are documented, and microscopy data are downloaded transiently rather than redistributed.”
 
-- link precision;
-- link recall;
-- F1;
-- phenotype stability;
-- representative failure cases.
+## 4:25–4:50 — Practical value and next validation
 
-## 4:30–5:00 — Impact
+**Visual:** End on a clear trajectory/phenotype view and repository title.
 
-"Instead of stopping at segmentation or tracking, the system converts microscopy into a compact temporal phenotype representation that can be used to compare cellular behaviors and detect abnormal trajectories."
+**Narration:**  
+“This system provides a reproducible bridge from microscopy to interpretable dynamic cellular behavior. The next scientific step is validation against independently annotated biological perturbations, so behavioral clusters can be tested against biological outcomes rather than inferred from trajectories alone.”
 
-End with GitHub repository, reproducibility instructions, and dataset provenance.
+**End card:**  
+Temporal Cellular Phenotype Engine  
+End-to-End System · Single-cell Phenotype Analysis  
+Public repository: [insert final public URL]  
+Technical report and reproduction instructions: [repository/docs]
