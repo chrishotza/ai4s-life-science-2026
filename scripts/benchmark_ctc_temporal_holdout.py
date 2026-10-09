@@ -25,6 +25,7 @@ from benchmark_ctc_tra_supervised import (
     iou_matrix,
     keyed_track_masks,
     marker_overlap_match,
+    restrict_instances_to_foi,
     segmentation_score,
     truth_edges,
 )
@@ -111,7 +112,7 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
         silver_mask = np.squeeze(tifffile.imread(seg_map[t])).astype(np.int32, copy=False)
         if image.ndim != 2 or silver_mask.ndim != 2 or image.shape != silver_mask.shape:
             raise ValueError(f"Invalid held-out pair at {image_path.name}")
-        pred_mask = segmenter.predict_instances(image)
+        pred_mask = restrict_instances_to_foi(segmenter.predict_instances(image))
         # ST/SEG has broad instance coverage and is the full-frame proxy metric.
         score = segmentation_score(silver_mask, pred_mask)
         # GT/SEG is human-made but sparse. Score annotated objects only; predictions
