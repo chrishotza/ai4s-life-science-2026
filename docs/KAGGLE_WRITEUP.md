@@ -10,7 +10,7 @@
 
 **Public narrated demo video:** https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo (91-second MP4 with ElevenLabs narration; verified publicly accessible without login on October 9, 2026). Video images depict the separately exported CellposeSAM-v2 8-frame visualization pilot; the 168-frame measurements reported below come from a different completed evaluation run. The legacy renderer is `scripts/make_demo_video.py` and does **not** represent this narrated V10 cut.
 
-**Technical report:** This Writeup contains the submission report sections; the full technical report is also maintained at `docs/TECHNICAL_REPORT.md`.
+**Technical report (public PDF, 17 A4 pages):** https://github.com/chrishotza/ai4s-life-science-2026/releases/download/ai4s-2026-technical-report/AI4S_Temporal_Cellular_Phenotype_Technical_Report.pdf. [Original report source](TECHNICAL_REPORT.md). Rendered and released by the [verified GitHub Actions run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38004917827).
 
 ## Project Summary
 
