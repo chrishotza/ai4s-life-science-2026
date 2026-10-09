@@ -11,7 +11,9 @@ import tifffile
 from ai4s_core import validate_edges, validate_lineage_graph, validate_nodes
 
 CTC_DIC_C2DH_HELA_URL = "https://data.celltrackingchallenge.net/training-datasets/DIC-C2DH-HeLa.zip"
+CTC_PHC_C2DL_PSC_URL = "https://data.celltrackingchallenge.net/training-datasets/PhC-C2DL-PSC.zip"
 DIC_C2DH_HELA_VOXEL_SIZE_UM = (1.0, 0.19, 0.19)
+PHC_C2DL_PSC_VOXEL_SIZE_UM = (1.0, 1.6, 1.6)
 
 
 def ensure_ctc_dataset(cache_root: str | Path) -> Path:
@@ -144,3 +146,27 @@ def load_ctc_tracking(sequence_dir: str | Path) -> tuple[pd.DataFrame, pd.DataFr
     if not division_edges.empty:
         validate_lineage_graph(nodes, division_edges)
     return nodes, edge_df, metadata
+
+
+
+def ensure_ctc_phc_psc_dataset(cache_root: str | Path) -> Path:
+    """Download and unpack the public PhC-C2DL-PSC training dataset."""
+    cache = Path(cache_root)
+    cache.mkdir(parents=True, exist_ok=True)
+    archive = cache / "PhC-C2DL-PSC.zip"
+    dataset_root = cache / "dataset" / "PhC-C2DL-PSC"
+
+    if not archive.exists():
+        print(f"Downloading {CTC_PHC_C2DL_PSC_URL}", flush=True)
+        urlretrieve(CTC_PHC_C2DL_PSC_URL, archive)
+
+    if not dataset_root.exists():
+        dataset_root.parent.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(archive) as zf:
+            zf.extractall(dataset_root.parent)
+
+    if not dataset_root.exists():
+        raise FileNotFoundError(
+            f"PhC-C2DL-PSC archive did not contain expected directory: {dataset_root}"
+        )
+    return dataset_root

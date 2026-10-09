@@ -1,0 +1,53 @@
+name: CTC Image Segmentation Validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ctc-image-segmentation.yml"
+      - "scripts/benchmark_ctc_image_segmentation.py"
+      - "scripts/benchmark_ctc_image_e2e.py"
+      - "src/ai4s_io/**"
+      - "src/ai4s_tracking/**"
+      - "requirements.txt"
+      - "pyproject.toml"
+  push:
+    branches: ["main"]
+    paths:
+      - ".github/workflows/ctc-image-segmentation.yml"
+      - "scripts/benchmark_ctc_image_segmentation.py"
+      - "scripts/benchmark_ctc_image_e2e.py"
+      - "src/ai4s_io/**"
+      - "src/ai4s_tracking/**"
+      - "requirements.txt"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache CTC dataset
+        uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-${{ runner.os }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Run cross-sequence image-segmentation benchmark
+        run: python scripts/benchmark_ctc_image_segmentation.py
+      - name: Upload segmentation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctc-image-segmentation-evidence
+          path: ctc_image_segmentation_results.json

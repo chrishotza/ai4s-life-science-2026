@@ -121,3 +121,27 @@ def test_tracking_error_profile_reports_gap_links():
 
     assert profile["gap_link_count"] == 1.0
     assert profile["gap_link_correct_identity"] == 1.0
+
+
+def test_track_integrity_score_reflects_coverage_and_link_quality():
+    from ai4s_phenotype import analyze
+
+    nodes = pd.DataFrame(
+        [
+            {"node_id": 0, "track_id": 1, "t": 0, "z": 0.0, "y": 0.0, "x": 0.0},
+            {"node_id": 1, "track_id": 1, "t": 1, "z": 0.0, "y": 0.0, "x": 1.0},
+            {"node_id": 2, "track_id": 1, "t": 2, "z": 0.0, "y": 0.0, "x": 2.0},
+        ]
+    )
+    edges = pd.DataFrame(
+        [
+            {"source_id": 0, "target_id": 1, "edge_type": "link", "link_confidence": 0.95, "distance_um": 1.0},
+            {"source_id": 1, "target_id": 2, "edge_type": "link", "link_confidence": 0.90, "distance_um": 1.0},
+        ]
+    )
+
+    result = analyze(nodes, edges)
+    score = float(result.loc[0, "track_integrity_score"])
+
+    assert 0.0 <= score <= 1.0
+    assert score > 0.75

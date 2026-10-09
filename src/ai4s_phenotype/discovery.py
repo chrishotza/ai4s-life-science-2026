@@ -73,6 +73,7 @@ class PhenotypeDiscoveryModel:
     log_transform: bool
     log_columns: tuple[str, ...]
     cluster_names: dict[int, str]
+    assignment_distance_scale: float
     feature_schema_version: str = FEATURE_SCHEMA_VERSION
 
     @classmethod
@@ -103,6 +104,14 @@ class PhenotypeDiscoveryModel:
             random_state=random_state,
         )
         model.fit(scaled)
+        train_distances = model.transform(scaled)
+        assigned_distances = train_distances[
+            np.arange(len(train_distances)),
+            np.argmin(train_distances, axis=1),
+        ]
+        assignment_distance_scale = float(np.median(assigned_distances))
+        if not np.isfinite(assignment_distance_scale) or assignment_distance_scale <= 1e-9:
+            assignment_distance_scale = 1.0
 
         return cls(
             scaler=transformer,
@@ -111,6 +120,7 @@ class PhenotypeDiscoveryModel:
             log_transform=log_transform,
             log_columns=log_columns,
             cluster_names=_cluster_names(model),
+            assignment_distance_scale=assignment_distance_scale,
         )
 
     def transform(self, phenotypes: pd.DataFrame) -> pd.DataFrame:
@@ -135,6 +145,35 @@ class PhenotypeDiscoveryModel:
             if distances.shape[1] > 1
             else np.zeros(len(out))
         )
+        distance_quality = np.exp(
+            -distances[np.arange(len(out)), labels]
+            / max(self.assignment_distance_scale, 1e-9)
+        )
+        if distances.shape[1] > 1:
+            separation_quality = (
+                out["phenotype_cluster_margin"].to_numpy(float)
+                / (
+                    out["phenotype_cluster_margin"].to_numpy(float)
+                    + distances[np.arange(len(out)), labels]
+                    + 1e-9
+                )
+            )
+        else:
+            separation_quality = np.ones(len(out), dtype=float)
+        out["phenotype_assignment_quality"] = np.clip(
+            np.sqrt(distance_quality * np.clip(separation_quality, 0.0, 1.0)),
+            0.0,
+            1.0,
+        )
+        if "track_integrity_score" in out.columns:
+            out["phenotype_reliability_score"] = np.clip(
+                np.sqrt(
+                    np.clip(out["track_integrity_score"].to_numpy(float), 0.0, 1.0)
+                    * out["phenotype_assignment_quality"].to_numpy(float)
+                ),
+                0.0,
+                1.0,
+            )
         return out
 
 

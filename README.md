@@ -33,9 +33,9 @@ unsupervised phenotype discovery
 interpretable phenotype report
 ```
 
-## Public MVP
+## Competition MVP
 
-The public implementation contains explicit reproducible layers:
+The submission implementation contains explicit reproducible layers:
 
 1. **Microscopy baseline** — threshold + connected-component detection for 2-D+t or 3-D+t time-lapse volumes.
 2. **Tracking baseline** — deterministic 3-D association with mutual nearest-neighbor, Hungarian, constant-velocity Hungarian, and an experimental KD-tree MNN variant.
@@ -75,7 +75,7 @@ pytest -q
 python demo.py
 ```
 
-The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups.
+The demo runs end-to-end from a deterministic microscopy-like image stack to detections, tracks, lineage candidates, temporal phenotypes, and discovered phenotype groups. For exact reproduction of the verified Python 3.11 environment, use `requirements-lock-py311.txt` and `requirements-dev-lock-py311.txt`.
 
 ## Quantitative validation
 
@@ -133,13 +133,17 @@ These values are independently reproduced CTC-metrics evidence, not end-to-end s
 
 The experimental bounded-gap Hungarian branch was evaluated separately under controlled synthetic dropout. At 5%, 10%, and 15% dropout it reduced fragmented reference tracks from 24/29/30 with the MNN baseline to 1/7/19 respectively, while preserving reference identity for every measured gap link in those runs. The corresponding phenotype-group ARI was 0.4879, 0.3584, and -0.0114 for the gap branch versus -0.0184, -0.0102, and 0.0007 for MNN.
 
+A separate CTC PhC-C2DL-PSC reference-centroid benchmark found mean cross-sequence trajectory-identity F1 of 0.77858 for the experimental two-frame-window `gap_hungarian` candidate versus 0.76879 for velocity Hungarian. Its identity precision is lower (0.73855 vs 0.82554), so it remains experimental and is not the default tracker; these results do not evaluate raw-image segmentation. See [docs/RESULTS.md](docs/RESULTS.md).
+
 This is computational stress-test evidence only; the bounded-gap branch remains experimental and does not replace the validated 8.0 µm MNN real-data result.
 
 The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.
 
+A separate PhC-C2DL-PSC benchmark evaluates raw-image-to-instance-mask segmentation with strict cross-sequence holdout and one-to-one instance matching (IoU ≥ 0.5); the protocol and measured outputs are documented in [docs/RESULTS.md](docs/RESULTS.md), with silver and sparse gold annotations reported separately.
+
 The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
-The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and is not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and are not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
 
 ## Demo video
 
@@ -158,19 +162,22 @@ The final output is not merely a track ID. For each cell trajectory the engine p
 - division events;
 - descendant structure;
 - temporal integrity and tracking-link confidence diagnostics;
+- bounded trajectory-integrity and phenotype-reliability scores;
 - unsupervised phenotype group.
 
-This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments.
+This makes the system directly usable as a phenotype-analysis layer on top of microscopy experiments. The intended scientific unit is the cell trajectory: the engine converts temporal motion, persistence, gaps, and lineage context into reproducible per-cell features that can be compared across cohorts and experimental conditions.
+
+The current submission deliberately stops short of claiming clinical diagnosis or biologically named phenotypes without independent labels. Its value proposition is a transparent analysis substrate that turns image sequences into quantitative, inspectable behavioral representations that downstream biological studies can test.
 
 ## Research provenance
 
-The private BioHub project contains earlier learned temporal-association research. This public competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
+The private BioHub project contains earlier learned temporal-association research. This competition repository does not claim private model artifacts as reproducible until their redistribution and dependency conditions are verified.
 
 ## Architecture hardening
 
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture.
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture, and **[docs/RUBRIC_SCORECARD.md](docs/RUBRIC_SCORECARD.md)** for the judge-facing evidence map.
 
-The public system now has explicit boundaries between:
+The submission system has explicit boundaries between:
 
 1. **Data contracts** — node/edge schema validation and a single physical coordinate transform.
 2. **Detection** — microscopy-to-centroid preprocessing.
@@ -196,4 +203,4 @@ The intended contribution is a reproducible pipeline that moves from microscopy 
 2. Real-data phenotype visualization: integrated into the demo renderer.
 3. Lineage/division representation validation: added as a dedicated GitHub Actions benchmark.
 4. Final demo renderer: implemented with real microscopy, tracking, phenotype discovery, and validation summary.
-5. Remaining submission blockers: public repository visibility, final public-URL check, Kaggle upload, and final claim consistency review.
+5. Remaining submission blockers: required competition registration, public repository visibility, final public-URL check, final narrated demo video, Kaggle Writeup/technical-report submission, and final claim consistency review.

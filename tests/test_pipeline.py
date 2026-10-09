@@ -114,3 +114,26 @@ def test_pipeline_result_summary_is_machine_readable():
     assert summary["max_distance_um"] == 2.0
     assert summary["phenotype_schema_version"] == "trajectory-lineage-v1"
     assert result.config.tracking.max_distance_um == 2.0
+
+
+
+def test_pipeline_scales_phenotype_geometry_with_physical_voxel_size():
+    detections = pd.DataFrame(
+        [(0, 0.0, 0.0, 0.0), (1, 0.0, 0.0, 10.0)],
+        columns=["t", "z", "y", "x"],
+    )
+    result = TemporalPhenotypeEngine(
+        PipelineConfig(
+            tracking=TrackingConfig(
+                max_distance_um=2.0,
+                voxel_size_um=(1.0, 0.1, 0.1),
+            ),
+            phenotype_clusters=2,
+        )
+    ).run(detections)
+
+    row = result.phenotypes.iloc[0]
+    assert row["displacement"] == 1.0
+    assert row["path_length"] == 1.0
+    assert row["mean_speed"] == 1.0
+    assert result.nodes.iloc[-1]["x"] == 10.0

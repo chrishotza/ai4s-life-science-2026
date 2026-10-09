@@ -18,14 +18,26 @@ class TrackingConfig:
     max_frame_gap: int = 1
 
     def __post_init__(self) -> None:
-        if self.max_distance_um <= 0:
-            raise ValueError("max_distance_um must be positive")
-        if self.method not in {"mutual_nn", "mutual_nn_tree", "mutual_rescue", "hungarian", "velocity_hungarian", "gap_hungarian"}:
+        if not np.isfinite(self.max_distance_um) or self.max_distance_um <= 0:
+            raise ValueError("max_distance_um must be finite and positive")
+        if self.method not in {
+            "mutual_nn",
+            "mutual_nn_tree",
+            "mutual_rescue",
+            "hungarian",
+            "velocity_hungarian",
+            "gap_hungarian",
+        }:
             raise ValueError("unknown tracking method")
-        if len(self.voxel_size_um) != 3 or any(value <= 0 for value in self.voxel_size_um):
-            raise ValueError("voxel_size_um must contain three positive values")
-        if self.max_frame_gap < 1:
-            raise ValueError("max_frame_gap must be >= 1")
+        scale = np.asarray(self.voxel_size_um, dtype=float)
+        if scale.shape != (3,) or not np.isfinite(scale).all() or np.any(scale <= 0):
+            raise ValueError("voxel_size_um must contain three finite positive values")
+        if (
+            isinstance(self.max_frame_gap, (bool, np.bool_))
+            or not isinstance(self.max_frame_gap, (int, np.integer))
+            or self.max_frame_gap < 1
+        ):
+            raise ValueError("max_frame_gap must be a positive integer")
         if self.method != "gap_hungarian" and self.max_frame_gap != 1:
             raise ValueError("max_frame_gap > 1 requires gap_hungarian")
 
@@ -83,13 +95,13 @@ def _mutual_rescue_pairs(
     if not remaining_a or not remaining_b:
         return protected
 
-    d = _distance(a[remaining_a], b[remaining_b])
-    rows, cols = linear_sum_assignment(d)
     rescued = list(protected)
-    for ri, ci in zip(rows, cols):
-        distance = float(d[ri, ci])
-        if distance <= max_distance:
-            rescued.append((int(remaining_a[ri]), int(remaining_b[ci]), distance))
+    for ri, ci, distance in _hungarian_pairs(
+        a[remaining_a],
+        b[remaining_b],
+        max_distance,
+    ):
+        rescued.append((int(remaining_a[ri]), int(remaining_b[ci]), distance))
 
     rescued.sort(key=lambda item: (item[0], item[1]))
     return rescued
@@ -103,11 +115,18 @@ def _hungarian_pairs(
     if len(a) == 0 or len(b) == 0:
         return []
     d = _distance(a, b)
-    rows, cols = linear_sum_assignment(d)
+    valid = d <= max_distance
+
+    # Maximize admissible link count first, then minimize total distance.
+    # A single invalid assignment costs more than all valid costs combined.
+    max_pairs = min(d.shape)
+    cost = np.full(d.shape, float(max_pairs + 1), dtype=float)
+    cost[valid] = d[valid] / max_distance
+    rows, cols = linear_sum_assignment(cost)
     return [
         (int(i), int(j), float(d[i, j]))
         for i, j in zip(rows, cols)
-        if d[i, j] <= max_distance
+        if valid[i, j]
     ]
 
 
@@ -253,10 +272,17 @@ def track_detections(
     next_track = 0
     active: dict[int, int] = {}
     history: dict[int, list[tuple[int, np.ndarray]]] = {}
+    last_processed_time: float | None = None
 
     for t in sorted(df.t.unique()):
         cur_idx = df.index[df.t.eq(t)].to_numpy()
         cur_xyz = df.loc[cur_idx, ["z", "y", "x"]].to_numpy(float) * scale
+
+        # Only gap_hungarian may connect across missing frames.
+        current_time = float(t)
+        if last_processed_time is not None and current_time - last_processed_time != 1.0:
+            active = {}
+        last_processed_time = current_time
 
         if not active:
             for i in cur_idx:

@@ -2,12 +2,14 @@
 
 ## Evidence
 
-- [x] Public end-to-end pipeline
+- [x] Reproducible end-to-end pipeline (prepared for public release)
 - [x] Deterministic synthetic benchmark
 - [x] Quantitative tracking metrics
 - [x] Real CTC association benchmark
 - [x] Method/gating ablation
 - [x] Downstream phenotype preservation benchmark
+- [x] Cross-sequence image-to-tracking validation protocol
+- [x] CTC GT/SEG image-segmentation validation protocol
 - [x] End-to-end tracking-to-phenotype robustness benchmark
 - [x] Explicit architecture/data-contract layer
 - [x] CTC lineage/division representation validation
@@ -17,16 +19,27 @@
 - [x] Submission claim audit synchronized with CTC TRA/LNK values
 - [x] Technical report draft
 - [x] Kaggle Writeup draft
+- [x] Category declaration at start of Writeup
+- [x] 200–300 word Project Summary in Writeup
+- [x] Dataset/software provenance and licensing documented
+- [x] Development AI-tool provenance disclosed
 - [x] Five-minute demo script
 - [x] CI tests
 - [x] Docker reproduction path
+- [x] Judge-facing rubric evidence map
+
+## Official competition submission constraints
+
+Verified against the current Kaggle competition overview: the official submission is a Kaggle Writeup containing a public demo video, a publicly accessible code repository, and a technical report. Teams must also complete the required registration form before submission. The current preliminary-round window ends **October 10, 2026**. See: https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview
 
 ## Before submission
 
+- [ ] Complete the required competition registration form
 - [ ] Make competition repository public
 - [ ] Verify final public repository URL
+- [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Re-run CI on the final public commit
-- [ ] Confirm all benchmark scripts reproduce their published numbers
+- [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Add representative real-data visualization artifact
 - [x] Produce reproducible demo video renderer
 - [ ] Paste Kaggle Writeup
@@ -40,7 +53,7 @@
 - `main` contains the merged external CTC validation bridge.
 - Captured `py-ctcmetrics==1.3.3` results are documented for sequences 01 and 02.
 - Official Cell Tracking Challenge leaderboard scores remain explicitly unclaimed.
-- Repository visibility is still **private**; making it public is a separate submission action and has not been changed automatically.
+- Final repository visibility and URL must be verified immediately before submission.
 
 ## Claims policy
 

@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ai4s_io import ensure_ctc_dataset, load_ctc_tracking
+from ai4s_imaging import segment_frames
 from ai4s_phenotype import analyze, discover_phenotypes
 from ai4s_tracking import TrackingConfig, track_detections
 
@@ -80,6 +81,43 @@ def render_title(path: Path) -> None:
     plt.close(fig)
 
 
+
+def render_detection(image: np.ndarray, path: Path) -> None:
+    detections = segment_frames(
+        np.asarray(image)[None, ...],
+        threshold=None,
+        min_area=12,
+    )
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=120)
+    ax.imshow(normalize(image), cmap="gray")
+    if not detections.empty:
+        ax.scatter(
+            detections["x"],
+            detections["y"],
+            s=24,
+            facecolors="none",
+            edgecolors="white",
+            linewidth=0.8,
+        )
+    ax.set_axis_off()
+    ax.set_title(
+        "Stage 1 | Real microscopy → transparent baseline detection",
+        fontsize=13,
+    )
+    ax.text(
+        0.01,
+        0.02,
+        "Global percentile threshold + connected components | no reference centroids",
+        transform=ax.transAxes,
+        fontsize=9,
+        bbox=dict(facecolor="black", alpha=0.65, pad=4),
+        color="white",
+    )
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
 def render_frame(
     image: np.ndarray,
     tracks,
@@ -125,14 +163,28 @@ def render_frame(
 
 
 
+def physical_coordinates_for_phenotype(tracks):
+    """Convert pixel coordinates to micrometers before deriving motion features."""
+    physical = tracks.copy()
+    physical[["z", "y", "x"]] = (
+        physical[["z", "y", "x"]].to_numpy(dtype=float) * np.asarray(VOXEL, dtype=float)
+    )
+    return physical
+
+
 def render_phenotype(path: Path, tracks, edges) -> None:
-    phenotypes = analyze(tracks, edges)
-    if len(phenotypes) >= 3:
-        discovered = discover_phenotypes(phenotypes, n_clusters=3, random_state=17)
+    phenotypes = analyze(physical_coordinates_for_phenotype(tracks), edges)
+    eligible = phenotypes.loc[phenotypes["observations"] >= 3].copy()
+    if len(eligible) >= 3:
+        discovered = discover_phenotypes(
+            eligible,
+            n_clusters=min(3, len(eligible)),
+            random_state=17,
+        )
     else:
-        discovered = phenotypes.assign(
+        discovered = eligible.assign(
             phenotype_cluster=-1,
-            phenotype_cluster_name="insufficient_cells",
+            phenotype_cluster_name="insufficient_tracks",
         )
 
     fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(10, 7), dpi=120)
@@ -151,10 +203,27 @@ def render_phenotype(path: Path, tracks, edges) -> None:
             color=color,
         )
 
-    ax_left.set_xlabel("Mean speed")
+    ax_left.set_xlabel("Mean speed (µm/frame)")
     ax_left.set_ylabel("Directional persistence")
-    ax_left.set_title("Unsupervised temporal phenotypes")
-    ax_left.legend(loc="best", fontsize=8)
+    ax_left.set_title("Phenotypes (tracks with ≥3 observations)")
+    if not discovered.empty:
+        ax_left.legend(loc="best", fontsize=8)
+    else:
+        ax_left.text(
+            0.5,
+            0.5,
+            "Not enough trajectories with ≥3 observations",
+            transform=ax_left.transAxes,
+            ha="center",
+            va="center",
+        )
+    ax_left.text(
+        0.02,
+        0.02,
+        f"Excluded from this view: {len(phenotypes) - len(discovered)} short tracks",
+        transform=ax_left.transAxes,
+        fontsize=8,
+    )
     ax_left.grid(alpha=0.2)
 
     top = discovered.sort_values(
@@ -163,6 +232,8 @@ def render_phenotype(path: Path, tracks, edges) -> None:
     ax_right.axis("off")
     ax_right.text(0.02, 0.96, "Per-cell temporal phenotype", fontsize=17, weight="bold", va="top")
     y = 0.86
+    if top.empty:
+        ax_right.text(0.02, y, "No eligible trajectories", fontsize=11)
     for row in top.itertuples(index=False):
         label = str(row.phenotype_cluster_name)
         ax_right.text(
@@ -174,16 +245,39 @@ def render_phenotype(path: Path, tracks, edges) -> None:
         ax_right.text(
             0.05,
             y - 0.035,
-            f"speed={float(row.mean_speed):.3f}  "
+            f"speed={float(row.mean_speed):.3f} µm/frame  "
             f"persistence={float(row.directional_persistence):.3f}  "
-            f"duration={int(row.duration)}",
+            f"duration={int(row.duration)} frames",
             fontsize=9,
         )
         y -= 0.12
 
     fig.suptitle(
-        "Temporal phenotype layer  |  derived from tracked trajectories",
-        fontsize=15,
+        "Stage 3 | Temporal phenotype layer | physical units; short tracks excluded from discovery view",
+        fontsize=13,
+    )
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def render_cohort_effect(path: Path) -> None:
+    fig, ax = plt.subplots(figsize=(10, 7), dpi=120)
+    ax.set_axis_off()
+    ax.text(0.05, 0.86, "Stage 4 | Cohort effect layer", fontsize=24, weight="bold")
+    ax.text(0.05, 0.76, "Synthetic methodological validation", fontsize=15)
+    ax.text(0.07, 0.61, "Displacement", fontsize=18)
+    ax.text(0.07, 0.52, "treated − control", fontsize=14)
+    ax.text(0.70, 0.61, "+1.893 µm", fontsize=23, weight="bold", ha="center")
+    ax.text(0.70, 0.51, "95% bootstrap CI: [1.718, 2.062]", fontsize=13, ha="center")
+    ax.text(0.07, 0.36, "Standardized mean difference", fontsize=16)
+    ax.text(0.70, 0.36, "3.93", fontsize=22, weight="bold", ha="center")
+    ax.text(
+        0.05,
+        0.14,
+        "This validates the comparison method on known synthetic cohorts.\n"
+        "It is not a biological treatment result.",
+        fontsize=12,
     )
     fig.tight_layout()
     fig.savefig(path)
@@ -201,19 +295,21 @@ def render_summary(path: Path) -> None:
         ("Recall", "0.99322"),
         ("Trajectory coverage", "0.9451"),
         ("Persistence MAE", "0.0439"),
+        ("CTC TRA / LNK", "0.997315 / 0.979091"),
     ]
-    y = 0.63
+    y = 0.68
     for label, value in metrics:
-        ax.text(0.08, y, label, fontsize=17)
-        ax.text(0.70, y, value, fontsize=22, weight="bold", ha="center")
-        y -= 0.10
+        ax.text(0.08, y, label, fontsize=15)
+        ax.text(0.70, y, value, fontsize=18, weight="bold", ha="center")
+        y -= 0.082
 
     ax.text(
         0.05,
-        0.11,
-        "DIC-C2DH-HeLa sequence 01 | reference centroids used as detections\n"
-        "Association benchmark, not an end-to-end segmentation score.",
-        fontsize=11,
+        0.09,
+        "DIC-C2DH-HeLa sequence 01 | association-isolation validation\n"
+        "Reference centroids are used only for association; raw-image detection is shown separately.",
+        fontsize=9.5,
+        va="bottom",
     )
     fig.tight_layout()
     fig.savefig(path)
@@ -252,8 +348,14 @@ def main() -> None:
 
         title_path = tmp_path / "title.png"
         render_title(title_path)
+        detection_path = tmp_path / "detection.png"
+        mid_image = np.squeeze(tifffile.imread(images[min(len(images) - 1, len(images) // 2)]))
+        render_detection(mid_image, detection_path)
+
         phenotype_path = tmp_path / "phenotype.png"
         render_phenotype(phenotype_path, predicted, predicted_edges)
+        cohort_path = tmp_path / "cohort.png"
+        render_cohort_effect(cohort_path)
         summary_path = tmp_path / "summary.png"
         render_summary(summary_path)
 
@@ -266,12 +368,18 @@ def main() -> None:
             "-framerate", str(FPS),
             "-i", str(frame_dir / "frame_%04d.png"),
             "-loop", "1",
+            "-t", str(4),
+            "-i", str(detection_path),
+            "-loop", "1",
             "-t", str(6),
             "-i", str(phenotype_path),
             "-loop", "1",
+            "-t", str(4),
+            "-i", str(cohort_path),
+            "-loop", "1",
             "-t", str(5),
             "-i", str(summary_path),
-            "-filter_complex", "[0:v]fps=6[title];[2:v]fps=6[phenotype];[3:v]fps=6[summary];[title][1:v][phenotype][summary]concat=n=4:v=1:a=0[v]",
+            "-filter_complex", "[0:v]fps=6[title];[1:v]fps=6[track];[2:v]fps=6[detection];[3:v]fps=6[phenotype];[4:v]fps=6[cohort];[5:v]fps=6[summary];[title][track][detection][phenotype][cohort][summary]concat=n=6:v=1:a=0[v]",
             "-map", "[v]",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
@@ -286,4 +394,4 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# Render protocol v5: intro card + real microscopy + phenotype discovery + validation summary.
+# Render protocol v6: intro + real microscopy + phenotype + synthetic cohort-method validation + validation summary.

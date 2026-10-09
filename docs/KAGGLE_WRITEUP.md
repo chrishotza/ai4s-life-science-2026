@@ -1,5 +1,27 @@
 # Temporal Cellular Phenotype Engine
 
+## Submission Links
+
+**Category: End-to-End System**
+
+**Code repository:** https://github.com/chrishotza/ai4s-life-science-2026
+
+**Demo video:** The final public demo video link is inserted in the Kaggle Writeup at submission time; the reproducible renderer is `scripts/make_demo_video.py`.
+
+**Technical report:** This Writeup contains the submission report sections; the full technical report is also maintained at `docs/TECHNICAL_REPORT.md`.
+
+## Project Summary
+
+Time-lapse microscopy contains information about how cells move, persist, divide, and change over time, but many workflows stop at segmentation or tracking. The Temporal Cellular Phenotype Engine turns those trajectories into interpretable temporal phenotype profiles.
+
+The system integrates microscopy preprocessing, cell detection, deterministic 3-D temporal association, lineage/event inference, trajectory feature extraction, and unsupervised phenotype discovery. Tracking is treated as infrastructure; the scientific output is dynamic cellular behavior.
+
+For rigorous real-data measurement, the CTC experiment intentionally uses **reference centroids as detections** to isolate temporal association from segmentation. On DIC-C2DH-HeLa sequences 01 and 02, mutual-nearest-neighbor association with an 8.0 µm gate achieved **0.99135 mean precision, 0.99322 mean recall, and 0.99228 mean F1**. Downstream phenotype preservation on the same reference centroids achieved **0.9451 mean trajectory coverage, 1.0000 median coverage, and 0.0439 directional-persistence MAE**.
+
+The same association path was independently evaluated with pinned **py-ctcmetrics==1.3.3** using preserved reference object geometry: **sequence 01 TRA 0.997315 / LNK 0.979091; sequence 02 TRA 0.997207 / LNK 0.978239**. These are reference-geometry association-isolation results, not end-to-end segmentation or biological phenotype classification and **not official Cell Tracking Challenge leaderboard scores**. A no-oracle sensitivity control produced identical TRA/LNK values on both sequences.
+
+The contribution is a reproducible bridge from **microscopy → trajectories → interpretable temporal phenotype**.
+
 ## From cell tracking to dynamic phenotype
 
 ### Problem
@@ -20,7 +42,7 @@ The system is organized as an end-to-end pipeline:
 6. temporal phenotype extraction;
 7. unsupervised phenotype discovery.
 
-The public implementation is deliberately deterministic and reproducible.
+The submission implementation is deliberately deterministic and reproducible.
 
 ### What is novel about the submission
 
@@ -42,6 +64,10 @@ These features form a compact temporal phenotype profile that can be clustered i
 ### End-to-end implementation boundary
 
 The public engine provides a canonical image-to-phenotype path through baseline detection, while the real CTC experiment intentionally bypasses segmentation by using reference centroids. This separation makes the quantitative association result interpretable instead of presenting a centroid benchmark as an image-segmentation score.
+
+### Image-level validation track
+
+The submission now includes a separate cross-sequence holdout protocol that starts from the raw DIC-C2DH-HeLa microscopy rather than reference centroids. Detector settings are selected on one sequence and evaluated on the other. A second validation layer compares the transparent segmentation baseline against the available CTC GT/SEG instance annotations. These experiments are kept separate from the published association-isolation headline so that segmentation, tracking, and downstream phenotype evidence cannot be conflated.
 
 ### Real benchmark evidence
 
@@ -101,6 +127,8 @@ We also stress-tested the temporal association layer under controlled synthetic 
 At 5% dropout, mutual-nearest-neighbor tracking fragmented 24 reference tracks, while the experimental bounded-gap Hungarian branch fragmented only 1. At 10% dropout the counts were 29 versus 7, and at 15% dropout 30 versus 19.
 
 The corresponding phenotype-group ARI was also substantially better for the bounded-gap branch at 5% and 10% dropout (0.4879 vs -0.0184 and 0.3584 vs -0.0102). In the same runs, every measured gap link preserved reference identity.
+
+A separate real-data association-isolation benchmark on CTC PhC-C2DL-PSC tested a two-frame-window `gap_hungarian` candidate on reference centroids. Its mean pairwise trajectory-identity F1 was 0.77858 in a two-way sequence holdout, versus 0.76879 for velocity Hungarian, but identity precision was lower (0.73855 vs 0.82554). This is not image-derived tracking or biological validation, so the candidate remains experimental rather than replacing the default tracker; full method/gate results and the direction-specific holdout are in [docs/RESULTS.md](RESULTS.md).
 
 This branch remains experimental and is reported separately from the validated real-data CTC association result.
 

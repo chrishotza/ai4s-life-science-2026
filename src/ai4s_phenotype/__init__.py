@@ -7,6 +7,7 @@ from .discovery import (
     fit_phenotype_model,
 )
 from .phenotype import analyze
+from .cohort import CohortComparison, compare_cohorts
 
 __all__ = [
     "analyze",
@@ -14,4 +15,6 @@ __all__ = [
     "fit_phenotype_model",
     "PhenotypeDiscoveryModel",
     "FEATURE_SCHEMA_VERSION",
+    "CohortComparison",
+    "compare_cohorts",
 ]
