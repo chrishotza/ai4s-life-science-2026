@@ -161,7 +161,7 @@ These image-derived measurements are separate from the reference-centroid associ
 
 ### Supervised DIC-C2DH-HeLa holdout
 
-The completed two-way sequence holdout trained on one sequence and tested on the other. Across the held-out images, mean frame-wise instance F1 at IoU ≥ 0.5 was **0.09155**; the image-derived detection F1 was **0.37728**, and temporal-link F1 after image-derived detection was **0.09716**. This run completed successfully and uploaded [artifact 11604575839 from Actions run 37905245043](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37905245043/artifacts/11604575839).
+The completed two-way sequence holdout trained on one sequence and tested on the other. Across the held-out images, mean frame-wise instance F1 at IoU ≥ 0.5 was **0.09155**; the image-derived detection F1 was **0.37728**, and temporal-link F1 after image-derived detection was **0.09716**. This run completed successfully and uploaded [artifact 11605411442 from Actions run 37907638057](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907638057/artifacts/11605411442).
 
 These are weak end-to-end image-derived results. They show that the current supervised baseline does not yet reliably connect raw DIC images to tracks. The success status of the workflow means the benchmark completed, not that its accuracy is adequate.
 

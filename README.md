@@ -131,7 +131,7 @@ See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
 
 ### Image-derived performance status
 
-The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. These are weak diagnostic results, not competitive image-to-phenotype accuracy. A separate pretrained Cellpose-SAM run reached per-frame segmentation F1 **0.92903** on 40 frames of sequence 01 and **0.94621** on 14 of 40 frames of sequence 02, then was cancelled before the full benchmark and produced no aggregate artifact. Full protocols and boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
+The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. The [final main-branch benchmark artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907638057/artifacts/11605411442) contains the JSON results. These are weak diagnostic results, not competitive image-to-phenotype accuracy. A separate pretrained Cellpose-SAM run reached per-frame segmentation F1 **0.92903** on 40 frames of sequence 01 and **0.94621** on 14 of 40 frames of sequence 02, then was cancelled before the full benchmark and produced no aggregate artifact. Full protocols and boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
 
 
 ## Real benchmark
