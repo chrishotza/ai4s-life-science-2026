@@ -11,6 +11,8 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
+
 from sklearn.metrics import f1_score, balanced_accuracy_score, confusion_matrix
 
 from ai4s_phenotype import TemporalStateProbe
@@ -55,7 +57,10 @@ def evaluate(inputs: Path) -> dict:
                     "macro_f1":float(f1_score(
                         y[merged["sequence"]==seq],
                         p[merged["sequence"]==seq],
-                        labels=CLASSES,average="macro",zero_division=0))
+                        labels=CLASSES,average="macro",zero_division=0)),
+                    "confusion_matrix":confusion_matrix(
+                        y[merged["sequence"]==seq],p[merged["sequence"]==seq],
+                        labels=CLASSES).tolist()
                 } for seq in TEST
             },
             per_class_f1={
@@ -63,7 +68,29 @@ def evaluate(inputs: Path) -> dict:
                 for cls in CLASSES
             },
         )
+    # Bootstrap entire heldout sequences, not individual correlated cells.
+    # Posthoc descriptive interval: the ALFI corpus/MI hypothesis were explored.
+    rng = np.random.default_rng(20261009)
+    train_static = np.array([
+        results["static"]["per_sequence"][seq]["confusion_matrix"] for seq in TEST
+    ], dtype=float)
+    train_motion = np.array([
+        results["static_motion"]["per_sequence"][seq]["confusion_matrix"] for seq in TEST
+    ], dtype=float)
+    sampled = rng.integers(0, len(TEST), size=(10000, len(TEST)))
+    c_static = train_static[sampled].sum(axis=1)
+    c_motion = train_motion[sampled].sum(axis=1)
+    def macro_from_confusions(mat):
+        tp = np.diagonal(mat, axis1=-2, axis2=-1)
+        denom = mat.sum(axis=-1)+mat.sum(axis=-2)
+        return np.divide(2*tp, denom, out=np.zeros_like(tp),
+                         where=denom>0).mean(axis=-1)
+    bootstrap_deltas = macro_from_confusions(c_motion)-macro_from_confusions(c_static)
     return dict(
+        sequence_cluster_bootstrap_delta_macro_f1_95pct=[
+            float(x) for x in np.percentile(bootstrap_deltas,[2.5,97.5])
+        ],
+        bootstrap_resamples=10000,
         status="REAL_ALFI_ORACLE_BOX_BIOLOGICAL_LABELS_PRODUCT_PROBE",
         source="ALFI expert PhenoTruth, Antonelli et al, CC BY",
         train_sequences=list(TRAIN), test_sequences=list(TEST),
@@ -80,7 +107,8 @@ def evaluate(inputs: Path) -> dict:
             "microscopy. Static and motion variants use the deployed "
             "ai4s_phenotype.TemporalStateProbe and a frozen chronological-feature "
             "computation. Despite heldout sequences for this split, the ALFI "
-            "corpus and MI subgroup were analyzed earlier; these are not "
+            "corpus and MI subgroup were analyzed earlier; the bootstrap "
+            "interval does not correct for posthoc selection. These are not "
             "previously unseen confirmatory test sequences. No Kaggle score, "
             "full biological validation or image end-to-end claim."
         ),
