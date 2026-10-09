@@ -178,7 +178,7 @@ def framewise_match(
     predicted: pd.DataFrame,
     truth: pd.DataFrame,
     radius_px: float = MATCH_RADIUS_PX,
-) -> tuple[int, int, int, float, dict[int, int]]:
+) -> tuple[int, int, int, float | None, dict[int, int]]:
     pred_by_t = {int(t): g for t, g in predicted.groupby("t", sort=False)}
     truth_by_t = {int(t): g for t, g in truth.groupby("t", sort=False)}
     tp = fp = fn = 0
