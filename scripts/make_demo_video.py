@@ -163,14 +163,28 @@ def render_frame(
 
 
 
+def physical_coordinates_for_phenotype(tracks):
+    """Convert pixel coordinates to micrometers before deriving motion features."""
+    physical = tracks.copy()
+    physical[["z", "y", "x"]] = (
+        physical[["z", "y", "x"]].to_numpy(dtype=float) * np.asarray(VOXEL, dtype=float)
+    )
+    return physical
+
+
 def render_phenotype(path: Path, tracks, edges) -> None:
-    phenotypes = analyze(tracks, edges)
-    if len(phenotypes) >= 3:
-        discovered = discover_phenotypes(phenotypes, n_clusters=3, random_state=17)
+    phenotypes = analyze(physical_coordinates_for_phenotype(tracks), edges)
+    eligible = phenotypes.loc[phenotypes["observations"] >= 3].copy()
+    if len(eligible) >= 3:
+        discovered = discover_phenotypes(
+            eligible,
+            n_clusters=min(3, len(eligible)),
+            random_state=17,
+        )
     else:
-        discovered = phenotypes.assign(
+        discovered = eligible.assign(
             phenotype_cluster=-1,
-            phenotype_cluster_name="insufficient_cells",
+            phenotype_cluster_name="insufficient_tracks",
         )
 
     fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(10, 7), dpi=120)
@@ -189,10 +203,27 @@ def render_phenotype(path: Path, tracks, edges) -> None:
             color=color,
         )
 
-    ax_left.set_xlabel("Mean speed")
+    ax_left.set_xlabel("Mean speed (µm/frame)")
     ax_left.set_ylabel("Directional persistence")
-    ax_left.set_title("Unsupervised temporal phenotypes")
-    ax_left.legend(loc="best", fontsize=8)
+    ax_left.set_title("Phenotypes (tracks with ≥3 observations)")
+    if not discovered.empty:
+        ax_left.legend(loc="best", fontsize=8)
+    else:
+        ax_left.text(
+            0.5,
+            0.5,
+            "Not enough trajectories with ≥3 observations",
+            transform=ax_left.transAxes,
+            ha="center",
+            va="center",
+        )
+    ax_left.text(
+        0.02,
+        0.02,
+        f"Excluded from this view: {len(phenotypes) - len(discovered)} short tracks",
+        transform=ax_left.transAxes,
+        fontsize=8,
+    )
     ax_left.grid(alpha=0.2)
 
     top = discovered.sort_values(
@@ -201,6 +232,8 @@ def render_phenotype(path: Path, tracks, edges) -> None:
     ax_right.axis("off")
     ax_right.text(0.02, 0.96, "Per-cell temporal phenotype", fontsize=17, weight="bold", va="top")
     y = 0.86
+    if top.empty:
+        ax_right.text(0.02, y, "No eligible trajectories", fontsize=11)
     for row in top.itertuples(index=False):
         label = str(row.phenotype_cluster_name)
         ax_right.text(
@@ -212,16 +245,16 @@ def render_phenotype(path: Path, tracks, edges) -> None:
         ax_right.text(
             0.05,
             y - 0.035,
-            f"speed={float(row.mean_speed):.3f}  "
+            f"speed={float(row.mean_speed):.3f} µm/frame  "
             f"persistence={float(row.directional_persistence):.3f}  "
-            f"duration={int(row.duration)}",
+            f"duration={int(row.duration)} frames",
             fontsize=9,
         )
         y -= 0.12
 
     fig.suptitle(
-        "Stage 3 | Temporal phenotype layer  |  derived from tracked trajectories",
-        fontsize=15,
+        "Stage 3 | Temporal phenotype layer | physical units; short tracks excluded from discovery view",
+        fontsize=13,
     )
     fig.tight_layout()
     fig.savefig(path)
@@ -264,18 +297,19 @@ def render_summary(path: Path) -> None:
         ("Persistence MAE", "0.0439"),
         ("CTC TRA / LNK", "0.997315 / 0.979091"),
     ]
-    y = 0.63
+    y = 0.68
     for label, value in metrics:
-        ax.text(0.08, y, label, fontsize=17)
-        ax.text(0.70, y, value, fontsize=22, weight="bold", ha="center")
-        y -= 0.10
+        ax.text(0.08, y, label, fontsize=15)
+        ax.text(0.70, y, value, fontsize=18, weight="bold", ha="center")
+        y -= 0.082
 
     ax.text(
         0.05,
-        0.11,
+        0.09,
         "DIC-C2DH-HeLa sequence 01 | association-isolation validation\n"
-        "Reference centroids are used only for the association benchmark; raw-image detection is shown separately.",
-        fontsize=11,
+        "Reference centroids are used only for association; raw-image detection is shown separately.",
+        fontsize=9.5,
+        va="bottom",
     )
     fig.tight_layout()
     fig.savefig(path)
