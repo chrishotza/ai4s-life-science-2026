@@ -2,6 +2,11 @@ name: Demo Video
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'video/**'
+    paths:
+      - '.github/workflows/demo-video.yml'
 
 jobs:
   render:
