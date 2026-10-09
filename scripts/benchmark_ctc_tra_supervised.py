@@ -76,8 +76,8 @@ def marker_overlap_match(
     instance coverage but poor cell-boundary information. Their pixel regions
     must not be treated as full-cell masks, and their own region centroids are
     not expected to equal the centroid of a predicted whole-cell mask.
-    A predicted instance is detected when it covers at least one marker pixel;
-    Hungarian assignment enforces one-to-one marker/instance matching.
+    A predicted instance is detected only when it covers more than half of the
+    reference marker pixels. Hungarian assignment enforces one-to-one matching.
     """
     required = {"node_id", "track_id", "t"}
     if required - set(truth.columns):
@@ -126,11 +126,21 @@ def marker_overlap_match(
                 if int(label_id) > 0 and column is not None:
                     overlap[i, column] = float(count)
 
-        rows, cols = linear_sum_assignment(overlap, maximize=True)
+        marker_sizes = np.asarray(
+            [float(np.count_nonzero(marker_mask == int(track_id))) for track_id in truth_ids],
+            dtype=np.float64,
+        )
+        coverage = np.divide(
+            overlap,
+            marker_sizes[:, None],
+            out=np.zeros_like(overlap),
+            where=marker_sizes[:, None] > 0,
+        )
+        rows, cols = linear_sum_assignment(coverage, maximize=True)
         matched = [
             (int(row), int(col))
             for row, col in zip(rows, cols)
-            if overlap[row, col] > 0
+            if coverage[row, col] > 0.5
         ]
         tp += len(matched)
         fp += len(p) - len(matched)
