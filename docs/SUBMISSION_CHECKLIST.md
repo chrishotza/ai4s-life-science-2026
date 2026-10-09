@@ -38,7 +38,7 @@ Verified against the current Kaggle competition overview: the official submissio
 - [x] Make competition repository public
 - [x] Verify final public repository URL (public GitHub repository confirmed)
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
-- [x] Re-run CI on the final public code/documentation commit (GitHub Actions run recorded below)
+- [x] Re-run CI on the final public code/documentation commit (GitHub Actions run triggered on this commit)
 - [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Add representative real-data visualization artifact
 - [x] Produce reproducible demo video renderer
