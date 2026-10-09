@@ -19,12 +19,12 @@ from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tr
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 from benchmark_ctc_image_e2e import image_files
 from benchmark_ctc_tra_supervised import (
-    CENTER_RADIUS_PX,
     MAX_DISTANCE_UM,
-    centroid_match,
     f1_from_counts,
     frame_index,
     iou_matrix,
+    keyed_track_masks,
+    marker_overlap_match,
     segmentation_score,
     truth_edges,
 )
@@ -158,9 +158,12 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
             voxel_size_um=DIC_C2DH_HELA_VOXEL_SIZE_UM,
         ),
     )
-    tp, fp, fn, node_mapping = centroid_match(
+    gt_track_masks = keyed_track_masks(root, sequence)
+    tp, fp, fn, node_mapping = marker_overlap_match(
         tracked,
         truth_nodes[["node_id", "track_id", "t", "z", "y", "x"]],
+        dict(zip(eval_times, predicted_masks)),
+        gt_track_masks,
     )
     detection_metrics = f1_from_counts(tp, fp, fn)
     truth_edge_df = truth_edges(truth_nodes)
@@ -248,7 +251,7 @@ def main() -> None:
             "training_window": f"frames 0-{TEST_START_FRAME - 1}",
             "evaluation_window": f"frames {TEST_START_FRAME}-{TEST_START_FRAME + TEST_FRAME_COUNT - 1}",
             "segmentation_metric": "one-to-one instance IoU >= 0.5",
-            "detection_metric": f"one-to-one centroid distance <= {CENTER_RADIUS_PX} px",
+            "detection_metric": "one-to-one predicted-instance overlap with complete-coverage CTC GT/TRA marker pixels",
             "edge_metric": "image-derived temporal links matched to CTC TRA identities",
             "gold_shape_check": "GT/SEG sparse annotated objects only; no false-positive accounting on unlabeled cells",
             "quality_gate_thresholds": {
@@ -259,7 +262,9 @@ def main() -> None:
             },
             "claim_boundary": (
                 "Same-sequence future-frame holdout, with segmentation GT/SEG labels and "
-                "TRA used only for identity/link scoring. Not an official CTC leaderboard score "
+                "TRA used only for identity/link scoring, with detection evaluated by overlap between "
+                "predicted cell instances and gold tracking-marker pixels (not centroid-to-cell-centroid "
+                "distance). Not an official CTC leaderboard score "
                 "or validation of biological phenotype labels."
             ),
         },
