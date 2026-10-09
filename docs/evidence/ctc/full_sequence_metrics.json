@@ -1,0 +1,35 @@
+{
+  "status": "verbatim_aggregate_and_sequence_metrics_from_verified_workflow_artifact",
+  "dataset": "CTC DIC-C2DH-HeLa",
+  "model": "CellposeSAM-v2 pretrained; product temporal phenotype pipeline",
+  "sequence_count": 2,
+  "frames_per_sequence": 84,
+  "total_frames": 168,
+  "source_workflow_run_id": 37930909373,
+  "source_commit": "ffc135c56fb5adcf2d23bcf4e8461ba284dcc870",
+  "source_results_sha256": "354d518ec48a970ee9b9695bacd12e381802317ed5b9c1be96a1eb389f19a53f",
+  "source_url": "https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373",
+  "aggregate": {
+    "mean_segmentation_f1_iou50": 0.935436011696652,
+    "mean_detection_f1": 0.9683949158295722,
+    "mean_tracking_edge_f1": 0.9808198272802555
+  },
+  "per_sequence": {
+    "01": {
+      "n_frames": 84,
+      "segmentation_f1_iou50": 0.9198195352657066,
+      "detection_f1": 0.9532467532467532,
+      "tracking_edge_f1": 0.9803738317757009,
+      "phenotype_profiles": 79
+    },
+    "02": {
+      "n_frames": 84,
+      "segmentation_f1_iou50": 0.9510524881275975,
+      "detection_f1": 0.9835430784123912,
+      "tracking_edge_f1": 0.9812658227848101,
+      "phenotype_profiles": 47
+    }
+  },
+  "claim_boundary": "Image-derived internal CTC evaluation; GT used for scoring, not input detections. Not official CTC or Kaggle leaderboard scoring. No independently confirmed biological phenotypes.",
+  "license_note": "Raw microscopy not redistributed; source dataset and pretrained model weights subject to their own terms."
+}
