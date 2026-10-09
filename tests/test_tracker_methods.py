@@ -173,6 +173,8 @@ def test_tracking_rejects_invalid_detection_inputs_before_association(
         [(0, 0.0, 0.0, 0.0), (1, 0.0, 0.0, 1.0)],
         columns=["t", "z", "y", "x"],
     )
+    if isinstance(value, str):
+        detections[column] = detections[column].astype(object)
     detections.loc[1, column] = value
 
     with pytest.raises(ValueError, match=message):
