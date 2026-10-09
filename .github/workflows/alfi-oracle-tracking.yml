@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - ".github/workflows/alfi-oracle-tracking.yml"
+      - "scripts/benchmark_alfi_oracle_tracking.py"
+      - "tests/test_alfi_oracle_tracking.py"
   workflow_dispatch:
 
 permissions:
