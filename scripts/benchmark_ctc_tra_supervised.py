@@ -50,6 +50,97 @@ def keyed_masks(root: Path, sequence: str) -> dict[int, Path]:
     return output
 
 
+def keyed_track_masks(root: Path, sequence: str) -> dict[int, Path]:
+    """Load complete-coverage gold tracking marker masks, keyed by frame."""
+    paths = sorted((root / f"{sequence}_GT" / "TRA").glob("man_track*.tif"))
+    output: dict[int, Path] = {}
+    for path in paths:
+        index = frame_index(path)
+        if index in output:
+            raise ValueError(f"Duplicate tracking-marker frame {index} for sequence {sequence}")
+        output[index] = path
+    if not output:
+        raise FileNotFoundError(f"No CTC GT/TRA masks for sequence {sequence}")
+    return output
+
+
+def marker_overlap_match(
+    tracked: pd.DataFrame,
+    truth: pd.DataFrame,
+    predicted_masks_by_time: dict[int, np.ndarray],
+    marker_masks_by_time: dict[int, Path],
+) -> tuple[int, int, int, dict[int, int]]:
+    """Match predicted cell instances to CTC gold tracking markers by pixel overlap.
+
+    CTC GT/TRA annotations are manually placed tracking markers with complete
+    instance coverage but poor cell-boundary information. Their pixel regions
+    must not be treated as full-cell masks, and their own region centroids are
+    not expected to equal the centroid of a predicted whole-cell mask.
+    A predicted instance is detected when it covers at least one marker pixel;
+    Hungarian assignment enforces one-to-one marker/instance matching.
+    """
+    required = {"node_id", "track_id", "t"}
+    if required - set(truth.columns):
+        raise ValueError(f"truth nodes missing columns: {sorted(required - set(truth.columns))}")
+    if "instance_id" not in tracked.columns:
+        raise ValueError("tracked predictions must preserve instance_id from segmentation output")
+
+    p_groups = {int(t): g for t, g in tracked.groupby("t", sort=False)}
+    g_groups = {int(t): g for t, g in truth.groupby("t", sort=False)}
+    tp = fp = fn = 0
+    mapping: dict[int, int] = {}
+
+    for t in sorted(set(p_groups) | set(g_groups)):
+        p = p_groups.get(t, pd.DataFrame(columns=tracked.columns))
+        g = g_groups.get(t, pd.DataFrame(columns=truth.columns))
+        if p.empty:
+            fn += len(g)
+            continue
+        if g.empty:
+            fp += len(p)
+            continue
+        if t not in predicted_masks_by_time or t not in marker_masks_by_time:
+            raise ValueError(f"Missing predicted or GT/TRA mask for evaluated frame {t}")
+
+        predicted_mask = np.asarray(predicted_masks_by_time[t])
+        marker_mask = np.squeeze(tifffile.imread(marker_masks_by_time[t]))
+        if predicted_mask.ndim != 2 or marker_mask.ndim != 2:
+            raise ValueError(f"Expected 2-D masks at frame {t}")
+        if predicted_mask.shape != marker_mask.shape:
+            raise ValueError(
+                f"Predicted/marker mask shape mismatch at frame {t}: "
+                f"{predicted_mask.shape} vs {marker_mask.shape}"
+            )
+
+        predicted_ids = p["instance_id"].astype(int).to_numpy()
+        truth_ids = g["track_id"].astype(int).to_numpy()
+        predicted_column = {int(label_id): j for j, label_id in enumerate(predicted_ids)}
+        overlap = np.zeros((len(g), len(p)), dtype=np.float64)
+        for i, track_id in enumerate(truth_ids):
+            marker_pixels = marker_mask == int(track_id)
+            if not marker_pixels.any():
+                continue
+            labels, counts = np.unique(predicted_mask[marker_pixels], return_counts=True)
+            for label_id, count in zip(labels, counts):
+                column = predicted_column.get(int(label_id))
+                if int(label_id) > 0 and column is not None:
+                    overlap[i, column] = float(count)
+
+        rows, cols = linear_sum_assignment(overlap, maximize=True)
+        matched = [
+            (int(row), int(col))
+            for row, col in zip(rows, cols)
+            if overlap[row, col] > 0
+        ]
+        tp += len(matched)
+        fp += len(p) - len(matched)
+        fn += len(g) - len(matched)
+        for row, col in matched:
+            mapping[int(p.iloc[col]["node_id"])] = int(g.iloc[row]["node_id"])
+
+    return tp, fp, fn, mapping
+
+
 def label_centers(labels: np.ndarray) -> np.ndarray:
     centers = []
     for label_id in np.unique(labels):
