@@ -17,11 +17,13 @@ from ai4s_io import (
     load_ctc_tracking,
 )
 from ai4s_tracking import link_metrics
+from ai4s_tracking import TrackingConfig, track_detections
 from ai4s_tracking.tracker import _assign_pairs, _hungarian_pairs
 
 DISTANCES_UM = (1.6, 3.2, 4.8, 6.4, 8.0, 9.6, 12.8, 16.0)
 SEQUENCES = ("01", "02")
-METHODS = ("mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian")
+METHODS = ("mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian", "gap_hungarian")
+GAP_MAX_FRAME_GAP = 2
 
 
 def link_sets(
@@ -81,6 +83,19 @@ def fast_track_detections(
         ordered["track_id"] = pd.Series(dtype="int64")
         return ordered, pd.DataFrame(
             columns=["source_id", "target_id", "distance_um", "link_confidence", "edge_type"]
+        )
+
+    if method == "gap_hungarian":
+        # Use the production implementation for bounded-gap linking so this
+        # experiment validates the shipped algorithm rather than a second copy.
+        return track_detections(
+            ordered.drop(columns=["node_id"], errors="ignore"),
+            TrackingConfig(
+                max_distance_um=max_distance_um,
+                method="gap_hungarian",
+                voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
+                max_frame_gap=GAP_MAX_FRAME_GAP,
+            ),
         )
 
     scale = np.asarray(PHC_C2DL_PSC_VOXEL_SIZE_UM, dtype=float)
@@ -248,7 +263,23 @@ def evaluate_sequence(dataset_root: Path, sequence: str) -> list[dict[str, objec
                 max_distance_um=distance_um,
                 method=method,
             )
-            _, predicted_edge_set = link_sets(truth_edge_nodes, predicted_edges)
+            edge_rows = predicted_edges
+            gap_links = 0
+            if method == "gap_hungarian" and not predicted_edges.empty:
+                # Adjacent-frame edge F1 remains comparable across methods.
+                # Bounded-gap edges are counted separately, while their
+                # successful identity recovery is reflected in track metrics.
+                source_t = predicted_nodes.iloc[
+                    predicted_edges["source_id"].astype(int)
+                ]["t"].to_numpy(dtype=int)
+                target_t = predicted_nodes.iloc[
+                    predicted_edges["target_id"].astype(int)
+                ]["t"].to_numpy(dtype=int)
+                frame_gaps = target_t - source_t
+                gap_links = int(np.count_nonzero(frame_gaps > 1))
+                edge_rows = predicted_edges.loc[frame_gaps == 1]
+
+            _, predicted_edge_set = link_sets(truth_edge_nodes, edge_rows)
             edge_metrics = score(truth_edges, predicted_edge_set)
             identity_metrics = trajectory_identity_metrics(predicted_nodes)
             rows.append(
@@ -257,6 +288,8 @@ def evaluate_sequence(dataset_root: Path, sequence: str) -> list[dict[str, objec
                     "sequence": sequence,
                     "method": method,
                     "max_distance_um": distance_um,
+                    "max_frame_gap": GAP_MAX_FRAME_GAP if method == "gap_hungarian" else 1,
+                    "gap_links": gap_links,
                     "voxel_size_um": PHC_C2DL_PSC_VOXEL_SIZE_UM,
                     "detections": int(len(detections)),
                     "ground_truth_tracks": int(metadata["track_id"].nunique()),
@@ -330,6 +363,7 @@ def main() -> None:
             "mean_identity_recall": float(frame["identity_recall"].mean()),
             "mean_identity_f1": float(frame["identity_f1"].mean()),
             "mean_track_count_ratio": float(frame["track_count_ratio"].mean()),
+            "mean_gap_links": float(frame["gap_links"].mean()) if "gap_links" in frame else 0.0,
         }
 
     fixed_by_method = {
@@ -353,6 +387,7 @@ def main() -> None:
             "voxel_size_um": PHC_C2DL_PSC_VOXEL_SIZE_UM,
             "input": "CTC reference track centroids as detections",
             "methods": list(METHODS),
+            "gap_hungarian_max_frame_gap": GAP_MAX_FRAME_GAP,
             "distance_sweep_um": list(DISTANCES_UM),
             "selection": (
                 "cross-sequence gate selection; maximize pairwise trajectory identity F1 on one "
