@@ -86,13 +86,13 @@ The repository contains deterministic microscopy-like image generators and traje
 
 ### 4.2 Cell Tracking Challenge
 
-The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time microscopy datasets, including reference tracking annotations and lineage metadata. The repository includes an adapter for `man_track*.tif` and `man_track.txt` data.
+The Cell Tracking Challenge publishes freely downloadable 2D+time and 3D+time microscopy datasets, including reference tracking annotations and lineage metadata. The repository includes adapters for `man_track*.tif` and `man_track.txt` data.
 
-**Data provenance and use conditions:** the DIC-C2DH-HeLa training archive used here is distributed through the official Cell Tracking Challenge dataset repository: https://celltrackingchallenge.net/2d-datasets/ . The repository downloads the training archive transiently for reproduction and does not redistribute the microscopy data or reference annotations. The Cell Tracking Challenge instructs users to review its image-use conditions before download or reuse; the final submission should preserve that provenance and comply with those conditions.
+**Primary dataset — DIC-C2DH-HeLa:** the training archive used for the primary association, image-mask, and phenotype-preservation experiments is distributed through the official Cell Tracking Challenge dataset repository: https://celltrackingchallenge.net/2d-datasets/ .
 
-### 4.3 Secondary validation scope
+**Secondary dataset — PhC-C2DL-PSC:** the repository also downloads the official phase-contrast pancreatic stem-cell training archive from https://data.celltrackingchallenge.net/training-datasets/PhC-C2DL-PSC.zip . Its image sampling differs from DIC-C2DH-HeLa; the adapter uses the documented 1.6 µm in-plane pixel scale and 10-minute frame interval. It is included as a cross-dataset temporal-association generalization test using reference track centroids as observations, not as an image-level detector, independent biological-perturbation validation, or phenotype-label benchmark.
 
-No secondary Organ-on-a-Chip dataset is used in the reported quantitative results. The validated real-data evidence in this submission is based on the DIC-C2DH-HeLa sequences described above.
+The repository downloads both training archives transiently for reproduction and does not redistribute microscopy data or reference annotations. See the official CTC annotation descriptions at https://celltrackingchallenge.net/annotations/ and its use conditions at https://celltrackingchallenge.net/2d-datasets/ .
 
 ## 5. Experimental design
 
@@ -158,6 +158,20 @@ The selected 8.0 µm mutual-nearest-neighbor path was exported with the CTC refe
 | 02 | **0.997207** | **0.978239** | 33.0 | 11816.5 |
 
 These measurements are **reference-geometry association-isolation evidence**. They are not segmentation scores, not biological lineage validation, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains separate. A separate no-oracle sensitivity control removed all reference parent edges and produced the same TRA/LNK values, strengthening the interpretation that these metrics are not driven by reference lineage metadata in this benchmark.
+
+### Cross-dataset association and trajectory-identity validation
+
+A second association benchmark tests transfer of the tracking configuration from DIC microscopy to the phase-contrast PhC-C2DL-PSC dataset. It uses public CTC reference track centroids as detections so the evaluation asks a narrow question: does temporal association preserve annotated identities when imaging domain, cell type, pixel scale, and frame cadence differ?
+
+The benchmark reports two complementary metric families. **Temporal edge precision/recall/F1** measures whether adjacent-frame links are recovered. **Pairwise trajectory-identity precision/recall/F1** measures whether pairs of observations assigned to the same predicted track also belong to the same annotated reference track. This directly penalizes merging multiple reference tracks into one predicted track and fragmenting one reference track across several predicted identities. The output also includes predicted/reference track-count ratio, merged-track count, and fragmented-reference-track count.
+
+The canonical 8.0 µm gate is reported as a fixed-gate control. A separate two-way sequence holdout selects the gate on one sequence by pairwise identity F1 (edge F1 and identity precision are tie-breakers) and evaluates that gate on the other sequence. This keeps gate selection distinct from the held-out result. These scores remain reference-centroid association-isolation metrics, not image segmentation, autonomous lineage discovery, or biological phenotype classification. They must not be combined with the DIC results as if they were one dataset or treated as official CTC leaderboard scores.
+
+Reproduce with:
+
+    python scripts/benchmark_ctc_phc_psc_association.py
+
+GitHub Actions workflow: `.github/workflows/ctc-cross-domain.yml`. This protocol is designed to expose a limitation of edge F1 alone: a high recovered-link score can coexist with an incorrect track partition.
 
 ### Downstream temporal phenotype preservation
 
