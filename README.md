@@ -133,6 +133,8 @@ These values are independently reproduced CTC-metrics evidence, not end-to-end s
 
 The experimental bounded-gap Hungarian branch was evaluated separately under controlled synthetic dropout. At 5%, 10%, and 15% dropout it reduced fragmented reference tracks from 24/29/30 with the MNN baseline to 1/7/19 respectively, while preserving reference identity for every measured gap link in those runs. The corresponding phenotype-group ARI was 0.4879, 0.3584, and -0.0114 for the gap branch versus -0.0184, -0.0102, and 0.0007 for MNN.
 
+A separate CTC PhC-C2DL-PSC reference-centroid benchmark found mean cross-sequence trajectory-identity F1 of 0.77858 for the experimental two-frame-window `gap_hungarian` candidate versus 0.76879 for velocity Hungarian. Its identity precision is lower (0.73855 vs 0.82554), so it remains experimental and is not the default tracker; these results do not evaluate raw-image segmentation. See [docs/RESULTS.md](docs/RESULTS.md).
+
 This is computational stress-test evidence only; the bounded-gap branch remains experimental and does not replace the validated 8.0 µm MNN real-data result.
 
 The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.

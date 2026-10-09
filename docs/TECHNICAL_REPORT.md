@@ -165,7 +165,27 @@ A second association benchmark tests transfer of the tracking configuration from
 
 The benchmark reports two complementary metric families. **Temporal edge precision/recall/F1** measures whether adjacent-frame links are recovered. **Pairwise trajectory-identity precision/recall/F1** measures whether pairs of observations assigned to the same predicted track also belong to the same annotated reference track. This directly penalizes merging multiple reference tracks into one predicted track and fragmenting one reference track across several predicted identities. The output also includes predicted/reference track-count ratio, merged-track count, and fragmented-reference-track count.
 
-The canonical 8.0 µm gate is reported as a fixed-gate control. A separate two-way sequence holdout selects the gate on one sequence by pairwise identity F1 (edge F1 and identity precision are tie-breakers) and evaluates that gate on the other sequence. This keeps gate selection distinct from the held-out result. These scores remain reference-centroid association-isolation metrics, not image segmentation, autonomous lineage discovery, or biological phenotype classification. They must not be combined with the DIC results as if they were one dataset or treated as official CTC leaderboard scores.
+The canonical 8.0 µm gate is reported as a fixed-gate control. A separate two-way sequence holdout selects a gate on one sequence by pairwise identity F1 (edge F1 and identity precision are tie-breakers), then evaluates that gate on the other sequence. The benchmark also evaluates the production `gap_hungarian` candidate with `max_frame_gap=2` (a single missing observation may be bridged). Gap-spanning links are reported separately and excluded from the adjacent-frame edge metric so they cannot artificially improve it.
+
+| Method (fixed 8.0 µm gate) | Adjacent-edge F1 | Identity precision | Identity recall | Pairwise identity F1 | Track-count ratio | Mean gap links/sequence |
+|---|---:|---:|---:|---:|---:|---:|
+| Mutual NN | 0.98836 | 0.80325 | 0.73643 | 0.75560 | 1.7116 | 0 |
+| Mutual rescue | 0.98836 | 0.80327 | 0.73680 | 0.75576 | 1.7108 | 0 |
+| Hungarian | 0.98749 | 0.81056 | 0.71848 | 0.75042 | 1.8197 | 0 |
+| Velocity Hungarian | 0.98702 | 0.82554 | 0.72016 | 0.76879 | 1.7339 | 0 |
+| Gap Hungarian (2-frame window) | 0.99111 | 0.73855 | 0.82420 | **0.77858** | **1.3190** | 112 |
+
+The two-direction cross-sequence holdout gave these identity F1 values (gate selected on the first sequence, measured on the second):
+
+| Method | Train 01 → test 02 (gate; identity F1) | Train 02 → test 01 (gate; identity F1) | Mean identity F1 |
+|---|---:|---:|---:|
+| Mutual NN | 6.4 µm; 0.75592 | 8.0 µm; 0.75528 | 0.75560 |
+| Mutual rescue | 6.4 µm; 0.75592 | 8.0 µm; 0.75560 | 0.75576 |
+| Hungarian | 6.4 µm; 0.74831 | 8.0 µm; 0.75253 | 0.75042 |
+| Velocity Hungarian | 8.0 µm; 0.77332 | 8.0 µm; 0.76427 | 0.76879 |
+| Gap Hungarian (2-frame window) | 8.0 µm; **0.79346** | 8.0 µm; 0.76371 | **0.77858** |
+
+The gap candidate increases mean pairwise identity F1 by 0.0098 over velocity Hungarian and reduces the predicted/reference track-count ratio from 1.7339 to 1.3190. It trades precision for recall (0.7385 vs 0.8255 identity precision; 0.8242 vs 0.7202 identity recall) and the improvement is asymmetric across the two holdout directions. Therefore `gap_hungarian` remains an experimental candidate, not the production default. All values above use CTC reference centroids as observations. They do not measure image detection/segmentation, automatic lineage discovery, biological phenotype classification, or official CTC leaderboard performance. The PSC scores must not be combined with the DIC results as if they were one dataset.
 
 Reproduce with:
 
