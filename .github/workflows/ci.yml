@@ -27,5 +27,11 @@ jobs:
         run: python scripts/benchmark_phenotype_stability.py
       - name: End-to-end phenotype robustness benchmark
         run: python scripts/benchmark_end_to_end_phenotype.py
+      - name: Confidence-gated phenotype artifact
+        run: |
+          python scripts/generate_confidence_gated_ctc_summary.py \
+            --output /tmp/confidence_gated_phenotype_summary.json
+          cmp /tmp/confidence_gated_phenotype_summary.json \
+            docs/evidence/ctc/confidence_gated_phenotype_summary.json
       - name: Submission claim audit
         run: python scripts/validate_submission_claims.py
