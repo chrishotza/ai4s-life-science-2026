@@ -241,11 +241,17 @@ def analyze(
 
     result["phenotype_flag"] = np.select(
         [
+            result["observations"] < 3,
             result["division_event"],
             result["directional_persistence"] < 0.35,
             result["mean_speed"] > result["mean_speed"].median(),
         ],
-        ["division", "highly_non_directional", "high_mobility"],
+        [
+            "insufficient_temporal_evidence",
+            "division",
+            "highly_non_directional",
+            "high_mobility",
+        ],
         default="stable_or_unclassified",
     )
     return result
