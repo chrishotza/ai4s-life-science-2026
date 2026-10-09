@@ -52,7 +52,8 @@ def run(inputs: Path, out: Path, variant: str):
         if not set(np.unique(y)) <= {0,128,255}:
             raise ValueError("Unexpected expert mask code")
         if config["downsample"]:
-            x=x[::2,::2];y=y[::2,::2]
+            x=x[::2,::2]
+            y=y[::2,::2]
         x=x.astype(np.float32)
         prediction=model.predict_instances(x)
         semantic=semantic_metrics(y,prediction)
