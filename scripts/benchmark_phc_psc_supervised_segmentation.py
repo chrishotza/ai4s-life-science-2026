@@ -269,7 +269,7 @@ def evaluate_holdout(
         "train_sequence": train_sequence,
         "test_sequence": test_sequence,
         "train_frames_used": train_frames_used,
-        "test_frames_evaluated": int(len(seg_paths)),
+        "test_annotated_frames_available": int(len(seg_paths)),
         "test_frames_sampled": int(len(selected)),
         "training_samples_per_class_cap_per_frame": SAMPLE_PER_CLASS,
         "model": {
