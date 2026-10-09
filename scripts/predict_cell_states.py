@@ -27,9 +27,7 @@ def run(train_csv: Path, input_csv: Path, out: Path,
         *, feature_set: str = "static_motion") -> dict:
     train=pd.read_csv(train_csv)
     test=pd.read_csv(input_csv)
-    missing_train=set(REQUIRED)|{"label"}-set(train.columns)
     missing_test=set(REQUIRED)-set(test.columns)
-    # Parenthesized unions are essential for the training required field set.
     missing_train=(set(REQUIRED)|{"label"})-set(train.columns)
     if missing_train or missing_test:
         raise ValueError(f"Missing train fields {sorted(missing_train)}, "
