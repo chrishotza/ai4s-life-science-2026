@@ -71,7 +71,7 @@ jobs:
               },
           }
           Path("phc_psc_supervised_segmentation_provenance.json").write_text(
-              json.dumps(record, indent=2) + "\\n",
+              json.dumps(record, indent=2) + "\n",
               encoding="utf-8",
           )
           print(json.dumps(record, indent=2))
