@@ -11,13 +11,13 @@
     <text x="64" y="192" fill="#66768a" font-size="13">CTC reference centroids isolate tracking</text>
     <text x="64" y="210" fill="#66768a" font-size="13">association from image segmentation.</text>
     <text x="64" y="260" fill="#263b55" font-size="14">Sequence 01 · F1</text>
-    <rect x="64" y="274" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="64" y="274" width="284" height="18" rx="9" fill="#2878b5"/>
-    <text x="350" y="289" fill="#163b66" font-size="14" font-weight="700" text-anchor="end">0.99308</text>
+    <rect x="64" y="274" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="64" y="274" width="218" height="18" rx="9" fill="#2878b5"/>
+    <text x="300" y="289" fill="#163b66" font-size="14" font-weight="700" text-anchor="end">0.99308</text>
     <text x="64" y="324" fill="#263b55" font-size="14">Sequence 02 · F1</text>
-    <rect x="64" y="338" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="64" y="338" width="284" height="18" rx="9" fill="#2878b5"/>
-    <text x="350" y="353" fill="#163b66" font-size="14" font-weight="700" text-anchor="end">0.99149</text>
+    <rect x="64" y="338" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="64" y="338" width="218" height="18" rx="9" fill="#2878b5"/>
+    <text x="300" y="353" fill="#163b66" font-size="14" font-weight="700" text-anchor="end">0.99149</text>
     <rect x="64" y="398" width="312" height="92" rx="12" fill="#edf5fb"/>
     <text x="80" y="427" fill="#245477" font-size="13" font-weight="700">What this supports</text>
     <text x="80" y="451" fill="#40556d" font-size="13">Temporal association with reference</text>
@@ -30,17 +30,17 @@
     <text x="444" y="192" fill="#66768a" font-size="13">Fit on sequence 01, test sequence 02,</text>
     <text x="444" y="210" fill="#66768a" font-size="13">then reverse; raw-image pipeline.</text>
     <text x="444" y="260" fill="#263b55" font-size="14">Instance segmentation · F1</text>
-    <rect x="444" y="274" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="444" y="274" width="26" height="18" rx="9" fill="#d18b32"/>
-    <text x="730" y="289" fill="#8a5b1d" font-size="14" font-weight="700" text-anchor="end">0.09155</text>
+    <rect x="444" y="274" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="444" y="274" width="20" height="18" rx="9" fill="#d18b32"/>
+    <text x="680" y="289" fill="#8a5b1d" font-size="14" font-weight="700" text-anchor="end">0.09155</text>
     <text x="444" y="324" fill="#263b55" font-size="14">Image-derived detection · F1</text>
-    <rect x="444" y="338" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="444" y="338" width="108" height="18" rx="9" fill="#d18b32"/>
-    <text x="730" y="353" fill="#8a5b1d" font-size="14" font-weight="700" text-anchor="end">0.37728</text>
+    <rect x="444" y="338" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="444" y="338" width="83" height="18" rx="9" fill="#d18b32"/>
+    <text x="680" y="353" fill="#8a5b1d" font-size="14" font-weight="700" text-anchor="end">0.37728</text>
     <text x="444" y="388" fill="#263b55" font-size="14">Temporal links · F1</text>
-    <rect x="444" y="402" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="444" y="402" width="28" height="18" rx="9" fill="#d18b32"/>
-    <text x="730" y="417" fill="#8a5b1d" font-size="14" font-weight="700" text-anchor="end">0.09716</text>
+    <rect x="444" y="402" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="444" y="402" width="21" height="18" rx="9" fill="#d18b32"/>
+    <text x="680" y="417" fill="#8a5b1d" font-size="14" font-weight="700" text-anchor="end">0.09716</text>
     <rect x="444" y="458" width="312" height="72" rx="12" fill="#fff6e9"/>
     <text x="460" y="487" fill="#8a5b1d" font-size="13" font-weight="700">Negative diagnostic baseline</text>
     <text x="460" y="510" fill="#6b5840" font-size="13">Current supervised segmenter is weak.</text>
@@ -52,17 +52,17 @@
     <text x="824" y="192" fill="#66768a" font-size="13">First 4 frames per sequence · 8 total;</text>
     <text x="824" y="210" fill="#66768a" font-size="13">early-frame sample only.</text>
     <text x="824" y="260" fill="#263b55" font-size="14">Instance segmentation · F1</text>
-    <rect x="824" y="274" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="824" y="274" width="250" height="18" rx="9" fill="#25856e"/>
-    <text x="1110" y="289" fill="#1c6655" font-size="14" font-weight="700" text-anchor="end">0.87490</text>
+    <rect x="824" y="274" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="824" y="274" width="192" height="18" rx="9" fill="#25856e"/>
+    <text x="1060" y="289" fill="#1c6655" font-size="14" font-weight="700" text-anchor="end">0.87490</text>
     <text x="824" y="324" fill="#263b55" font-size="14">Image-derived detection · F1</text>
-    <rect x="824" y="338" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="824" y="338" width="254" height="18" rx="9" fill="#25856e"/>
-    <text x="1110" y="353" fill="#1c6655" font-size="14" font-weight="700" text-anchor="end">0.88810</text>
+    <rect x="824" y="338" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="824" y="338" width="195" height="18" rx="9" fill="#25856e"/>
+    <text x="1060" y="353" fill="#1c6655" font-size="14" font-weight="700" text-anchor="end">0.88810</text>
     <text x="824" y="388" fill="#263b55" font-size="14">Temporal links · F1</text>
-    <rect x="824" y="402" width="286" height="18" rx="9" fill="#e8edf4"/>
-    <rect x="824" y="402" width="255" height="18" rx="9" fill="#25856e"/>
-    <text x="1110" y="417" fill="#1c6655" font-size="14" font-weight="700" text-anchor="end">0.89180</text>
+    <rect x="824" y="402" width="220" height="18" rx="9" fill="#e8edf4"/>
+    <rect x="824" y="402" width="196" height="18" rx="9" fill="#25856e"/>
+    <text x="1060" y="417" fill="#1c6655" font-size="14" font-weight="700" text-anchor="end">0.89180</text>
     <rect x="824" y="458" width="312" height="72" rx="12" fill="#eaf6f2"/>
     <text x="840" y="487" fill="#1c6655" font-size="13" font-weight="700">Promising, still exploratory</text>
     <text x="840" y="510" fill="#45685f" font-size="13">Not a stable generalization estimate.</text>
