@@ -77,14 +77,16 @@ def compare_cohorts(
         b = b_frame[feature].to_numpy(float)
         a = a[np.isfinite(a)]
         b = b[np.isfinite(b)]
-        if len(a) == 0 or len(b) == 0:
-            continue
+        if len(a) < 2 or len(b) < 2:
+            raise ValueError(
+                f"feature {feature} needs at least two finite observations in each cohort"
+            )
 
         pooled = np.sqrt(
             ((len(a) - 1) * np.var(a, ddof=1) + (len(b) - 1) * np.var(b, ddof=1))
             / max(1, len(a) + len(b) - 2)
         )
-        standardized = float((np.mean(a) - np.mean(b)) / pooled) if pooled > 0 else 0.0
+        standardized = float((np.mean(a) - np.mean(b)) / pooled) if pooled > 0 else float("nan")
         ci_low, ci_high = _bootstrap_mean_difference(
             a,
             b,
