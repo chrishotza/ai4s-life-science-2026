@@ -70,7 +70,7 @@ They describe this bounded image-derived demonstration. They should not be repla
 
 “A separate CTC association-isolation benchmark uses reference centroids as detections and reports mean F1 of 0.99228, plus pinned TRA and LNK measurements. Those values evaluate temporal association with reference geometry; they are not end-to-end segmentation, a biological phenotype score, or official Cell Tracking Challenge leaderboard scores.
 
-The image-derived demonstration, association-isolation benchmark, and synthetic method validation answer different questions. The synthetic cohort card is method validation, not a biological treatment result.”
+The image-derived demonstration and association-isolation benchmark answer different questions. Neither establishes biological phenotype validity.”
 
 ## 2:55–3:10 — Close
 
@@ -88,5 +88,4 @@ The image-derived demonstration, association-isolation benchmark, and synthetic 
 - Say “association-isolation” whenever reference centroids are used.
 - Do not describe unsupervised clusters as validated biological phenotypes.
 - Do not call the CTC TRA/LNK values official leaderboard scores.
-- Label the cohort card as synthetic method validation, not a biological treatment result.
 - Verify all visual and data/model-output rights before public release.
