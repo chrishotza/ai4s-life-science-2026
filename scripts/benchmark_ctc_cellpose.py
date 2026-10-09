@@ -17,7 +17,6 @@ from ai4s_imaging import CellposeSegmenter, instances_to_detections
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 from benchmark_ctc_tra_supervised import (
-    CENTER_RADIUS_PX,
     MAX_DISTANCE_UM,
     f1_from_counts,
     frame_index,
@@ -111,7 +110,10 @@ def evaluate_sequence(root: Path, sequence: str, segmenter: CellposeSegmenter) -
             "mean_f1_iou50": float(frame_df["f1_iou50"].mean()),
             "mean_matched_iou": float(frame_df["mean_matched_iou"].mean()),
         },
-        "detection": {**detection, "match_radius_px": CENTER_RADIUS_PX},
+        "detection": {
+            **detection,
+            "matching_rule": "one-to-one overlap with CTC GT/TRA marker pixels",
+        },
         "tracking": {
             "edge_precision": float(edge["precision"]),
             "edge_recall": float(edge["recall"]),
