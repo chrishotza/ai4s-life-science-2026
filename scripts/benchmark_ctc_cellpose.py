@@ -19,10 +19,11 @@ from ai4s_tracking import TrackingConfig, link_metrics, track_detections
 from benchmark_ctc_tra_supervised import (
     CENTER_RADIUS_PX,
     MAX_DISTANCE_UM,
-    centroid_match,
     f1_from_counts,
     frame_index,
     keyed_masks,
+    keyed_track_masks,
+    marker_overlap_match,
     segmentation_score,
     truth_edges,
 )
@@ -81,9 +82,12 @@ def evaluate_sequence(root: Path, sequence: str, segmenter: CellposeSegmenter) -
     )
 
     truth_nodes = truth_nodes[truth_nodes["t"].isin(eval_times)].copy()
-    tp, fp, fn, node_mapping = centroid_match(
+    gt_track_masks = keyed_track_masks(root, sequence)
+    tp, fp, fn, node_mapping = marker_overlap_match(
         tracked,
         truth_nodes[["node_id", "track_id", "t", "z", "y", "x"]],
+        dict(zip(eval_times, predictions)),
+        gt_track_masks,
     )
     detection = f1_from_counts(tp, fp, fn)
     gt_edge_df = truth_edges(truth_nodes)
@@ -146,11 +150,13 @@ def main() -> None:
             },
             "evaluation": f"first {MAX_TEST_FRAMES} paired frames from each CTC sequence",
             "segmentation_match": "one-to-one instance IoU >= 0.5",
-            "detection_match": f"one-to-one centroid distance <= {CENTER_RADIUS_PX} px",
+            "detection_match": "one-to-one predicted-instance overlap with complete-coverage CTC GT/TRA marker pixels",
             "tracking": f"mutual-nearest-neighbor; {MAX_DISTANCE_UM} um gate",
             "claim_boundary": (
                 "Independent pretrained-model inference on raw held-out images. "
-                "CTC masks are used only for scoring; this is not an official CTC leaderboard score "
+                "CTC masks are used only for scoring; GT/TRA markers are matched by predicted-instance "
+                "overlap rather than expecting marker-region centroids to equal whole-cell centroids. "
+                "This is not an official CTC leaderboard score "
                 "or biological phenotype-label validation."
             ),
             "license_note": (
