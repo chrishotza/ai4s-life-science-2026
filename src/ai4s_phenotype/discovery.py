@@ -139,6 +139,15 @@ class PhenotypeDiscoveryModel:
         ordered = np.sort(distances, axis=1)
         out["phenotype_cluster"] = labels
         out["phenotype_cluster_name"] = out["phenotype_cluster"].map(self.cluster_names)
+        # A one/two-frame track cannot support an interpretable motion pattern.
+        # Keep its raw K-Means cluster ID for reproducible stability audits,
+        # but prevent the descriptive cluster name being mistaken for biology.
+        if "observations" in out.columns:
+            sufficient = out["observations"].astype(float) >= 3
+            out["phenotype_temporal_evidence_sufficient"] = sufficient
+            out.loc[~sufficient, "phenotype_cluster_name"] = (
+                "insufficient_temporal_evidence"
+            )
         out["phenotype_cluster_distance"] = distances[np.arange(len(out)), labels]
         out["phenotype_cluster_margin"] = (
             ordered[:, 1] - ordered[:, 0]
