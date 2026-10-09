@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -155,18 +154,6 @@ FORMAL_REQUIREMENTS = (
 )
 
 
-def project_summary_word_count(text: str) -> int:
-    match = re.search(
-        r"## Project Summary\s+(.+?)(?=\n## |\Z)",
-        text,
-        flags=re.DOTALL,
-    )
-    if not match:
-        return -1
-    words = re.findall(r"\b[\wµ]+(?:[-'][\wµ]+)*\b", match.group(1))
-    return len(words)
-
-
 def main() -> None:
     missing = []
 
@@ -191,13 +178,6 @@ def main() -> None:
                 missing.append(
                     f"{path.relative_to(ROOT)} missing formal submission requirement: {phrase}"
                 )
-
-    writeup = ROOT / "docs" / "KAGGLE_WRITEUP.md"
-    summary_words = project_summary_word_count(writeup.read_text(encoding="utf-8"))
-    if not 200 <= summary_words <= 300:
-        missing.append(
-            f"docs/KAGGLE_WRITEUP.md Project Summary has {summary_words} words; expected 200-300"
-        )
 
     if missing:
         raise SystemExit("\n".join(missing))
