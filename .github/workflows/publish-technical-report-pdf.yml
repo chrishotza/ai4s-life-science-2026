@@ -1,0 +1,41 @@
+name: Public AI4S technical report PDF
+on:
+  push:
+    branches: [docs/publish-technical-report-pdf-20261009]
+    paths:
+      - '.github/workflows/publish-technical-report-pdf.yml'
+      - 'scripts/build_technical_report_pdf.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+
+jobs:
+  release-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PDF renderer
+        run: |
+          python -m pip install -q --upgrade pip
+          python -m pip install -q Markdown weasyprint pypdf
+      - name: Render and verify scientific report
+        run: python scripts/build_technical_report_pdf.py
+      - name: Publish downloadable public report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create ai4s-2026-technical-report \
+            dist/AI4S_Temporal_Cellular_Phenotype_Technical_Report.pdf \
+            --repo "$GH_REPO" \
+            --title 'AI4S 2026 | Scientific Technical Report' \
+            --notes 'Full AI4S Temporal Cellular Phenotype Engine technical report, rendered directly from the repository source. Evidence boundaries distinguish CTC real-image performance from reference-centroid tests and future biological validation.' \
+            --target "${{ github.sha }}" \
+            --latest=false
+      - name: Publish download link to workflow output
+        run: |
+          echo 'https://github.com/chrishotza/ai4s-life-science-2026/releases/download/ai4s-2026-technical-report/AI4S_Temporal_Cellular_Phenotype_Technical_Report.pdf'
