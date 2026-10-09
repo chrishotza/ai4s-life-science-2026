@@ -16,4 +16,4 @@ The same association path was independently evaluated with pinned **py-ctcmetric
 
 These are reference-geometry association-isolation results, not end-to-end segmentation or biological phenotype classification and **not official Cell Tracking Challenge leaderboard scores**. Biological phenotype validity still requires independent biological labels or perturbation annotations. A no-oracle sensitivity control produced identical TRA/LNK values on both sequences.
 
-The contribution is a reproducible bridge from **microscopy → trajectories → interpretable temporal phenotype**.
+The contribution is a reproducible microscopy-to-phenotype bridge; transfer to organ-on-a-chip data remains untested.
