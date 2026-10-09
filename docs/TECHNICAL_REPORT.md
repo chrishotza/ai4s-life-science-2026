@@ -393,7 +393,7 @@ In a biological workflow, the intended behavior is conservative: high-integrity/
 
 ### Image-level negative controls
 
-The raw-image experiments are retained as explicit negative controls rather than silently discarded. `docs/ABLATION_AND_FAILURES.md` records generic thresholding, DIC-ridge segmentation, and a lightweight supervised segmentation model, including strict cross-sequence metrics and the resulting decision not to promote these methods into the headline association benchmark.
+The cross-sequence threshold, DIC-ridge, and lightweight supervised image experiments in `docs/ABLATION_AND_FAILURES.md` are retained as negative controls because their holdout performance does not support promotion into the headline association benchmark. Separately, the bounded pretrained Cellpose-SAM pilot covered only the first four frames of each DIC-C2DH-HeLa sequence (eight total) and measured segmentation F1@IoU50 0.87490, image-derived detection F1 0.88810, and tracking-edge F1 0.89180 ([run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248), [artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37912623248/artifacts/11608135086)). These pilot metrics are exploratory, do not establish stable generalization, and do not validate biological phenotypes.
 
 
 ### Cohort-level experimental comparison
