@@ -33,8 +33,9 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Export authentic predicted instance masks and linked tracks
         env:
-          AI4S_VISUAL_FRAMES: '8'
-          AI4S_VISUAL_SEQUENCE: '01'
+          AI4S_VISUAL_FRAMES: '24'
+          AI4S_VISUAL_SEQUENCE: '02'
+          AI4S_VISUAL_START_FRAME: '34'
         run: python scripts/export_cellpose_visual_pilot.py
       - name: Render compact original Cellpose demonstration
         run: |
@@ -42,7 +43,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cellpose-real-prediction-pilot
+          name: cellpose-division-window-24-real-predictions
           path: |
             cellpose_visual_pilot/
             cellpose_visual_pilot.mp4
