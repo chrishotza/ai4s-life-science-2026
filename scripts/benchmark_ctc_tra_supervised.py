@@ -96,7 +96,6 @@ def segmentation_score(gt: np.ndarray, pred: np.ndarray) -> dict[str, float]:
         matched = [float(matrix[r, c]) for r, c in zip(rows, cols) if matrix[r, c] >= IOU_THRESHOLD]
     else:
         tp, matched = 0, []
-    fp, fn = pred_count - tp, gt_count - tp
     precision = tp / pred_count if pred_count else (1.0 if gt_count == 0 else 0.0)
     recall = tp / gt_count if gt_count else (1.0 if pred_count == 0 else 0.0)
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
