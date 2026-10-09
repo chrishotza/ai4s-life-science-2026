@@ -439,3 +439,66 @@ Where lineage is derived from reference graph annotations, the report says so. W
 Numeric detection attributes are aggregated per track with mean, standard deviation, minimum, and maximum summaries. Examples include object area and mean intensity where the input adapter provides them. Non-numeric metadata and columns that look like identifiers are excluded.
 
 The default phenotype discovery schema remains the fixed trajectory/lineage feature list. Auxiliary morphology values are preserved for future multimodal experiments but are not allowed to enter the current published clustering benchmark without an explicit schema version update and a new evaluation.
+
+
+## Appendix D. Reliability diagnostics
+
+The reliability layer exists because temporal phenotype analysis should not treat every trajectory and every cluster assignment as equally trustworthy. It adds bounded, interpretable quality indicators while preserving raw features so a downstream investigator can inspect the components.
+
+The track-integrity score combines observation fraction, mean temporal-link confidence, and the fraction of links classified as low confidence. The combination uses a geometric mean. This choice is conservative: one poor component lowers the total score rather than being fully masked by a high value in another component.
+
+The phenotype-assignment quality uses distance to the assigned K-Means centroid and the margin to the next-nearest centroid. A trajectory far from the assigned center or almost equally close to two centers receives lower assignment quality. The model stores the median assigned training distance as a reference scale, so the distance term is interpreted relative to the geometry of the fitted cohort rather than in an arbitrary raw feature unit.
+
+The phenotype-reliability score combines track integrity and cluster-assignment quality geometrically. It is an evidence-weighting diagnostic, not a calibrated probability of biological correctness. A score near one means the observable track and assignment diagnostics are mutually strong under the chosen method; it does not prove that the phenotype label is biologically true.
+
+The scores are emitted alongside raw motion and lineage features. They are intended to support review queues, quality-filtered cohort sensitivity analyses, and transparent reporting. An analysis should not discard low-score cells silently, because selective exclusion can bias cohort composition. Instead, a report should disclose the threshold, the number of affected tracks, and whether conclusions change under reasonable thresholds.
+
+## Appendix E. Evaluation protocol and threats to validity
+
+### E.1 Association-isolation versus image-level evaluation
+
+The headline real-data association experiment uses CTC reference centroids as detections. This protocol is deliberate: it isolates temporal association so that the effect of a spatial gate can be measured without conflating it with errors from a baseline image detector.
+
+The protocol also imposes a claim boundary. Association F1 is not segmentation accuracy, and it is not an end-to-end image-to-biological-phenotype score. The separate image-level experiments start from raw microscopy, evaluate object detection or mask overlap, and are recorded as negative controls because their measured performance is insufficient.
+
+### E.2 Independent metric families
+
+The repository keeps three families of metrics separate. The custom edge precision, recall, and F1 scores temporal edge recovery. External TRA/LNK measures evaluate graph quality through the pinned py-ctcmetrics implementation. Phenotype-preservation metrics compare motion-derived features for matched tracks.
+
+These metrics differ in definition and target. They must not be averaged into a single score or substituted for one another. The report presents the value and the protocol together so a reader can determine what the number measures.
+
+### E.3 No-oracle sensitivity
+
+The external graph validation includes a no-oracle lineage sensitivity condition in which reference parent edges are removed while association method and reference geometry remain fixed. The resulting TRA/LNK values are compared directly with the oracle-compatible condition.
+
+The purpose is not to claim that the complete pipeline is independent of all reference annotations. The geometry still comes from reference detections in this experiment. The narrower conclusion is that the metric values on these sequences are invariant to lineage-metadata selection under the tested protocol.
+
+### E.4 Synthetic perturbation
+
+Synthetic robustness experiments have known expected trajectories or phenotype groups and allow controlled changes in coordinate noise, missing detections, and association method. They are useful for identifying fragmentation, merge events, missed links, and the propagation of tracking errors into phenotype clusters.
+
+Synthetic data cannot establish biological validity. It provides a causal diagnostic for the software: when a known perturbation is introduced, one can inspect whether the expected class of computational error increases and whether quality diagnostics expose the degradation.
+
+### E.5 Biological interpretation
+
+The current submission does not claim that unsupervised clusters correspond to validated biological cell states. Cluster names are descriptive labels derived from feature geometry. Interpreting them as proliferation, apoptosis, differentiation, drug response, or disease phenotype requires independent biological labels, experimental perturbations, or orthogonal readouts.
+
+This limit is part of the design rather than an afterthought. The software provides an interpretable temporal representation, while the biological mapping remains a testable hypothesis for future data with appropriate labels.
+
+## Appendix F. Reproducibility and operational controls
+
+The repository provides a Python package, exact runtime snapshots for Python 3.11, development-tool lock files, Docker support, deterministic synthetic tests, CTC benchmark scripts, and GitHub Actions workflows. Benchmark outputs are emitted as machine-readable JSON and CSV artifacts rather than being copied by hand into documentation.
+
+Dataset archives are downloaded at execution time and are not committed or redistributed with the source. This keeps the code repository lightweight and reduces the risk of violating dataset redistribution conditions. The technical report documents source URLs and conditions of use for external datasets used in the reported work.
+
+The final reproducibility procedure should be run on the final submission commit. It includes installation, static validation, unit tests, deterministic synthetic benchmarks, the association benchmark, external metric checks where configured, and the automated claim audit. A successful CI run demonstrates that the declared software environment and verification steps passed; it does not by itself establish a biological hypothesis.
+
+### Threats to validity checklist
+
+- Reference-centroid input improves isolation of association but excludes segmentation error from the headline result.
+- Two sequences from one CTC dataset provide limited evidence of cross-domain generalization.
+- Gold or silver annotation quality can constrain the interpretation of mask-overlap scores.
+- Unsupervised cluster assignments depend on the feature schema, scaling policy, random seed, and fitted reference cohort.
+- Reliability scores use observable computational diagnostics and are not probabilistically calibrated.
+- Synthetic phenotypes are constructed with known groups and may be easier to separate than real biological populations.
+- Cohort bootstrap intervals assume supplied rows are appropriate independent units. Replicate structure should be respected; cells from the same well should not be treated as independent biological replicates without justification.
