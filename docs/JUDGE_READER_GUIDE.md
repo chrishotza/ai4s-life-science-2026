@@ -14,6 +14,8 @@ The current answer is a measured computational prototype: it can generate trajec
 
 Imagine comparing cell migration in microscopy time series. A researcher needs to know not just where each cell appears, but how far it moves, whether it persists in one direction, and whether its history is complete enough to trust. This engine provides those **computational descriptors** and explicitly marks insufficient histories. Its image-derived CTC data support that measurement path; **no treated-versus-control experiment or biologically confirmed state labels are included**. See [the concrete research use case and validation proposal](BIOLOGICAL_IMPACT_CASE.md) for the difference between what is measured today and the next falsifiable biology experiment.
 
+**Public 91-second video:** [V10 narrated microscopy demo on Kaggle](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo). The video uses real image-derived masks/tracks from the 8-frame visual pilot; it does not portray the full 168-frame benchmark footage.
+
 ## What to read first
 
 1. `README.md` for the public-facing summary and quick reproduction path.

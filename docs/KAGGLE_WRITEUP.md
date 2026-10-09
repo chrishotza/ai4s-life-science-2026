@@ -8,7 +8,7 @@
 
 **Team (draft):** Chris Hotza, team leader (1 listed member; synchronize with the official registration before submission).
 
-**Demo video:** The final public demo video link is inserted in the Kaggle Writeup at submission time; the reproducible renderer is `scripts/make_demo_video.py`.
+**Public narrated demo video:** https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo (91-second MP4 with ElevenLabs narration; verified publicly accessible without login on October 9, 2026). Video images depict the separately exported CellposeSAM-v2 8-frame visualization pilot; the 168-frame measurements reported below come from a different completed evaluation run. The legacy renderer is `scripts/make_demo_video.py` and does **not** represent this narrated V10 cut.
 
 **Technical report:** This Writeup contains the submission report sections; the full technical report is also maintained at `docs/TECHNICAL_REPORT.md`.
 

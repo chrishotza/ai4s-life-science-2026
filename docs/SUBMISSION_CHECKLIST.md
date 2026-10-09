@@ -62,7 +62,8 @@ Official detail reflected in this checklist:
 - [ ] Paste Kaggle Writeup
 - [ ] Submit final technical report
 - [ ] Add independent biological phenotype validation if time permits
-- [ ] Produce final demo video (max 5 minutes), publish it without login/approval/payment, and verify media usage rights
+- [x] Produce and publicly publish narrated V10 demo (91 seconds); Kaggle public video: https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo; signed-out viewing verified
+- [ ] Review and document third-party microscopy data and pretrained-model visual-output/media redistribution rights before the final submission
 - [x] Final consistency check: no claim exceeds measured evidence
 
 ## Current verified state
