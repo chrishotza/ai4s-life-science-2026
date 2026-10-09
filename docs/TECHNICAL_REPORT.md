@@ -313,6 +313,8 @@ The public pipeline uses standard scientific Python packages declared in `pyproj
 
 ## 10.2 Sources and licenses
 
+**Data provenance and use conditions:** CTC image data and reference annotations are retrieved from the official CTC source at execution time and are not included in or redistributed with this repository. Use remains subject to the CTC terms summarized below.
+
 - **Cell Tracking Challenge dataset:** DIC-C2DH-HeLa training data and reference annotations are obtained from the official CTC dataset repository. CTC permits use for challenge preparation, participation, and reporting without additional consent, while prohibiting cloning/redistribution of the datasets or annotations. Any publication resulting from CTC data use should acknowledge the CTC and cite its Nature Methods paper.
 - **CTC methodology reference:** Maška et al., *The Cell Tracking Challenge: 10 years of objective benchmarking*, Nature Methods 20, 1010–1020 (2023), DOI 10.1038/s41592-023-01879-y.
 - **DIC segmentation method reference:** KTH-SE, public Cell Tracking Challenge participant description of the DIC-C2DH-HeLa multi-scale Hessian-ridge segmentation method (sigma 5–10 px, gamma=1, beta=10, threshold 0.75 and local-variance filtering).
