@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +73,9 @@ FORMAL_REQUIREMENTS = (
             "[x] Development AI-tool provenance disclosed",
             "[x] Cross-sequence image-to-tracking validation protocol",
             "[x] CTC GT/SEG image-segmentation validation protocol",
+            "[x] Judge reader guide",
+            "[x] Top-level MIT code license",
+            "Project Summary word-count audit enforced",
             "reviewers can access without login",
             "1–5 members and one leader",
             "publicly viewable without login",
@@ -123,6 +127,33 @@ FORMAL_REQUIREMENTS = (
         ),
     ),
     (
+        ROOT / "docs" / "JUDGE_READER_GUIDE.md",
+        (
+            "Biological question",
+            "Protocol map",
+            "Why CellposeSAM-v2 appears in the strongest path",
+            "Phenotype claim boundary",
+            "organ-on-a-chip transfer remains untested",
+            "One-sentence reviewer takeaway",
+        ),
+    ),
+    (
+        ROOT / "README.md",
+        (
+            "Judge Reader Guide",
+            "MIT License",
+            "third-party imagery or external model weights",
+        ),
+    ),
+    (
+        ROOT / "LICENSE",
+        (
+            "MIT License",
+            "Permission is hereby granted",
+            "THE SOFTWARE IS PROVIDED \"AS IS\"",
+        ),
+    ),
+    (
         ROOT / "src" / "ai4s_phenotype" / "cohort.py",
         (
             "CohortComparison",
@@ -153,6 +184,28 @@ FORMAL_REQUIREMENTS = (
     ),
 )
 
+SUMMARY_START = "## Project Summary"
+SUMMARY_END = "## From cell tracking to dynamic phenotype"
+SUMMARY_WORD_MIN = 200
+SUMMARY_WORD_MAX = 300
+
+
+def section_between(text: str, start_heading: str, end_heading: str) -> str:
+    start = text.find(start_heading)
+    if start == -1:
+        raise ValueError(f"missing section start: {start_heading}")
+
+    content_start = start + len(start_heading)
+    end = text.find(end_heading, content_start)
+    if end == -1:
+        raise ValueError(f"missing section end: {end_heading}")
+
+    return text[content_start:end].strip()
+
+
+def word_count(text: str) -> int:
+    return len(re.findall(r"\b[\wµ]+(?:[-'][\wµ]+)*\b", text))
+
 
 def main() -> None:
     missing = []
@@ -179,10 +232,23 @@ def main() -> None:
                     f"{path.relative_to(ROOT)} missing formal submission requirement: {phrase}"
                 )
 
+    writeup_text = (ROOT / "docs" / "KAGGLE_WRITEUP.md").read_text(encoding="utf-8")
+    project_summary = section_between(writeup_text, SUMMARY_START, SUMMARY_END)
+    project_summary_words = word_count(project_summary)
+    if not SUMMARY_WORD_MIN <= project_summary_words <= SUMMARY_WORD_MAX:
+        missing.append(
+            "docs/KAGGLE_WRITEUP.md Project Summary has "
+            f"{project_summary_words} words; expected "
+            f"{SUMMARY_WORD_MIN}-{SUMMARY_WORD_MAX}"
+        )
+
     if missing:
         raise SystemExit("\n".join(missing))
 
-    print("Submission claim and formal-requirements audit: PASS")
+    print(
+        "Submission claim and formal-requirements audit: PASS "
+        f"(Project Summary: {project_summary_words} words)"
+    )
 
 
 if __name__ == "__main__":

@@ -8,6 +8,8 @@ This publicly auditable research prototype treats tracking as infrastructure for
 
 > **The strongest image-derived evidence:** CellposeSAM-v2 followed by the actual tracking and phenotype pipeline was run on **168 raw DIC-C2DH-HeLa images** (84 frames in each of two Cell Tracking Challenge sequences). It achieved mean **segmentation F1@IoU≥0.5 = 0.9354**, **detection F1 = 0.9684** and **tracking-edge F1 = 0.9808**. Reference annotations were used for evaluation, **not as input detections**. These are internal CTC metrics—not an official leaderboard score, an organ-on-a-chip validation, or proof of biological phenotype discovery. [Completed run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373) · [Audit and protocol](docs/CTC_CELLPOSE_ARTIFACT_AUDIT.md).
 
+**Reviewer shortcut:** start with the [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
+
 ## What it does
 
 Microscopy frames → **instance masks** → centroids and bounding boxes → **temporal tracks** → lineage candidates → **causal motion and morphology** → unsupervised phenotype groups or supervised cell-state scores.
@@ -75,4 +77,6 @@ This competition is a **judged Kaggle hackathon**, not a fixed-label Kaggle lead
 
 **Reproducibility:** [Technical report](docs/TECHNICAL_REPORT.md) · [Architecture](docs/ARCHITECTURE.md) · [Source-provenance audit](docs/CTC_CELLPOSE_ARTIFACT_AUDIT.md) · [GitHub Actions](.github/workflows/) · [Full historical technical README](docs/ARCHIVED_TECHNICAL_README_2026-10-09.md).
 
-**Rights:** The repository does **not yet declare a top-level code license**; until the owner selects and adds one, do not assume reuse rights. Experimental data and pretrained weights have their own terms. Publicly presenting experimental results is not a grant of permission to redistribute third-party imagery or model weights.
+## License and third-party rights
+
+Repository code is released under the [MIT License](LICENSE). Experimental datasets, benchmark annotations, generated media, and pretrained model weights have their own upstream terms; this repository does not grant permission to redistribute third-party imagery or external model weights.
