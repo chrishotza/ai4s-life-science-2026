@@ -18,6 +18,7 @@ import tifffile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from ai4s_imaging import Supervised2DSegmenter, instances_to_detections
 from ai4s_pipeline import PipelineConfig, TemporalPhenotypeEngine
 from ai4s_tracking import TrackingConfig
 
@@ -78,6 +79,77 @@ def load_image_sequence(source: Path) -> tuple[np.ndarray, list[str]]:
     if any(size == 0 for size in stack.shape):
         raise ValueError(f"TIFF stack has an empty dimension: {stack.shape}")
     return stack, [str(source)]
+
+
+def _frame_key(path: Path) -> tuple[int, object]:
+    """Match common CTC names such as t000.tif and man_track000.tif by frame index."""
+    numbers = re.findall(r"(\d+)", path.stem)
+    if numbers:
+        return (0, int(numbers[-1]))
+    return (1, path.stem.lower())
+
+
+def load_supervised_training_pairs(
+    image_dir: Path,
+    mask_dir: Path,
+) -> tuple[np.ndarray, np.ndarray, list[str], list[str]]:
+    """Load only frames with matching image and instance-mask frame IDs."""
+    image_dir = image_dir.expanduser().resolve()
+    mask_dir = mask_dir.expanduser().resolve()
+    if not image_dir.is_dir() or not mask_dir.is_dir():
+        raise ValueError("--training-images and --training-masks must both name directories")
+
+    image_paths = sorted(
+        (p for p in image_dir.iterdir() if p.is_file() and p.suffix.lower() in TIFF_SUFFIXES),
+        key=_natural_key,
+    )
+    mask_paths = sorted(
+        (p for p in mask_dir.iterdir() if p.is_file() and p.suffix.lower() in TIFF_SUFFIXES),
+        key=_natural_key,
+    )
+    image_map = {_frame_key(path): path for path in image_paths}
+    mask_map = {_frame_key(path): path for path in mask_paths}
+    duplicate_image_keys = len(image_map) != len(image_paths)
+    duplicate_mask_keys = len(mask_map) != len(mask_paths)
+    if duplicate_image_keys or duplicate_mask_keys:
+        raise ValueError("Training directories contain duplicate frame IDs")
+
+    common = sorted(set(image_map).intersection(mask_map))
+    if not common:
+        raise ValueError(
+            "No matching training image/mask frame IDs. Expected names such as "
+            "t000.tif and man_track000.tif to share the frame number."
+        )
+
+    images: list[np.ndarray] = []
+    masks: list[np.ndarray] = []
+    selected_image_paths: list[str] = []
+    selected_mask_paths: list[str] = []
+    for key in common:
+        image_path = image_map[key]
+        mask_path = mask_map[key]
+        image = np.squeeze(np.asarray(tifffile.imread(image_path)))
+        mask = np.squeeze(np.asarray(tifffile.imread(mask_path)))
+        if image.ndim != 2 or mask.ndim != 2:
+            raise ValueError(
+                f"Supervised training requires 2-D images and instance masks; "
+                f"got image {image.shape}, mask {mask.shape}"
+            )
+        if image.shape != mask.shape:
+            raise ValueError(
+                f"Image/mask shape mismatch for frame {key}: {image.shape} vs {mask.shape}"
+            )
+        images.append(image)
+        masks.append(mask)
+        selected_image_paths.append(str(image_path))
+        selected_mask_paths.append(str(mask_path))
+
+    return (
+        np.stack(images, axis=0),
+        np.stack(masks, axis=0),
+        selected_image_paths,
+        selected_mask_paths,
+    )
 
 
 def save_trajectory_plot(
@@ -213,6 +285,30 @@ def build_parser() -> argparse.ArgumentParser:
         default=(1.0, 1.0, 1.0),
         help="Physical sampling in micrometers for z, y, x (default: 1 1 1)",
     )
+    parser.add_argument(
+        "--training-images",
+        type=Path,
+        default=None,
+        help="Optional directory of labeled-domain grayscale TIFF frames for supervised fitting",
+    )
+    parser.add_argument(
+        "--training-masks",
+        type=Path,
+        default=None,
+        help="Optional directory of integer-labeled instance masks paired by frame number",
+    )
+    parser.add_argument(
+        "--max-training-frames",
+        type=int,
+        default=24,
+        help="Maximum number of paired annotated frames used by the supervised segmenter",
+    )
+    parser.add_argument(
+        "--samples-per-class",
+        type=int,
+        default=2500,
+        help="Maximum background/interior/boundary pixels sampled per class per training frame",
+    )
     parser.add_argument("--clusters", type=int, default=3, help="Number of descriptive phenotype groups")
     parser.add_argument("--random-state", type=int, default=17, help="Random seed for phenotype discovery")
     parser.add_argument(
@@ -232,6 +328,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit("--max-distance-um must be > 0")
     if args.clusters < 2:
         raise SystemExit("--clusters must be >= 2")
+    if args.max_training_frames < 1:
+        raise SystemExit("--max-training-frames must be >= 1")
+    if args.samples_per_class < 1:
+        raise SystemExit("--samples-per-class must be >= 1")
+    if (args.training_images is None) != (args.training_masks is None):
+        raise SystemExit("--training-images and --training-masks must be supplied together")
 
     frames, input_files = load_image_sequence(args.input)
     output_dir = args.output.expanduser().resolve()
@@ -249,7 +351,55 @@ def main(argv: Sequence[str] | None = None) -> int:
         phenotype_clusters=args.clusters,
         phenotype_random_state=args.random_state,
     )
-    result = TemporalPhenotypeEngine(config).run_frames(frames)
+    detector_metadata: dict[str, object]
+    if args.training_images is not None and args.training_masks is not None:
+        if frames.ndim != 3:
+            raise SystemExit(
+                "Supervised instance segmentation currently supports 2-D+t input only; "
+                f"got stack shape {frames.shape}"
+            )
+        train_frames, train_masks, train_image_paths, train_mask_paths = (
+            load_supervised_training_pairs(args.training_images, args.training_masks)
+        )
+        segmenter = Supervised2DSegmenter(
+            max_training_frames=args.max_training_frames,
+            samples_per_class_per_frame=args.samples_per_class,
+            random_state=args.random_state,
+            min_instance_area=args.min_area,
+        )
+        segmenter.fit(train_frames, train_masks)
+        predicted_masks = np.stack(
+            [segmenter.predict_instances(frame) for frame in frames],
+            axis=0,
+        )
+        detections = instances_to_detections(frames, predicted_masks)
+        result = TemporalPhenotypeEngine(config).run(detections)
+        tifffile.imwrite(
+            output_dir / "predicted_instances.tif",
+            predicted_masks.astype(np.uint32, copy=False),
+        )
+        detector_metadata = {
+            "method": "supervised_random_forest_interior_boundary",
+            "training_frames_matched": int(len(train_frames)),
+            "training_frames_used_max": int(args.max_training_frames),
+            "samples_per_class_per_frame": int(args.samples_per_class),
+            "training_images_directory": str(args.training_images.expanduser().resolve()),
+            "training_masks_directory": str(args.training_masks.expanduser().resolve()),
+            "training_image_files": train_image_paths,
+            "training_mask_files": train_mask_paths,
+            "predicted_instance_masks": "predicted_instances.tif",
+        }
+    else:
+        result = TemporalPhenotypeEngine(config).run_frames(frames)
+        detector_metadata = {
+            "method": "percentile_threshold_connected_components",
+            "threshold": args.threshold,
+            "min_area": args.min_area,
+            "note": (
+                "Transparent baseline detector; use paired annotated training images/masks "
+                "for supervised segmentation in a matching 2-D microscopy domain."
+            ),
+        }
 
     outputs = {
         "nodes.csv": result.nodes,
@@ -274,6 +424,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "phenotype_clusters": args.clusters,
             "random_state": args.random_state,
         },
+        "detector": detector_metadata,
         "pipeline": result.summary(),
     }
     (output_dir / "summary.json").write_text(
