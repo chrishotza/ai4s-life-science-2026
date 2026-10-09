@@ -67,9 +67,9 @@ The updated benchmark computes pairwise trajectory-identity precision/recall/F1,
 
 | Method | Adjacent-edge F1 | Identity precision | Identity recall | Identity F1 | Predicted/reference track ratio | Gap links per sequence (mean) |
 |---|---:|---:|---:|---:|---:|---:|
-| Mutual NN | 0.98836 | 0.80325 | 0.73643 | 0.75560 | 1.7116 | 0 |
-| Mutual rescue | 0.98836 | 0.80327 | 0.73680 | 0.75576 | 1.7108 | 0 |
-| Hungarian | 0.98749 | 0.81056 | 0.71848 | 0.75042 | 1.8197 | 0 |
+| Mutual NN | 0.99128 | 0.72382 | 0.82140 | 0.76910 | 1.2833 | 0 |
+| Mutual rescue | 0.99130 | 0.72308 | 0.82178 | 0.76886 | 1.2816 | 0 |
+| Hungarian | 0.99045 | 0.73987 | 0.79896 | 0.76783 | 1.3968 | 0 |
 | Velocity Hungarian | 0.98702 | 0.82554 | 0.72016 | 0.76879 | 1.7339 | 0 |
 | Gap Hungarian (2-frame window) | 0.99111 | 0.73855 | 0.82420 | **0.77858** | **1.3190** | 112 |
 
