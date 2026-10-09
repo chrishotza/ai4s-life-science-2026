@@ -45,6 +45,37 @@ jobs:
           pip install -e .
       - name: Run strict cross-sequence segmentation benchmark
         run: python scripts/benchmark_phc_psc_supervised_segmentation.py
+      - name: Capture validation provenance
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import platform
+          from pathlib import Path
+
+          paths = {
+              "results": Path("phc_psc_supervised_segmentation_results.json"),
+              "summary": Path("phc_psc_supervised_segmentation_summary.csv"),
+              "benchmark_script": Path("scripts/benchmark_phc_psc_supervised_segmentation.py"),
+              "segmenter": Path("src/ai4s_imaging/supervised.py"),
+          }
+          record = {
+              "benchmark": "PhC-C2DL-PSC supervised raw-image segmentation, two-way sequence holdout",
+              "commit_sha": os.environ["GITHUB_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "python_version": platform.python_version(),
+              "sha256": {
+                  name: hashlib.sha256(path.read_bytes()).hexdigest()
+                  for name, path in paths.items()
+              },
+          }
+          Path("phc_psc_supervised_segmentation_provenance.json").write_text(
+              json.dumps(record, indent=2) + "\\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(record, indent=2))
+          PY
       - name: Upload PSC segmentation evidence
         uses: actions/upload-artifact@v4
         with:
@@ -52,3 +83,4 @@ jobs:
           path: |
             phc_psc_supervised_segmentation_results.json
             phc_psc_supervised_segmentation_summary.csv
+            phc_psc_supervised_segmentation_provenance.json
