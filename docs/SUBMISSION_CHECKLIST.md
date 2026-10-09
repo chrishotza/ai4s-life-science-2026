@@ -46,7 +46,7 @@ Official detail reflected in this checklist:
 - [ ] Confirm the registered team has 1–5 members, one leader, and a roster matching the technical report
 - [ ] Synchronize technical-report team roster with the official Kaggle registration
 - [ ] Check whether the registered roster qualifies for the +0.5 cross-disciplinary bonus; do not claim it unless both expertise areas are represented
-- [ ] Re-run CI on the final public code/documentation commit (the latest successful run predates the most recent documentation changes; verify a green run on the final SHA)
+- [x] CI passes on the latest claim-audit/documentation corrections; rerun after any further source or submission-document changes
 - [ ] Confirm all benchmark scripts reproduce their published numbers, including the image-to-tracking and image-segmentation holdout benchmarks
 - [x] Capture bounded pretrained Cellpose pilot artifact (4 frames per sequence; exploratory metrics documented)
 - [ ] Add and verify a representative real-data visualization artifact that reviewers can access without login (the renderer exists, but no public output has been verified)
