@@ -17,6 +17,7 @@ from ai4s_io import (
     load_ctc_tracking,
 )
 from ai4s_tracking import TrackingConfig, link_metrics, track_detections
+from ai4s_tracking.tracker import _mutual_pairs
 
 DISTANCES_UM = (1.6, 3.2, 4.8, 6.4, 8.0, 9.6, 12.8, 16.0)
 SEQUENCES = ("01", "02")
@@ -60,6 +61,76 @@ def score(
         "recall": float(metrics["recall"]),
         "f1": float(metrics["f1"]),
     }
+
+
+def fast_mutual_nn_track(
+    detections: pd.DataFrame,
+    max_distance_um: float,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Vectorized MNN benchmark path; parity-tested against the public tracker."""
+    ordered = (
+        detections.copy()
+        .sort_values(["t", "z", "y", "x"])
+        .reset_index(drop=True)
+    )
+    ordered["node_id"] = np.arange(len(ordered), dtype=np.int64)
+    if ordered.empty:
+        ordered["track_id"] = pd.Series(dtype="int64")
+        return ordered, pd.DataFrame(
+            columns=["source_id", "target_id", "distance_um", "link_confidence", "edge_type"]
+        )
+
+    scale = np.asarray(PHC_C2DL_PSC_VOXEL_SIZE_UM, dtype=float)
+    positions = ordered[["z", "y", "x"]].to_numpy(dtype=float) * scale
+    times = ordered["t"].to_numpy()
+    track_ids = np.full(len(ordered), -1, dtype=np.int64)
+    edge_rows: list[tuple[int, int, float, float, str]] = []
+    next_track_id = 0
+    previous_idx: np.ndarray | None = None
+
+    for _, frame in ordered.groupby("t", sort=True):
+        current_idx = frame.index.to_numpy(dtype=np.int64)
+        if previous_idx is None:
+            track_ids[current_idx] = np.arange(
+                next_track_id, next_track_id + len(current_idx), dtype=np.int64
+            )
+            next_track_id += len(current_idx)
+            previous_idx = current_idx
+            continue
+
+        # The production tracker orders active source observations by track ID.
+        previous_idx = previous_idx[np.argsort(track_ids[previous_idx], kind="stable")]
+        pairs = _mutual_pairs(positions[previous_idx], positions[current_idx], max_distance_um)
+        matched_current: set[int] = set()
+        for previous_position, current_position, distance in pairs:
+            source_id = int(previous_idx[previous_position])
+            target_id = int(current_idx[current_position])
+            track_ids[target_id] = track_ids[source_id]
+            matched_current.add(current_position)
+            confidence = max(0.0, 1.0 - distance / max_distance_um)
+            edge_rows.append((source_id, target_id, distance, confidence, "link"))
+
+        for current_position, target_id in enumerate(current_idx):
+            if current_position in matched_current:
+                continue
+            track_ids[target_id] = next_track_id
+            next_track_id += 1
+        previous_idx = current_idx
+
+    ordered["track_id"] = track_ids
+    edges = pd.DataFrame(
+        edge_rows,
+        columns=["source_id", "target_id", "distance_um", "link_confidence", "edge_type"],
+    )
+    if edges.empty:
+        edges = edges.astype({
+            "source_id": "int64",
+            "target_id": "int64",
+            "distance_um": "float64",
+            "link_confidence": "float64",
+            "edge_type": "object",
+        })
+    return ordered, edges
 
 
 def trajectory_identity_metrics(
@@ -127,13 +198,9 @@ def evaluate_sequence(dataset_root: Path, sequence: str) -> list[dict[str, objec
     rows: list[dict[str, object]] = []
 
     for distance_um in DISTANCES_UM:
-        predicted_nodes, predicted_edges = track_detections(
+        predicted_nodes, predicted_edges = fast_mutual_nn_track(
             detections[["t", "z", "y", "x", "reference_track_id"]],
-            TrackingConfig(
-                max_distance_um=distance_um,
-                method=METHOD,
-                voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
-            ),
+            max_distance_um=distance_um,
         )
         _, predicted_edge_set = link_sets(truth_edge_nodes, predicted_edges)
         edge_metrics = score(truth_edges, predicted_edge_set)
