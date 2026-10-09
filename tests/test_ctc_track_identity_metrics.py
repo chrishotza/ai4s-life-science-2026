@@ -72,7 +72,7 @@ def test_unmatched_centroids_do_not_report_zero_error():
 
 @pytest.mark.parametrize(
     "method",
-    ["mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian"],
+    ["mutual_nn", "mutual_rescue", "hungarian", "velocity_hungarian", "gap_hungarian"],
 )
 def test_fast_association_paths_match_production_tracker_on_deterministic_fixture(method):
     detections = pd.DataFrame(
@@ -95,6 +95,7 @@ def test_fast_association_paths_match_production_tracker_on_deterministic_fixtur
             max_distance_um=8.0,
             method=method,
             voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
+            max_frame_gap=2 if method == "gap_hungarian" else 1,
         ),
     )
 
@@ -102,3 +103,33 @@ def test_fast_association_paths_match_production_tracker_on_deterministic_fixtur
     assert set(zip(fast_edges["source_id"], fast_edges["target_id"])) == set(
         zip(production_edges["source_id"], production_edges["target_id"])
     )
+
+
+
+def test_gap_hungarian_reconnects_a_detection_after_one_missing_frame():
+    detections = pd.DataFrame(
+        [
+            {"t": 0, "z": 0.0, "y": 0.0, "x": 0.0},
+            {"t": 0, "z": 0.0, "y": 20.0, "x": 20.0},
+            {"t": 1, "z": 0.0, "y": 19.0, "x": 20.0},
+            {"t": 2, "z": 0.0, "y": 1.5, "x": 0.0},
+            {"t": 2, "z": 0.0, "y": 18.0, "x": 20.0},
+        ]
+    )
+    nodes, edges = track_detections(
+        detections,
+        TrackingConfig(
+            max_distance_um=4.0,
+            method="gap_hungarian",
+            voxel_size_um=PHC_C2DL_PSC_VOXEL_SIZE_UM,
+            max_frame_gap=2,
+        ),
+    )
+
+    first_track = int(nodes.loc[nodes["t"].eq(0)].iloc[0]["track_id"])
+    reappeared_track = int(
+        nodes.loc[nodes["t"].eq(2) & nodes["y"].eq(1.5)].iloc[0]["track_id"]
+    )
+    assert reappeared_track == first_track
+    assert "frame_gap" in edges.columns
+    assert 2 in edges["frame_gap"].astype(int).to_list()
