@@ -35,6 +35,9 @@ def test_probe_can_fit_and_predict_heldout_sequences_without_labels():
         np.ones(len(outcome)),atol=1e-12,
     )
     assert "label" not in outcome.columns
+    assert outcome["has_temporal_motion"].sum() == 12
+    assert (outcome.loc[~outcome["has_temporal_motion"], "prior_observations"] == 0).all()
+    assert (outcome["last_observation_gap"] <= 1).all()
 
 
 def test_static_ablation_is_equal_capacity_and_disables_motion():
