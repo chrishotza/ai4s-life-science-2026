@@ -219,7 +219,7 @@ def evaluate_sequence(root: Path, sequence: str) -> dict[str, object]:
             "precision_or_f1_reported": False,
             "reason": "Gold segmentation has sparse object coverage; unannotated cells are unknown, not negatives.",
         },
-        "detection": {**detection_metrics, "match_radius_px": CENTER_RADIUS_PX},
+        "detection": {**detection_metrics, "matching_rule": "one-to-one overlap with CTC GT/TRA marker pixels"},
         "tracking": {
             "edge_precision": float(edge_metrics["precision"]),
             "edge_recall": float(edge_metrics["recall"]),
