@@ -195,7 +195,6 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
         samples_per_class_per_frame=SAMPLES_PER_CLASS,
         max_training_frames=MAX_TRAIN_FRAMES,
         random_state=RANDOM_STATE,
-        min_marker_area=8,
         min_instance_area=200,
         max_instance_area=30000,
     ).fit(np.stack(train_frames), np.stack(train_masks))
@@ -270,6 +269,8 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
             "n_estimators": 60,
             "max_depth": 18,
             "samples_per_class_per_frame": SAMPLES_PER_CLASS,
+            "min_marker_area_px": int(segmenter.effective_min_marker_area),
+            "min_marker_area_rule": "10% of median labeled training-cell area, clamped to 16-256 px",
             "random_state": RANDOM_STATE,
         },
         "segmentation": {
