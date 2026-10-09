@@ -27,8 +27,9 @@ from benchmark_ctc_tra_supervised import (
 )
 
 N = int(os.environ.get("AI4S_VISUAL_FRAMES", "8"))
+START = int(os.environ.get("AI4S_VISUAL_START_FRAME", "0"))
 SEQ = os.environ.get("AI4S_VISUAL_SEQUENCE", "01")
-assert 2 <= N <= 84 and SEQ in ("01", "02")
+assert 2 <= N <= 84 and 0 <= START <= 84 - N and SEQ in ("01", "02")
 OUT = ROOT / "cellpose_visual_pilot"
 OUT.mkdir(exist_ok=True)
 P = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
@@ -94,7 +95,7 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     board = Image.new("RGB", (1280, 720), BG)
     d = ImageDraw.Draw(board)
     d.text((72, 44), "Real CTC microscopy — image-derived predictions", font=B, fill=WHITE)
-    d.text((72, 105), f"Sequence {SEQ} / frame {i+1:02d} of {N:02d}", font=P, fill=MUTED)
+    d.text((72, 105), f"Sequence {SEQ} / CTC frame {START+i:02d} / 24-frame division window" if START else f"Sequence {SEQ} / frame {i+1:02d} of {N:02d}", font=P, fill=MUTED)
     board.paste(fit_square(raw_im), (108, 160))
     board.paste(fit_square(overlay), (705, 160))
     d.text((108, 620), "RAW MICROSCOPY", font=P, fill=WHITE)
@@ -104,7 +105,7 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
 
 def main() -> None:
     root = ensure_ctc_dataset(ROOT / ".benchmark_cache")
-    paths = image_files(root, SEQ)[:N]
+    paths = image_files(root, SEQ)[START:START+N]
     gt = keyed_masks(root, SEQ)
     model = CellposeSegmenter(
         model_name="cpsam_v2", min_size=200,
@@ -134,7 +135,12 @@ def main() -> None:
         "model": "CellposeSAM-v2 cpsam_v2",
         "sequence": SEQ,
         "visualized_frames": len(frames),
+        "first_frame_index": frame_index(paths[0]),
+        "last_frame_index": frame_index(paths[-1]),
+        "window_selection": "CTC metadata selects a candidate division-event neighborhood only" if START else "first N images",
         "aggregate_mean_frame_segmentation_f1": float(np.mean([s["f1_iou50"] for s in records])),
+        "predicted_track_count": int(track_nodes["track_id"].nunique()),
+        "predicted_temporal_link_count": int(len(edges)),
         "frames": records,
         "caveat": "Visual pilot only. NOT the full 168-frame CTC benchmark, which was measured separately. Predicted masks and tracks shown; CTC annotations never substituted for predictions."
     }, indent=2), encoding="utf-8")
