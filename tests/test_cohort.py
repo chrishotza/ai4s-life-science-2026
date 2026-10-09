@@ -49,3 +49,23 @@ def test_compare_cohorts_requires_both_groups():
             group_a="treated",
             group_b="control",
         )
+
+
+
+def test_compare_cohorts_rejects_underpowered_feature_groups():
+    frame = pd.DataFrame(
+        [
+            {"condition": "control", "mean_speed": 0.5},
+            {"condition": "control", "mean_speed": 0.6},
+            {"condition": "treated", "mean_speed": 0.9},
+        ]
+    )
+
+    with pytest.raises(ValueError, match="at least two finite observations"):
+        compare_cohorts(
+            frame,
+            group_column="condition",
+            group_a="treated",
+            group_b="control",
+            features=("mean_speed",),
+        )
