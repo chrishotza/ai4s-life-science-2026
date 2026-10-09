@@ -69,3 +69,11 @@ The current evidence therefore supports four distinct validation boundaries:
 4. **Image-level negative controls:** raw-image segmentation attempts are retained as documented failure analyses.
 
 No image-level method is promoted into the headline benchmark until it passes strict cross-sequence validation at a scientifically useful accuracy level.
+
+## Protocol correction — separate annotation roles
+
+The CTC real-data annotations are not interchangeable. Gold tracking labels under `GT/TRA` provide the object identities and temporal links, but have weak object-region geometry. Gold segmentation labels under `GT/SEG` contain manually curated object shapes with sparse instance coverage. Silver segmentation under `ST/SEG` provides substantially denser masks but is not an independent manual gold standard. These distinctions follow the official CTC annotation guidance.
+
+The current cross-sequence image-to-mask benchmark therefore trains and computes its dense, full-frame segmentation proxy against `ST/SEG`, while checking centroid detection and temporal links against the identities in `GT/TRA`. The temporal holdout benchmark also reports the IoU recall of individually annotated `GT/SEG` objects, but does not count detections on unlabeled cells as false positives in that sparse-gold check. Full-frame metrics against silver labels are explicitly identified as proxy metrics; they must not be described as independent human annotation scores.
+
+The earlier experiment rows above are historical ablations, not proof that the current raw-image pipeline passes scientific validation. No image-to-phenotype method is promoted as validated until the current holdout quality gates pass and the limits of each annotation source are reported.
