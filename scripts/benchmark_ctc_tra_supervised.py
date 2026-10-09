@@ -233,7 +233,7 @@ def evaluate_fold(root: Path, train_sequence: str, test_sequence: str) -> dict[s
         np.stack([np.squeeze(tifffile.imread(path)) for path in test_image_paths if frame_index(path) in test_mask_map]),
         np.stack(predicted_masks),
     )
-    detections["t"] = eval_times
+    detections["t"] = detections["t"].map(dict(enumerate(eval_times))).astype(int)
     detections = detections.reset_index(drop=True)
     tracked, edges = track_detections(
         detections[["t", "z", "y", "x"]],
