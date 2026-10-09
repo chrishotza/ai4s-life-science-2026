@@ -107,6 +107,32 @@ def _mutual_rescue_pairs(
     return rescued
 
 
+def _gated_assignment_indices(
+    normalized_cost: np.ndarray,
+    valid: np.ndarray,
+) -> list[tuple[int, int]]:
+    """Maximize valid assignment cardinality, then minimize normalized cost.
+
+    Valid costs must be normalized to [0, 1]. Assigning any invalid edge costs
+    more than the maximum possible sum of all valid edges, so one additional
+    valid match always takes precedence over a lower-cost partial matching.
+    """
+    if normalized_cost.ndim != 2 or valid.shape != normalized_cost.shape:
+        raise ValueError("cost and validity matrices must have the same 2-D shape")
+    if normalized_cost.size == 0:
+        return []
+    if not np.isfinite(normalized_cost[valid]).all():
+        raise ValueError("valid assignment costs must be finite")
+    if ((normalized_cost[valid] < 0.0) | (normalized_cost[valid] > 1.0)).any():
+        raise ValueError("valid assignment costs must be normalized to [0, 1]")
+
+    max_pairs = min(normalized_cost.shape)
+    cost = np.full(normalized_cost.shape, float(max_pairs + 1), dtype=float)
+    cost[valid] = normalized_cost[valid]
+    rows, cols = linear_sum_assignment(cost)
+    return [(int(i), int(j)) for i, j in zip(rows, cols) if valid[i, j]]
+
+
 def _hungarian_pairs(
     a: np.ndarray,
     b: np.ndarray,
@@ -116,18 +142,8 @@ def _hungarian_pairs(
         return []
     d = _distance(a, b)
     valid = d <= max_distance
-
-    # Maximize admissible link count first, then minimize total distance.
-    # A single invalid assignment costs more than all valid costs combined.
-    max_pairs = min(d.shape)
-    cost = np.full(d.shape, float(max_pairs + 1), dtype=float)
-    cost[valid] = d[valid] / max_distance
-    rows, cols = linear_sum_assignment(cost)
-    return [
-        (int(i), int(j), float(d[i, j]))
-        for i, j in zip(rows, cols)
-        if valid[i, j]
-    ]
+    pairs = _gated_assignment_indices(d / max_distance, valid)
+    return [(i, j, float(d[i, j])) for i, j in pairs]
 
 
 def _assign_pairs(
@@ -174,16 +190,14 @@ def _track_gap_hungarian(
             last_times = np.asarray([active[tr][1] for tr in eligible], dtype=int)
             frame_gaps = int(t) - last_times
             distances = _distance(track_positions, cur_xyz)
-            normalized = distances / np.maximum(1, frame_gaps)[:, None]
-            rows, cols = linear_sum_assignment(normalized)
+            allowed = config.max_distance_um * frame_gaps[:, None]
+            valid = distances <= allowed
+            normalized_cost = distances / allowed
+            pairs = _gated_assignment_indices(normalized_cost, valid)
 
-            for row_idx, col_idx in zip(rows, cols):
+            for row_idx, col_idx in pairs:
                 frame_gap = int(frame_gaps[row_idx])
                 distance = float(distances[row_idx, col_idx])
-                allowed = config.max_distance_um * frame_gap
-                if distance > allowed:
-                    continue
-
                 tr = eligible[row_idx]
                 src = int(active[tr][0])
                 dst = int(cur_idx[col_idx])

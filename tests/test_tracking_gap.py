@@ -56,3 +56,33 @@ def test_gap_hungarian_does_not_bridge_beyond_configured_gap():
 
     assert nodes["track_id"].nunique() == 2
     assert edges.empty
+
+
+
+def test_gap_hungarian_maximizes_valid_links_when_tracks_have_different_gaps():
+    # At t=2 the recent track can link to either detection, while the older
+    # track can only reach x=0.1. Unconstrained assignment prefers the invalid
+    # older-track -> x=0.9 pair and then drops it, losing a valid second link.
+    detections = pd.DataFrame(
+        [
+            (0, 0.0, 0.0, -1.9),  # older track
+            (0, 0.0, 0.0, 0.0),   # recent track
+            (1, 0.0, 0.0, 0.1),   # only the recent track is observed
+            (2, 0.0, 0.0, 0.1),
+            (2, 0.0, 0.0, 0.9),
+        ],
+        columns=["t", "z", "y", "x"],
+    )
+
+    nodes, edges = track_detections(
+        detections,
+        TrackingConfig(
+            max_distance_um=1.0,
+            method="gap_hungarian",
+            max_frame_gap=2,
+        ),
+    )
+
+    assert len(edges) == 3
+    assert nodes.loc[nodes["t"].eq(2), "track_id"].nunique() == 2
+    assert set(edges["frame_gap"].astype(int)) == {1, 2}
