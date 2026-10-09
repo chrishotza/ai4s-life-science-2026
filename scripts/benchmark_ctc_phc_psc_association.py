@@ -16,7 +16,7 @@ from ai4s_io import (
     ensure_ctc_phc_psc_dataset,
     load_ctc_tracking,
 )
-from ai4s_tracking import TrackingConfig, link_metrics, track_detections
+from ai4s_tracking import link_metrics
 from ai4s_tracking.tracker import _mutual_pairs
 
 DISTANCES_UM = (1.6, 3.2, 4.8, 6.4, 8.0, 9.6, 12.8, 16.0)
