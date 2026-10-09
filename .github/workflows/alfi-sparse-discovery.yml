@@ -37,15 +37,24 @@ jobs:
           try:
               with RemoteZip(u, support_suffix_range=True, timeout=40) as z:
                   entries=z.infolist()
+                  from collections import Counter
+                  exts=Counter((i.filename.rsplit(".",1)[-1].lower() if "." in
+                                i.filename.rsplit("/",1)[-1] else "(dir/noext)")
+                               for i in entries if not i.is_dir())
+                  file_types=(".xml",".csv",".json",".txt",".mat",".tsv",".xlsx")
                   ann=[dict(path=i.filename,uncompressed_bytes=i.file_size,
                             compressed_bytes=i.compress_size)
                        for i in entries
-                       if any(p in i.filename.lower() for p in
-                              ("annotation","label","track","phenotype","readme","xml","csv","json"))]
+                       if not i.is_dir() and
+                       (i.filename.lower().endswith(file_types) or
+                       "/annotations/" in i.filename.lower() or
+                       "/tracks/" in i.filename.lower())]
                   result.update(status="success",n_archive_entries=len(entries),
-                                n_annotation_candidates=len(ann),
-                                annotation_candidates=sorted(ann,key=lambda x:x["uncompressed_bytes"])[:130],
-                                warning="Archive table-of-contents only; no biological validation yet")
+                                extension_counts=dict(exts),
+                                n_nonimage_annotation_candidates=len(ann),
+                                annotation_candidates=sorted(ann,key=lambda x:x["uncompressed_bytes"])[:150],
+                                largest_candidates=sorted(ann,key=lambda x:x["uncompressed_bytes"],reverse=True)[:30],
+                                warning="ZIP metadata only; no validation or full transfer")
           except Exception as e:
               result.update(status="range_access_failed",
                             exception_type=type(e).__name__,
