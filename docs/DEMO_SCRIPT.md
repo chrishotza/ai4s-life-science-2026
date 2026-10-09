@@ -1,97 +1,92 @@
 # Final Demo Script
 
-Target duration: 2–3 minutes. Hard maximum: 5 minutes.
+Narration target: approximately 3 minutes 10 seconds. The current renderer produces a silent visual cut of approximately 30 seconds; it does not record this narration or create the final public competition video.
+
+## What the current renderer actually runs
+
+- Fit the supervised Random Forest segmenter on at most 24 annotated frames from DIC-C2DH-HeLa sequence 02.
+- Predict instance masks on the first 48 raw microscopy frames of the held-out sequence 01.
+- Detect centroids from those predicted masks and track them with mutual nearest neighbor at an 8.0 µm gate.
+- Derive temporal features and descriptive unsupervised phenotype groups from those image-derived tracks.
+- Compare predicted masks with held-out silver segmentation masks and predicted tracks with held-out tracking annotations for the metrics shown in the rendered validation card.
+
+The numbers displayed by the video renderer are generated from that exact 48-frame run in `ai4s_demo_video_metrics.json`. Do not substitute the reference-centroid association metrics below for the image-derived validation-card values.
 
 ## 0:00–0:20 — Problem
 
-**Visual:** real DIC-C2DH-HeLa microscopy.
+**Visual:** title card followed by raw DIC-C2DH-HeLa microscopy.
 
 **Narration:**
 
-"Time-lapse microscopy contains much more than a sequence of images. It contains how individual cells move, persist, divide, and change over time.
+“Time-lapse microscopy contains more than a sequence of images. It captures how cells move and how their behavior changes over time.
 
-The goal of this system is to turn that temporal information into an interpretable single-cell phenotype representation instead of stopping at segmentation or track IDs."
+The Temporal Cellular Phenotype Engine turns image sequences into trajectories and interpretable temporal features, so analysis can continue beyond segmentation and track IDs.”
 
-## 0:20–0:45 — Real image input
+## 0:20–0:50 — Held-out image analysis
 
-**Visual:** raw microscopy followed by transparent baseline detections.
-
-**Narration:**
-
-"The public baseline starts directly from microscopy. It uses transparent image preprocessing and connected components to produce reproducible cell observations.
-
-This stage is deliberately simple and inspectable, and it requires no proprietary model or paid service."
-
-## 0:45–1:15 — Tracking
-
-**Visual:** real microscopy sequence with trajectories.
+**Visual:** raw frame, predicted instance masks, and centroids.
 
 **Narration:**
 
-"Those observations are associated through time using deterministic spatial tracking in physical units.
+“This demonstration fits a supervised Random Forest on annotated frames from DIC-C2DH-HeLa sequence 02. It then applies the fitted model to raw images from the separate sequence 01.
 
-The selected real-data association configuration is mutual nearest neighbor with an 8 micrometer gate.
+The colors show predicted instances and the outlined markers show their centroids. The inference sequence is held out from model fitting.”
 
-Tracking is infrastructure. The scientific output is the behavior represented by the resulting trajectories."
+## 0:50–1:20 — Temporal association
 
-## 1:15–1:45 — Temporal phenotype
-
-**Visual:** phenotype scatter plot and per-cell feature panel.
+**Visual:** image-derived trajectories over the held-out microscopy frames.
 
 **Narration:**
 
-"For every trajectory, the engine derives duration, displacement, path length, speed, directional persistence, temporal integrity, and lineage context.
+“The predicted cell observations are linked across frames with mutual-nearest-neighbor association and an 8 micrometer distance gate.
 
-These features can be transformed into reproducible unsupervised behavioral groups with an explicit fit-and-transform lifecycle."
+These tracks start from predicted image masks. This is an image-derived path; it is distinct from the reference-centroid experiment used elsewhere to isolate tracking from segmentation.”
 
-## 1:45–2:15 — Validation
+## 1:20–1:55 — Temporal phenotype
 
-**Visual:** validation summary.
-
-**Narration:**
-
-"On DIC-C2DH-HeLa sequences 01 and 02, the association-isolation benchmark reaches a mean F1 of 0.99228.
-
-Downstream trajectory preservation gives 0.9451 mean coverage and 0.0439 directional-persistence mean absolute error.
-
-The same association path was also checked with pinned py-ctcmetrics, producing TRA and LNK values above 0.97 on both sequences. A no-oracle sensitivity control produced the same values."
-
-## 2:15–2:35 — Cohort decision layer
-
-**Visual:** synthetic cohort-effect validation card.
+**Visual:** speed-versus-persistence plot and per-cell feature panel.
 
 **Narration:**
 
-"The same phenotype representation can be compared across experimental cohorts. The comparison layer reports effect sizes and bootstrap confidence intervals, so a change can be quantified rather than described only by cluster membership.
+“For each sufficiently observed trajectory, the engine computes temporal features such as duration, speed, and directional persistence. It groups trajectories using unsupervised clustering.
 
-This card is a synthetic method validation, not a biological treatment result."
+The groups are descriptive patterns in these measurements. They are not independently validated biological labels or diagnoses.”
 
-## 2:35–2:55 — Scientific boundary
+## 1:55–2:30 — Image-derived validation
 
-**Visual:** limitations card.
+**Visual:** validation card and metric values generated by the current 48-frame run.
 
 **Narration:**
 
-"One boundary is important: the strongest CTC association result uses reference centroids as detections to isolate temporal association from segmentation. It is not presented as an end-to-end biological phenotype score.
+“This card reports held-out instance-mask F1, marker-detection F1, and temporal-link F1 from the run shown here. The values come from sequence 01 after fitting on sequence 02.
 
-Image-level validation, association validation, synthetic robustness, and biological interpretation are therefore kept as separate evidence layers."
+They describe this bounded image-derived demonstration. They should not be replaced with metrics from the separate reference-centroid association benchmark.”
+
+## 2:30–2:55 — Evidence boundary
+
+**Visual:** evidence and limitations card.
+
+**Narration:**
+
+“A separate CTC association-isolation benchmark uses reference centroids as detections and reports mean F1 of 0.99228, plus pinned TRA and LNK measurements. Those values evaluate temporal association with reference geometry; they are not end-to-end segmentation, a biological phenotype score, or official Cell Tracking Challenge leaderboard scores.
+
+The image-derived demonstration, association-isolation benchmark, and synthetic method validation answer different questions. The synthetic cohort card is method validation, not a biological treatment result.”
 
 ## 2:55–3:10 — Close
 
-**Visual:** final title and repository.
+**Visual:** repository and scientific boundary.
 
 **Narration:**
 
-"The contribution is a reproducible bridge from microscopy to trajectories to interpretable temporal phenotype.
+“The contribution is a reproducible path from microscopy to trajectories to inspectable temporal features. Transfer to organ-on-a-chip data and biological validity remain to be tested.”
 
-The next scientific step is independent biological validation against labeled perturbations and conditions."
+## Recording and editing rules
 
-## Recording rules
-
-- Show the real system and microscopy, not generic stock footage.
-- Keep benchmark values visible long enough to read.
-- Say "association-isolation" whenever reference centroids are used.
-- Do not call TRA/LNK values official CTC leaderboard scores.
-- Do not call unsupervised clusters biological diagnoses.
-- End on the scientific contribution and evidence boundary.
-- Label the cohort card as synthetic methodological validation.
+- Keep the final submitted video at or below five minutes and make it viewable without login, access approval, or payment.
+- Record and synchronize narration; the current renderer creates a silent visual cut only.
+- Preserve the training/inference split and the per-run metrics generated by the renderer.
+- Say “association-isolation” whenever reference centroids are used.
+- Do not describe unsupervised clusters as validated biological phenotypes.
+- Do not call the CTC TRA/LNK values official leaderboard scores.
+- Label the cohort card as synthetic method validation, not a biological treatment result.
+- Verify all visual and data/model-output rights before public release.
