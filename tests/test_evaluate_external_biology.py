@@ -36,5 +36,8 @@ def test_external_biology_grouped_split_detects_signal():
     assert summary["status"] == "measured_external_biology_smoke_test"
     assert result["status"] == "ok"
     assert result["metrics"]["auroc"] >= 0.95
+    assert result["shuffle_control_status"] == "ok"
+    assert result["delta_auroc_vs_shuffle"] is not None
+    assert result["delta_auroc_vs_shuffle"] > 0.20
     assert summary["split"]["train_wells"] > 0
     assert summary["split"]["test_wells"] > 0
