@@ -256,3 +256,7 @@ Only measured outputs from reproducible benchmark runs are included.
 No synthetic score is presented as a real-data result.
 No segmentation performance is inferred from centroid-association performance.
 No biological phenotype claim is inferred from trajectory agreement alone.
+
+## Supplementary 24-frame division-neighborhood image QA (not lineage detection)
+
+A [focused visual audit](CTC_FOCUSED_DIVISION_WINDOW_QA.md) inspected **24 consecutive CellposeSAM-v2 predicted-mask frames** from CTC sequence 02, frames 34–57, selected around a *reference-annotated* division. Mean frame segmentation F1@IoU50 **0.955906** (minimum **0.800000**) and 17 predicted tracks/272 temporal links were exported. This is targeted segmentation continuity evidence, **not proof of automatic parent-to-daughter inference**, and the window is drawn from the same dataset as the primary 168-frame benchmark. Per-frame metrics and source artifacts are linked in the report; no metrics have been added to the main benchmark.
