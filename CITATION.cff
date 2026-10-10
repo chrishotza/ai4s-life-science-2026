@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this research software, please cite the archived Zenodo software release."
+message: "If you use this research software, cite this repository and its version; cite a Zenodo DOI only if an archived release has actually been published."
 type: software
 title: "Temporal Cellular Phenotype Engine"
 abstract: >-
