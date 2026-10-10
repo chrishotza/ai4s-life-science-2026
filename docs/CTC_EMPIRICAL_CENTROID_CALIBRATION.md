@@ -1,6 +1,6 @@
 # CellposeSAM-v2 cell-center comparison with CTC silver reference masks
 
-**Experimental protocol — numerical results pending completion of the actual inference run.** This note is in the development PR and must not be cited as a completed benchmark until [the run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38016428084) finishes and its exported results are verified.
+**Status: completed empirical silver-reference centroid comparison, internally validated from independently checked per-instance exports.** The [pre-specified 16-frame inference run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38016428084) finished successfully. A separate archive workflow independently validated the per-cell CSV, SHA-256 and percentile calculations before committing results.
 
 ## Research question
 
@@ -44,4 +44,40 @@ python scripts/evaluate_ctc_mask_centroid_reference.py \
 
 GitHub Actions: [real CPU inference and artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38016428084).
 
-**Result status:** `PENDING_REAL_INFERENCE`. Replace this status with verified measured results and an exact artifact reference before any merge into the submission-ready main branch.
+## Verified measurements (16 selected frames, 193 matched instances)
+
+| Metric | Both sequences | Sequence 01 | Sequence 02 |
+|---|---:|---:|---:|
+| Sampled frames | **16** | 8 | 8 |
+| Silver reference instances | 199 | 104 | 95 |
+| Model-predicted instances | 211 | 112 | 99 |
+| One-to-one IoU≥0.50 matches | **193** | 99 | 94 |
+| Reference-instance match coverage | 97.0% | 95.2% | 98.9% |
+| Predicted-instance match coverage | 91.5% | 88.4% | 94.9% |
+| Mean frame instance F1@IoU50 | 0.9391 | 0.9139 | 0.9644 |
+| **Median matched centroid discrepancy** | **0.909 µm** | 0.906 µm | 0.911 µm |
+| **95th-percentile matched discrepancy** | **2.701 µm** | 3.136 µm | 2.563 µm |
+| Largest matched discrepancy | **4.289 µm** | 4.289 µm | 3.879 µm |
+
+From the 199 silver-annotated objects, 6 were unmatched; 18 of the 211 model predictions were unmatched. The measured pooled matched-offset mean was **1.103 µm** and RMSE **1.372 µm**. Dividing each offset by the matched silver object's area-equivalent radius yielded a median **0.0814** and 95th percentile **0.2630**, useful for assessing error relative to apparent cell size.
+
+The prespecified frames were **0, 11, 23, 35, 47, 59, 71 and 83 in each sequence**. This was chosen before seeing their results, not cherry-picked after a visual inspection.
+
+**Supplementary overlap-quality check:** Of the 193 IoU≥0.50 matches, 139 also had IoU≥0.75; in that **strictly selected subset** the median discrepancy was **0.773 µm** and its p95 **1.923 µm**. This is a conditional sensitivity diagnostic, not a replacement headline: better-matched cell masks naturally tend to have more similar geometric centroids, and restricting to them discards harder objects.
+
+## What changes in the scientific interpretation
+
+Earlier, [the mathematical sensitivity analysis](CTC_CENTROID_ERROR_SENSITIVITY.md) modeled hypothetical hard upper bounds of 0.05–1.00 µm on individual center errors. These **new empirical silver-reference discrepancies are often larger than those example radii**: just 8.8% of the matched pairs have measured offset ≤0.25 µm and 21.8% ≤0.50 µm. Consequently, it would be **unjustified to describe those small hypothetical bounds as a calibration of the existing tracker**, or to claim our low-directionality findings are empirically secure under such thresholds.
+
+However, reference mask centroid disagreement does **not establish the true biological-center estimation error**, and the per-instance error distribution does **not provide a uniform maximum across every position of any of the 51 exported temporal profiles**. It cannot directly be substituted as epsilon into a whole-track triangle-inequality guarantee. This is a *meaningful numerical limitation* and a clear next validation target, not evidence that a biological phenotype has been discovered or refuted.
+
+## Public proof and provenance
+
+- [Successful 16-frame, two-sequence inference with identical CellposeSAM-v2 settings](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38016428084).
+- [Original two-file numeric artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38016428084/artifacts/11656429049).
+- [Versioned aggregate and per-frame JSON](evidence/ctc/cellpose_centroid_reference_16_frames.json).
+- [Per-instance audit CSV](evidence/ctc/cellpose_centroid_matches_16_frames.csv).
+- [Independent freeze-and-verify action](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/38017367854) checked unique matches, physical units, median, p95 and exact source CSV SHA-256.
+
+**Verified conclusion:** On these 16 sampled CTC frames, pretrained CellposeSAM-v2 achieved strong matching coverage but **non-negligible reference-mask centroid discrepancies**, with a 0.91 µm median and 2.70 µm p95 among matched objects. We now quantify both the utility and one important spatial limitation of downstream motion estimates, without claiming new biology.
+
