@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ai4s_imaging.identity_confidence import audit_track_color_continuity
+from ai4s_imaging.identity_confidence import audit_track_color_continuity, audit_track_color_prefixes
 
 
 def _nodes(n: int = 3) -> pd.DataFrame:
@@ -66,3 +66,57 @@ def test_duplicated_instance_ownership_is_rejected():
     nodes.loc[1, "instance_id"] = 1
     with pytest.raises(ValueError, match="ambiguous instance ID"):
         audit_track_color_continuity(_clean(), nodes)
+
+
+def test_population_prefix_colors_all_trustworthy_tracks_not_just_one():
+    from ai4s_imaging.identity_confidence import audit_track_color_prefixes
+    result = audit_track_color_prefixes(_clean(), _nodes())
+    assert result[0]["colored_through_frame"] == 2
+    assert result[1]["colored_through_frame"] == 2
+
+
+def test_identity_swap_never_resumes_same_hue_after_suspect_link():
+    from ai4s_imaging.identity_confidence import audit_track_color_prefixes
+    original = _clean()
+    masks = np.concatenate([original, original[-1:]], axis=0)
+    masks[3, 3:9, 5:11] = 0
+    masks[3, 23:29, 1:7] = 1
+    masks[3, 18:24, 16:22] = 2
+    nodes = pd.concat([_nodes(), pd.DataFrame([
+        {"t": 3, "track_id": 0, "instance_id": 1},
+        {"t": 3, "track_id": 1, "instance_id": 2},
+    ])], ignore_index=True)
+    data = audit_track_color_prefixes(masks, nodes)
+    assert data[0]["colored_through_frame"] == 2
+    assert data[0]["first_failure"] is not None
+    assert data[1]["colored_through_frame"] == 2
+
+
+def test_new_three_frame_track_is_not_suppressed_by_missing_early_frames():
+    from ai4s_imaging.identity_confidence import audit_track_color_prefixes
+    first = np.zeros((30,30),dtype=np.int32)
+    masks = np.stack([first, *_clean()])
+    nodes = _nodes().copy()
+    nodes["t"] += 1
+    result = audit_track_color_prefixes(masks,nodes)
+    assert result[0]["first_frame"] == 1
+    assert result[0]["colored_through_frame"] == 3
+
+
+def test_short_track_is_neutral_and_no_synthetic_link():
+    from ai4s_imaging.identity_confidence import audit_track_color_prefixes
+    masks = _clean()
+    masks[1,3:9,4:10] = 0
+    nodes = _nodes()
+    nodes = nodes[~(nodes["t"].eq(1)&nodes["track_id"].eq(0))]
+    result = audit_track_color_prefixes(masks,nodes)
+    assert result[0]["colored_through_frame"] is None
+    assert result[0]["first_failure"] == "missing_temporal_observation"
+
+
+def test_mismatch_in_model_inventory_is_hard_error():
+    from ai4s_imaging.identity_confidence import audit_track_color_prefixes
+    masks = _clean()
+    nodes = _nodes().iloc[:-1]
+    with pytest.raises(ValueError, match="inventory mismatch"):
+        audit_track_color_prefixes(masks,nodes)
