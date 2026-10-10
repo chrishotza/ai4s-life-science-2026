@@ -47,6 +47,21 @@ REQUIRED_CAVEATS = (
 
 CAVEAT_FILES = CRITICAL_VALUE_FILES + (ROOT / "docs" / "KAGGLE_SUMMARY.md",)
 
+# External AI audits found that a strong mapped-endpoint edge score can be
+# mistaken for fully observed biological identity correctness. Keep this caveat
+# mandatory on every public-facing evidence entrypoint, not just in one footnote.
+MATCHED_EDGE_SCOPE_REQUIREMENTS = (
+    (ROOT / "README.md", "unmatched endpoints were omitted"),
+    (ROOT / "docs" / "RESULTS.md", "unmatched endpoint are excluded"),
+    (ROOT / "docs" / "JUDGE_READER_GUIDE.md", "only mapped prediction links"),
+    (ROOT / "docs" / "KAGGLE_WRITEUP.md", "historical edge metric omits model links"),
+)
+ALFI_ORACLE_SCOPE_REQUIREMENTS = (
+    (ROOT / "README.md", "expert"),
+    (ROOT / "docs" / "KAGGLE_WRITEUP.md", "expert-annotated"),
+    (ROOT / "docs" / "JUDGE_READER_GUIDE.md", "expert bounding boxes"),
+)
+
 FORMAL_REQUIREMENTS = (
     (
         ROOT / "docs" / "KAGGLE_WRITEUP.md",
@@ -240,6 +255,13 @@ def main() -> None:
                 missing.append(
                     f"{path.relative_to(ROOT)} missing required evidence boundary: {required_phrase}"
                 )
+
+    for path, requirement in MATCHED_EDGE_SCOPE_REQUIREMENTS + ALFI_ORACLE_SCOPE_REQUIREMENTS:
+        prose = path.read_text(encoding="utf-8").lower()
+        if requirement not in prose:
+            missing.append(
+                f"{path.relative_to(ROOT)} missing reviewer-required metric scope: {requirement}"
+            )
 
     for path, phrases in FORMAL_REQUIREMENTS:
         text = path.read_text(encoding="utf-8")
