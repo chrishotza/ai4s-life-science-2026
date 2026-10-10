@@ -45,5 +45,7 @@ jobs:
             --output /tmp/ctc_centroid_error_bounds.json
           cmp /tmp/ctc_centroid_error_bounds.json \
             docs/evidence/ctc/centroid_localization_bounds.json
+      - name: Independent frozen silver-centroid measurement audit
+        run: python scripts/validate_ctc_centroid_reference_evidence.py
       - name: Submission claim audit
         run: python scripts/validate_submission_claims.py
