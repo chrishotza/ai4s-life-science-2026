@@ -1,0 +1,81 @@
+name: Real CTC 24-Frame Stable-Identity Color Film
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ctc-stable-color-24.yml'
+      - 'scripts/export_cellpose_visual_pilot.py'
+      - 'src/ai4s_imaging/track_colors.py'
+      - 'tests/test_track_colors.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ctc-stable-color-24-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-${{ runner.os }}
+      - name: Install reproducible CPU Cellpose and encoder
+        run: |
+          python -m pip install -e .
+          python -m pip install -r requirements-dev.txt
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          python -m pip install fastremap roifile fill-voids segment_anything opencv-python-headless natsort tqdm
+          python -m pip install --no-deps 'cellpose==4.2.1.1'
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Check colors, tracking identity and no-fake-division gates
+        run: pytest -q tests/test_track_colors.py
+      - name: Recompute true 24 consecutive images, masks and track identities
+        env:
+          AI4S_VISUAL_FRAMES: '24'
+          AI4S_VISUAL_START_FRAME: '34'
+          AI4S_VISUAL_SEQUENCE: '02'
+        run: python scripts/export_cellpose_visual_pilot.py
+      - name: Encode all 24 original chronological frames, without optical interpolation
+        run: |
+          ffmpeg -y -hide_banner -loglevel error -framerate 1.5 \
+            -i cellpose_visual_pilot/pilot_%03d.png \
+            -c:v libx264 -crf 19 -pix_fmt yuv420p -r 24 \
+            -movflags +faststart cellpose-24-stable-track-colors.mp4
+          python - <<'PY'
+          import json,glob,subprocess
+          from pathlib import Path
+          d = json.loads(Path('cellpose_visual_pilot/visual_pilot_metrics.json').read_text())
+          assert d['stable_identity_coloring'] is True
+          assert d['visualized_frames'] == 24
+          assert d['first_frame_index'] == 34 and d['last_frame_index'] == 57
+          assert len(glob.glob('cellpose_visual_pilot/pilot_*.png')) == 24
+          p = subprocess.run(['ffmpeg','-v','error','-i','cellpose-24-stable-track-colors.mp4',
+                              '-f','null','-'],capture_output=True,text=True)
+          assert p.returncode == 0,p.stderr
+          print('24 real chronological frames; stable predicted track palettes; no synthetic division')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ctc-24-real-frames-persistent-track-colors
+          path: |
+            cellpose_visual_pilot/
+            cellpose-24-stable-track-colors.mp4
+          retention-days: 90
+          if-no-files-found: warn
