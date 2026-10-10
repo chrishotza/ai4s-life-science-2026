@@ -8,6 +8,8 @@ on:
       - 'scripts/export_cellpose_visual_pilot.py'
       - 'src/ai4s_imaging/track_colors.py'
       - 'tests/test_track_colors.py'
+      - 'src/ai4s_imaging/identity_confidence.py'
+      - 'tests/test_identity_confidence.py'
   workflow_dispatch:
 
 permissions:
@@ -44,12 +46,14 @@ jobs:
           python -m pip install --no-deps 'cellpose==4.2.1.1'
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Check colors, tracking identity and no-fake-division gates
-        run: pytest -q tests/test_track_colors.py
+        run: pytest -q tests/test_track_colors.py tests/test_identity_confidence.py
       - name: Recompute true 24 consecutive images, masks and track identities
         env:
           AI4S_VISUAL_FRAMES: '24'
           AI4S_VISUAL_START_FRAME: '34'
           AI4S_VISUAL_SEQUENCE: '02'
+          AI4S_VISUAL_STRICT_IDENTITY: '1'
+          AI4S_VISUAL_FOCUS_TRACK_IDS: '6,7,8,9'
         run: python scripts/export_cellpose_visual_pilot.py
       - name: Encode all 24 original chronological frames, without optical interpolation
         run: |
@@ -62,6 +66,10 @@ jobs:
           from pathlib import Path
           d = json.loads(Path('cellpose_visual_pilot/visual_pilot_metrics.json').read_text())
           assert d['stable_identity_coloring'] is True
+          assert d['strict_identity_mask_overlap_gate'] is True
+          selected = set(d['colored_stable_predicted_track_ids'])
+          assert selected and selected.issubset({6,7,8,9})
+          assert all(d['identity_continuity_audit'][str(i)]['eligible'] for i in selected)
           assert d['visualized_frames'] == 24
           assert d['first_frame_index'] == 34 and d['last_frame_index'] == 57
           assert len(glob.glob('cellpose_visual_pilot/pilot_*.png')) == 24
