@@ -1,0 +1,282 @@
+{
+  "status": "CONDITIONAL_GEOMETRIC_BOUNDS_NOT_MEASURED_CENTROID_ERROR",
+  "provenance": {
+    "source_workflow_run": "37930909373",
+    "source_csv": "docs/evidence/ctc/derived_phenotype_features.csv",
+    "source_csv_sha256": "db29350638077a0a19a30e33e5b0c1aeaf9df4857326008a77ba1f5267e3279c",
+    "dataset": "DIC-C2DH-HeLa 01 and 02, pretrained CellposeSAM-v2 masks",
+    "original_frame_count": 168,
+    "input_profiles": 126,
+    "production_gate_descriptive_profiles": 51
+  },
+  "exploratory_persistence_cutoff": 0.2,
+  "pixel_size_um_xy": 0.19,
+  "scenarios": [
+    {
+      "max_centroid_error_um": 0.0,
+      "max_error_in_image_pixels": 0.0,
+      "classification_bounds": {
+        "all": {
+          "n": 51,
+          "observed_below": 33,
+          "certain_below": 33,
+          "indeterminate": 0,
+          "certain_at_or_above": 18
+        },
+        "01": {
+          "n": 24,
+          "observed_below": 12,
+          "certain_below": 12,
+          "indeterminate": 0,
+          "certain_at_or_above": 12
+        },
+        "02": {
+          "n": 27,
+          "observed_below": 21,
+          "certain_below": 21,
+          "indeterminate": 0,
+          "certain_at_or_above": 6
+        }
+      },
+      "measured_example_tracks": [
+        {
+          "sequence": "02",
+          "track_id": 21,
+          "persistence_lower": 0.030187,
+          "persistence_upper": 0.030187,
+          "classification": "certain_below"
+        },
+        {
+          "sequence": "02",
+          "track_id": 19,
+          "persistence_lower": 0.198431,
+          "persistence_upper": 0.198431,
+          "classification": "certain_below"
+        }
+      ]
+    },
+    {
+      "max_centroid_error_um": 0.05,
+      "max_error_in_image_pixels": 0.2632,
+      "classification_bounds": {
+        "all": {
+          "n": 51,
+          "observed_below": 33,
+          "certain_below": 26,
+          "indeterminate": 7,
+          "certain_at_or_above": 18
+        },
+        "01": {
+          "n": 24,
+          "observed_below": 12,
+          "certain_below": 9,
+          "indeterminate": 3,
+          "certain_at_or_above": 12
+        },
+        "02": {
+          "n": 27,
+          "observed_below": 21,
+          "certain_below": 17,
+          "indeterminate": 4,
+          "certain_at_or_above": 6
+        }
+      },
+      "measured_example_tracks": [
+        {
+          "sequence": "02",
+          "track_id": 21,
+          "persistence_lower": 0.028194,
+          "persistence_upper": 0.032372,
+          "classification": "certain_below"
+        },
+        {
+          "sequence": "02",
+          "track_id": 19,
+          "persistence_lower": 0.185032,
+          "persistence_upper": 0.213726,
+          "classification": "indeterminate"
+        }
+      ]
+    },
+    {
+      "max_centroid_error_um": 0.1,
+      "max_error_in_image_pixels": 0.5263,
+      "classification_bounds": {
+        "all": {
+          "n": 51,
+          "observed_below": 33,
+          "certain_below": 25,
+          "indeterminate": 9,
+          "certain_at_or_above": 17
+        },
+        "01": {
+          "n": 24,
+          "observed_below": 12,
+          "certain_below": 8,
+          "indeterminate": 5,
+          "certain_at_or_above": 11
+        },
+        "02": {
+          "n": 27,
+          "observed_below": 21,
+          "certain_below": 17,
+          "indeterminate": 4,
+          "certain_at_or_above": 6
+        }
+      },
+      "measured_example_tracks": [
+        {
+          "sequence": "02",
+          "track_id": 21,
+          "persistence_lower": 0.026367,
+          "persistence_upper": 0.034776,
+          "classification": "certain_below"
+        },
+        {
+          "sequence": "02",
+          "track_id": 19,
+          "persistence_lower": 0.173195,
+          "persistence_upper": 0.231349,
+          "classification": "indeterminate"
+        }
+      ]
+    },
+    {
+      "max_centroid_error_um": 0.25,
+      "max_error_in_image_pixels": 1.3158,
+      "classification_bounds": {
+        "all": {
+          "n": 51,
+          "observed_below": 33,
+          "certain_below": 15,
+          "indeterminate": 22,
+          "certain_at_or_above": 14
+        },
+        "01": {
+          "n": 24,
+          "observed_below": 12,
+          "certain_below": 5,
+          "indeterminate": 10,
+          "certain_at_or_above": 9
+        },
+        "02": {
+          "n": 27,
+          "observed_below": 21,
+          "certain_below": 10,
+          "indeterminate": 12,
+          "certain_at_or_above": 5
+        }
+      },
+      "measured_example_tracks": [
+        {
+          "sequence": "02",
+          "track_id": 21,
+          "persistence_lower": 0.021704,
+          "persistence_upper": 0.043701,
+          "classification": "certain_below"
+        },
+        {
+          "sequence": "02",
+          "track_id": 19,
+          "persistence_lower": 0.144738,
+          "persistence_upper": 0.30507,
+          "classification": "indeterminate"
+        }
+      ]
+    },
+    {
+      "max_centroid_error_um": 0.5,
+      "max_error_in_image_pixels": 2.6316,
+      "classification_bounds": {
+        "all": {
+          "n": 51,
+          "observed_below": 33,
+          "certain_below": 6,
+          "indeterminate": 34,
+          "certain_at_or_above": 11
+        },
+        "01": {
+          "n": 24,
+          "observed_below": 12,
+          "certain_below": 3,
+          "indeterminate": 15,
+          "certain_at_or_above": 6
+        },
+        "02": {
+          "n": 27,
+          "observed_below": 21,
+          "certain_below": 3,
+          "indeterminate": 19,
+          "certain_at_or_above": 5
+        }
+      },
+      "measured_example_tracks": [
+        {
+          "sequence": "02",
+          "track_id": 21,
+          "persistence_lower": 0.015884,
+          "persistence_upper": 0.068609,
+          "classification": "certain_below"
+        },
+        {
+          "sequence": "02",
+          "track_id": 19,
+          "persistence_lower": 0.112402,
+          "persistence_upper": 0.619128,
+          "classification": "indeterminate"
+        }
+      ]
+    },
+    {
+      "max_centroid_error_um": 1.0,
+      "max_error_in_image_pixels": 5.2632,
+      "classification_bounds": {
+        "all": {
+          "n": 51,
+          "observed_below": 33,
+          "certain_below": 0,
+          "indeterminate": 46,
+          "certain_at_or_above": 5
+        },
+        "01": {
+          "n": 24,
+          "observed_below": 12,
+          "certain_below": 0,
+          "indeterminate": 22,
+          "certain_at_or_above": 2
+        },
+        "02": {
+          "n": 27,
+          "observed_below": 21,
+          "certain_below": 0,
+          "indeterminate": 24,
+          "certain_at_or_above": 3
+        }
+      },
+      "measured_example_tracks": [
+        {
+          "sequence": "02",
+          "track_id": 21,
+          "persistence_lower": 0.008414,
+          "persistence_upper": 0.519989,
+          "classification": "indeterminate"
+        },
+        {
+          "sequence": "02",
+          "track_id": 19,
+          "persistence_lower": 0.075335,
+          "persistence_upper": 1.0,
+          "classification": "indeterminate"
+        }
+      ]
+    }
+  ],
+  "assumptions": [
+    "Each tracked center has Euclidean positional error at most epsilon in physical units; epsilon is assumed, not estimated from CTC data.",
+    "Identity associations are held fixed: wrong links, division misassignment and fragmented tracks are outside these bounds.",
+    "Bounds arise from triangle inequalities on observed path and endpoints, not a synthetic noise-injection experiment or confidence interval.",
+    "The 0.20 cutoff is an exploratory computational descriptor, never a validated biological-cell-state threshold.",
+    "An indeterminate track is NOT established to change classification; merely its class cannot be guaranteed from these summary statistics.",
+    "The same two CTC sequences as the primary run are analyzed; no new external biological measurements were collected."
+  ]
+}
