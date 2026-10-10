@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/ctc-continuous-single-cell.yml'
       - 'scripts/export_ctc_continuous_cell.py'
+      - 'tests/test_continuous_cell_demo.py'
   workflow_dispatch:
 
 permissions:
