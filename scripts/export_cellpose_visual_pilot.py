@@ -20,7 +20,8 @@ sys.path[:0] = [str(ROOT / "src"), str(ROOT / "scripts")]
 
 from ai4s_imaging import CellposeSegmenter, instances_to_detections
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset
-from ai4s_tracking import TrackingConfig, track_detections
+from ai4s_tracking import TrackingConfig, track_detections, infer_divisions
+from ai4s_imaging.track_colors import track_color_map
 from benchmark_ctc_image_e2e import image_files
 from benchmark_ctc_tra_supervised import (
     frame_index, keyed_masks, restrict_instances_to_foi, segmentation_score,
@@ -61,18 +62,25 @@ def color(track_id: int) -> tuple[int, int, int]:
     return palette[int(track_id) % len(palette)]
 
 def render(i: int, raw: np.ndarray, mask: np.ndarray,
-           nodes, scores: dict) -> None:
+           nodes, scores: dict, colors: dict) -> None:
     gray = normalized_u8(raw)
     raw_im = Image.fromarray(gray, "L").convert("RGB")
     over = raw_im.copy().convert("RGBA")
-    # Predicted instances only; no GT mask in display.
+    # Predicted instance_id is ephemeral. Resolve each mask to persistent track_id.
+    frame_nodes = nodes[nodes["t"].eq(i)]
+    if frame_nodes["instance_id"].duplicated().any():
+        raise ValueError("ambiguous predicted instance-to-track mapping")
+    lookup = dict(zip(frame_nodes["instance_id"].astype(int),
+                      frame_nodes["track_id"].astype(int)))
+    if {int(v) for v in np.unique(mask) if v > 0} != set(lookup):
+        raise ValueError("predicted masks do not match tracked instances")
     for lab in np.unique(mask):
         if int(lab) <= 0:
             continue
         ys, xs = np.nonzero(mask == lab)
         if not len(xs):
             continue
-        hue = color(int(lab))
+        hue = colors[lookup[int(lab)]].rgb
         # Fill is deliberately translucent so raw cells remain visible.
         alpha = 47
         subset = Image.new("RGBA", (int(xs.max()-xs.min()+1), int(ys.max()-ys.min()+1)), (*hue, alpha))
@@ -84,7 +92,7 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     curr = nodes[nodes["t"] <= i]
     for ident, group in curr.groupby("track_id"):
         g = group.sort_values("t")
-        color_rgb = color(int(ident))
+        color_rgb = colors[int(ident)].rgb
         pts = [(float(r.x), float(r.y)) for r in g.itertuples()]
         if len(pts) >= 2:
             od.line(pts, fill=color_rgb, width=3, joint="curve")
@@ -100,7 +108,8 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     board.paste(fit_square(overlay), (705, 160))
     d.text((108, 620), "RAW MICROSCOPY", font=P, fill=WHITE)
     d.text((705, 620), "CELLPOSESAM-v2 + TRACKS", font=P, fill=CYAN)
-    d.text((108, 666), "Predictions shown. Reference annotations are used for scoring only.", font=SM, fill=MUTED)
+    lineage_n = sum(bool(c.lineage_candidate) for c in colors.values())
+    d.text((108, 666), "Colors = predicted track IDs, not fluorescence. Division hues = unvalidated candidates.", font=SM, fill=MUTED)
     board.save(OUT / f"pilot_{i:03d}.png")
 
 def main() -> None:
@@ -129,8 +138,13 @@ def main() -> None:
         TrackingConfig(max_distance_um=8.0, method="mutual_nn",
                        voxel_size_um=DIC_C2DH_HELA_VOXEL_SIZE_UM),
     )
+    division_candidates = infer_divisions(
+        track_nodes, edges, division_radius_um=5.0,
+        voxel_size_um=DIC_C2DH_HELA_VOXEL_SIZE_UM,
+    )
+    palette = track_color_map(track_nodes, division_candidates)
     for i, (im, mask) in enumerate(zip(frames, masks)):
-        render(i, im, mask, track_nodes, records[i])
+        render(i, im, mask, track_nodes, records[i], palette)
     (OUT / "visual_pilot_metrics.json").write_text(json.dumps({
         "model": "CellposeSAM-v2 cpsam_v2",
         "sequence": SEQ,
@@ -141,6 +155,10 @@ def main() -> None:
         "aggregate_mean_frame_segmentation_f1": float(np.mean([s["f1_iou50"] for s in records])),
         "predicted_track_count": int(track_nodes["track_id"].nunique()),
         "predicted_temporal_link_count": int(len(edges)),
+        "stable_identity_coloring": True,
+        "colors_keyed_by": "model-predicted track_id, NOT per-frame instance_id",
+        "lineage_color_family_candidate_tracks": sorted(int(k) for k,v in palette.items() if v.lineage_candidate),
+        "lineage_caveat": "Only unambiguous inferred candidates inherit related tones; NOT biological division proof.",
         "frames": records,
         "caveat": "Visual pilot only. NOT the full 168-frame CTC benchmark, which was measured separately. Predicted masks and tracks shown; CTC annotations never substituted for predictions."
     }, indent=2), encoding="utf-8")
