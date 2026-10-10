@@ -39,5 +39,11 @@ jobs:
             --output /tmp/ctc_motility_cohort_audit.json
           cmp /tmp/ctc_motility_cohort_audit.json \
             docs/evidence/ctc/motility_cohort_sensitivity.json
+      - name: Frozen CTC centroid-error sensitivity bounds
+        run: |
+          python scripts/audit_ctc_centroid_error_bounds.py \
+            --output /tmp/ctc_centroid_error_bounds.json
+          cmp /tmp/ctc_centroid_error_bounds.json \
+            docs/evidence/ctc/centroid_localization_bounds.json
       - name: Submission claim audit
         run: python scripts/validate_submission_claims.py
