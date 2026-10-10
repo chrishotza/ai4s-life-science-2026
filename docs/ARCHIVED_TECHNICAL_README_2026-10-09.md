@@ -63,7 +63,7 @@ It produces a CSV and a companion provenance JSON with source SHA-256 hashes, tr
 
 This produces per-frame inferred states and per-class model scores. These scores are **not calibrated biological probabilities**. The strict heldout check rejects any sequence present in the training set.
 
-[ALFI real-label product test](docs/ALFI_PRODUCT_TEMPORAL_PROBE_RESULTS.md): train MI01–MI04 expert tracks, test MI05–MI08 expert tracks. Static macro-F1 0.51379 vs static-plus-six-motion 0.56762; four-sequence bootstrap interval for delta [+0.0134,+0.1754]. The corpus and task had been explored earlier, so this is a **post-selection exploratory result**, not a confirmatory independent test. Critically, ALFI raw-image instance segmentation remains weak (see [ALFI model comparison](docs/ALFI_MODEL_SCOUT_AUDIT.md)); none of these scores represents end-to-end image-to-biology success.
+[ALFI real-label product test](ALFI_PRODUCT_TEMPORAL_PROBE_RESULTS.md): train MI01–MI04 expert tracks, test MI05–MI08 expert tracks. Static macro-F1 0.51379 vs static-plus-six-motion 0.56762; four-sequence bootstrap interval for delta [+0.0134,+0.1754]. The corpus and task had been explored earlier, so this is a **post-selection exploratory result**, not a confirmatory independent test. Critically, ALFI raw-image instance segmentation remains weak (see [ALFI model comparison](ALFI_MODEL_SCOUT_AUDIT.md)); none of these scores represents end-to-end image-to-biology success.
 
 
 ## Competition MVP
@@ -160,11 +160,11 @@ The repository includes:
 - real Cell Tracking Challenge association benchmarking;
 - downstream temporal phenotype preservation benchmarking.
 
-See **[docs/RESULTS.md](docs/RESULTS.md)** for the measured results.
+See **[docs/RESULTS.md](RESULTS.md)** for the measured results.
 
 ### Evidence figure
 
-![Separate real-data validation protocols](docs/figures/validation-evidence.svg)
+![Separate real-data validation protocols](figures/validation-evidence.svg)
 
 This public figure keeps reference-centroid association, the supervised image-derived holdout, and the eight-frame Cellpose-SAM pilot separate. The protocols are not directly comparable, and none establishes biological phenotype validity.
 
@@ -172,7 +172,7 @@ This public figure keeps reference-centroid association, the supervised image-de
 
 The completed supervised DIC-C2DH-HeLa sequence holdout currently reports mean instance F1 **0.09155**, detection F1 **0.37728**, and temporal-link F1 **0.09716**. The [benchmark artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907638057/artifacts/11605411442) contains the JSON results. A separate strict temporal holdout failed its gates: segmentation F1 **0.14942**, detection F1 **0.43454**, tracking-edge F1 **0.30197**, and sparse-gold object recall **0.1132** ([artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37907133446/artifacts/11605019590)). A bounded pretrained Cellpose-SAM run passed those 8 raw frames through the product's TemporalPhenotypeEngine and exported per-track temporal features, descriptive clusters, and reliability diagnostics, in addition to segmentation F1 **0.87490**, detection F1 **0.88810**, and tracking-edge F1 **0.89180** ([run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37925893949), [CSV/JSON/provenance artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37925893949/artifacts/11613698759)). This is an exploratory integration check on only four opening frames per sequence, not a stable generalization estimate or biological phenotype validation.
 
-**Subsequent complete-sequence Cellpose integration (84 frames per sequence; 168 total):** [Actions run 37930909373](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373) at commit [`ffc135c`](https://github.com/chrishotza/ai4s-life-science-2026/commit/ffc135c56fb5adcf2d23bcf4e8461ba284dcc870) produced the archived [`ctc-cellpose-e2e-evidence` artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373/artifacts/11622434978). Reported aggregate metrics: segmentation F1@IoU50 **0.9354**, detection F1 **0.9684**, and tracking-edge F1 **0.9808**. These are internal CTC end-to-end pipeline validation metrics, **not a Kaggle competition score, official CTC leaderboard scores, or independent biological phenotype validation**. This later run extends the eight-frame pilot; the distinct protocols and their results must not be averaged or conflated. A distinct earlier partial run covered 40 frames from sequence 01 and 14/40 from sequence 02, then was cancelled; its frame means were **0.92903** and **0.94621**, without aggregate evidence. Full protocols and claim boundaries are in [docs/RESULTS.md](docs/RESULTS.md).
+**Subsequent complete-sequence Cellpose integration (84 frames per sequence; 168 total):** [Actions run 37930909373](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373) at commit [`ffc135c`](https://github.com/chrishotza/ai4s-life-science-2026/commit/ffc135c56fb5adcf2d23bcf4e8461ba284dcc870) produced the archived [`ctc-cellpose-e2e-evidence` artifact](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37930909373/artifacts/11622434978). Reported aggregate metrics: segmentation F1@IoU50 **0.9354**, detection F1 **0.9684**, and tracking-edge F1 **0.9808**. These are internal CTC end-to-end pipeline validation metrics, **not a Kaggle competition score, official CTC leaderboard scores, or independent biological phenotype validation**. This later run extends the eight-frame pilot; the distinct protocols and their results must not be averaged or conflated. A distinct earlier partial run covered 40 frames from sequence 01 and 14/40 from sequence 02, then was cancelled; its frame means were **0.92903** and **0.94621**, without aggregate evidence. Full protocols and claim boundaries are in [docs/RESULTS.md](RESULTS.md).
 
 
 ## Real benchmark
@@ -208,23 +208,23 @@ The same 8.0 µm MNN association path was exported with CTC reference object geo
 - sequence 01: **TRA 0.997315 · LNK 0.979091**
 - sequence 02: **TRA 0.997207 · LNK 0.978239**
 
-These values are independently reproduced CTC-metrics evidence, not end-to-end segmentation or biological phenotype results, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains a separate boundary. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md). A no-oracle lineage sensitivity control produced exactly the same TRA/LNK values on both sequences, removing lineage-metadata dependence for this benchmark.
+These values are independently reproduced CTC-metrics evidence, not end-to-end segmentation or biological phenotype results, and **not official Cell Tracking Challenge leaderboard scores**. The official challenge submission evaluator remains a separate boundary. See [docs/CTC_OFFICIAL_VALIDATION.md](CTC_OFFICIAL_VALIDATION.md). A no-oracle lineage sensitivity control produced exactly the same TRA/LNK values on both sequences, removing lineage-metadata dependence for this benchmark.
 
 ### Missing-observation stress test
 
 The experimental bounded-gap Hungarian branch was evaluated separately under controlled synthetic dropout. At 5%, 10%, and 15% dropout it reduced fragmented reference tracks from 24/29/30 with the MNN baseline to 1/7/19 respectively, while preserving reference identity for every measured gap link in those runs. The corresponding phenotype-group ARI was 0.4879, 0.3584, and -0.0114 for the gap branch versus -0.0184, -0.0102, and 0.0007 for MNN.
 
-A separate CTC PhC-C2DL-PSC reference-centroid benchmark found mean cross-sequence trajectory-identity F1 of 0.77858 for the experimental two-frame-window `gap_hungarian` candidate versus 0.76879 for velocity Hungarian. Its identity precision is lower (0.73855 vs 0.82554), so it remains experimental and is not the default tracker; these results do not evaluate raw-image segmentation. See [docs/RESULTS.md](docs/RESULTS.md).
+A separate CTC PhC-C2DL-PSC reference-centroid benchmark found mean cross-sequence trajectory-identity F1 of 0.77858 for the experimental two-frame-window `gap_hungarian` candidate versus 0.76879 for velocity Hungarian. Its identity precision is lower (0.73855 vs 0.82554), so it remains experimental and is not the default tracker; these results do not evaluate raw-image segmentation. See [docs/RESULTS.md](RESULTS.md).
 
 This is computational stress-test evidence only; the bounded-gap branch remains experimental and does not replace the validated 8.0 µm MNN real-data result.
 
 The repository also validates the lineage representation layer against the CTC reference parent/child annotations. That validation is explicitly separate from end-to-end biological division detection.
 
-A separate PhC-C2DL-PSC benchmark evaluates raw-image-to-instance-mask segmentation with strict cross-sequence holdout and one-to-one instance matching (IoU ≥ 0.5); the protocol and measured outputs are documented in [docs/RESULTS.md](docs/RESULTS.md), with silver and sparse gold annotations reported separately.
+A separate PhC-C2DL-PSC benchmark evaluates raw-image-to-instance-mask segmentation with strict cross-sequence holdout and one-to-one instance matching (IoU ≥ 0.5); the protocol and measured outputs are documented in [docs/RESULTS.md](RESULTS.md), with silver and sparse gold annotations reported separately.
 
 The benchmark suite is reproducible through GitHub Actions; the microscopy dataset itself is never committed to the repository.
 
-The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and are not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](docs/CTC_OFFICIAL_VALIDATION.md).
+The current association F1 is a custom transparent benchmark metric. The official CTC TRA/LNK scores are intentionally tracked as a separate validation boundary and are not substituted into the published F1 claim. See [docs/CTC_OFFICIAL_VALIDATION.md](CTC_OFFICIAL_VALIDATION.md).
 
 ## Demo video
 
@@ -256,7 +256,7 @@ The private BioHub project contains earlier learned temporal-association researc
 
 ## Architecture hardening
 
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture, and **[docs/RUBRIC_SCORECARD.md](docs/RUBRIC_SCORECARD.md)** for the judge-facing evidence map.
+See **[docs/ARCHITECTURE.md](ARCHITECTURE.md)** for the full contract, model-lifecycle, validation, and performance architecture, and **[docs/RUBRIC_SCORECARD.md](RUBRIC_SCORECARD.md)** for the judge-facing evidence map.
 
 The submission system has explicit boundaries between:
 
