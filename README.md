@@ -14,7 +14,13 @@ This publicly auditable research prototype treats tracking as infrastructure for
 
 **Public narrated demo (91 seconds):** [Watch the V10 microscopy-to-tracks explainer on Kaggle](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo). It shows an 8-frame CellposeSAM-v2 real-prediction *visual pilot*, not the full 168-frame benchmark. Published as a public dataset with an in-browser MP4 player and verified signed-out access on October 9, 2026.
 
-**New full-population visualization candidate (V17, not yet public):** 24 consecutive real CTC frames with every detected cell visible, multiple stable model-track colors, and uncertainty-based neutral styling for ambiguous identities. The complete 134-second narrated preview and its pixel-/track-level limitations are documented in [V17 whole-population quality audit](docs/VIDEO_V17_FULL_POPULATION_QA.md). **This does not replace the public V10 Kaggle video**, nor claim that the full 168 evaluated microscope frames appear consecutively in the demonstration.\n\n**Reviewer shortcut:** start with the [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
+**New full-population visualization candidate (V17, not yet public):** 24 consecutive real CTC frames with every detected cell visible, multiple stable model-track colors, and uncertainty-based neutral styling for ambiguous identities. The complete 134-second narrated preview and its pixel-/track-level limitations are documented in [V17 whole-population quality audit](docs/VIDEO_V17_FULL_POPULATION_QA.md). **This does not replace the public V10 Kaggle video**, nor claim that the full 168 evaluated microscope frames appear consecutively in the demonstration.
+
+**Independent reviewer shortcut:** [External AI and scientific review packet](docs/INDEPENDENT_REVIEW_PACKET.md) · [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) · [Claim–evidence matrix](docs/CLAIM_EVIDENCE_MATRIX.md). The packet distinguishes reproducible experimental results, experimental video previews, and Kaggle submission status. Review the actual code and evidence, not just this README.
+
+**Release status:** [v0.1.0](https://github.com/chrishotza/ai4s-life-science-2026/releases/tag/v0.1.0) is a fixed archival software snapshot. The active `main` branch includes additional experiments and visualization work after that release; do **not** assume the tag represents the newest video or the submitted Kaggle Writeup.
+
+**Reviewer shortcut:** start with the [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
 
 ## What it does
 
