@@ -1,0 +1,81 @@
+name: CTC Real Continuous Single-Cell Demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ctc-continuous-single-cell.yml'
+      - 'scripts/export_ctc_continuous_cell.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: continuous-ctc-single-cell-02
+  cancel-in-progress: true
+
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-${{ runner.os }}
+      - name: Install frozen CPU segmentation environment and video encoder
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install -r requirements-dev.txt
+          pip install imageio-ffmpeg
+          pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install fastremap roifile fill-voids segment_anything opencv-python-headless natsort tqdm
+          pip install --no-deps 'cellpose==4.2.1.1'
+      - name: Check pure rendering, selection and prefix-feature contracts
+        run: pytest -q tests/test_continuous_cell_demo.py
+      - name: Export true model-predicted cell 21 across real frames
+        run: |
+          python scripts/export_ctc_continuous_cell.py \
+            --sequence 02 --track-id 21 --fps 4 \
+            --output-dir continuous_cell_demo
+      - name: Recheck video and source integrity; no frame synthesis
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from imageio_ffmpeg import get_ffmpeg_exe
+          import subprocess
+          d = Path('continuous_cell_demo')
+          m = json.loads((d/'continuous_track_manifest.json').read_text())
+          assert m['sequence_total_frames'] == 84
+          assert m['selected_track_observations'] == 66
+          assert m['interpolated_cell_positions'] == 0
+          assert len(m['display_frame_indices']) == 66
+          assert m['missing_track_detection_frame_indices'] == []
+          assert len(m['actual_raw_tiff_sha256_in_display_order']) == 66
+          movie = d/'ai4s-seq02-track21-continuous.mp4'
+          assert movie.stat().st_size > 500000
+          p = subprocess.run([get_ffmpeg_exe(),'-hide_banner','-i',str(movie),'-f','null','-'],
+                             text=True,capture_output=True)
+          assert p.returncode == 0, p.stderr[-2000:]
+          print('66 actual microscope frames, selected predicted track, no interpolation, valid H.264')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai4s-seq02-continuous-real-cell66
+          path: |
+            continuous_cell_demo/
+          if-no-files-found: warn
+          retention-days: 90
