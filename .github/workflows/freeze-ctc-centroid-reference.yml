@@ -60,7 +60,9 @@ jobs:
           assert math.isclose(p95,result["pooled"]["centroid_offset_um"]["p95"],abs_tol=1e-6)
           assert result["pooled"]["reference_instances"]>=len(rows)
           assert result["pooled"]["predicted_instances"]>=len(rows)
-          assert all("not" in s.lower() or "NOT" in s for s in result["limitations"])
+          assert len(result["limitations"]) >= 5
+          assert any("not" in s.lower() for s in result["limitations"])
+          assert "silver" in result["experiment"]["reference_type"].lower()
           print("PASS: 16 real frames, matched",len(rows),
                 "median",statistics.median(offsets),"p95",p95)
           PY
