@@ -43,7 +43,9 @@ def audit(report: dict, csv_bytes: bytes) -> dict:
     sample=report["experiment"]["sampled_frame_ids"]
     if len(sample.get("01",[]))!=8 or len(sample.get("02",[]))!=8:
         raise ValueError("Sampling protocol must preserve eight frames per sequence")
-    seen_ref=set();seen_pred=set();distance={}
+    seen_ref=set()
+    seen_pred=set()
+    distance={}
     for r in rows:
         key=(r["sequence"],int(r["frame"]))
         if r["sequence"] not in ("01","02") or key[1] not in sample[r["sequence"]]:
@@ -52,7 +54,8 @@ def audit(report: dict, csv_bytes: bytes) -> dict:
         pid=(*key,int(r["predicted_label"]))
         if gid in seen_ref or pid in seen_pred:
             raise ValueError("Violated one-to-one object matching")
-        seen_ref.add(gid);seen_pred.add(pid)
+        seen_ref.add(gid)
+        seen_pred.add(pid)
         if not .5<=float(r["iou"])<=1:
             raise ValueError("Unmatched / invalid IoU record")
         dy=(float(r["predicted_center_y_px"])-float(r["reference_center_y_px"]))*0.19
@@ -102,7 +105,8 @@ def audit(report: dict, csv_bytes: bytes) -> dict:
         count=sum((r["sequence"],int(r["frame"]))==key for r in rows)
         if count!=f["matched_instances_iou50"]:
             raise ValueError(f"Frame {key} has inconsistent matched count")
-        ref=f["reference_instances"]; pred=f["predicted_instances"]
+        ref=f["reference_instances"]
+        pred=f["predicted_instances"]
         actual=2*count/(ref+pred) if ref+pred else 1
         if not math.isclose(actual,f["frame_f1_iou50"],abs_tol=1e-12):
             raise ValueError("Frame F1 inconsistent with matched counts")
