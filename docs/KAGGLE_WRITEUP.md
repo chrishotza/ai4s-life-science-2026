@@ -20,6 +20,8 @@ We did not train a new foundation segmentation model. Instead, we integrated pre
 
 In an internal image-derived evaluation across 168 raw DIC-C2DH-HeLa frames, the system achieved segmentation F1 **0.9354**, detection F1 **0.9684**, and temporal-link F1 **0.9808**. Reference annotations were used for scoring, not supplied as detections. The outputs included 126 trajectory profiles; 51 were eligible for descriptive computational reporting, 21 were low-confidence descriptive, and 54 remained audit-only.
 
+Separately, on expert-annotated ALFI mitosis tracks, adding past motion features improved held-out macro F1 from **0.5138** to **0.5676**. This exploratory oracle-track result does **not** establish automatic image-to-mitosis prediction.
+
 A real example shows why the temporal layer matters: one measured track accumulated **142.10 µm** of movement yet displaced only **4.29 µm** overall. Such differences can guide which cells deserve further review, but they do not establish biological cell states. Results are internal protocol measurements, not official Cell Tracking Challenge rankings. Drug-response and independent biological-phenotype validation remain future experiments; organ-on-a-chip data remains untested.
 
 ## From cell tracking to dynamic phenotype
