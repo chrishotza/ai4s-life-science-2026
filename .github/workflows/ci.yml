@@ -33,5 +33,11 @@ jobs:
             --output /tmp/confidence_gated_phenotype_summary.json
           cmp /tmp/confidence_gated_phenotype_summary.json \
             docs/evidence/ctc/confidence_gated_phenotype_summary.json
+      - name: Frozen cohort-level CTC motility audit
+        run: |
+          python scripts/audit_ctc_motility_cohort.py \
+            --output /tmp/ctc_motility_cohort_audit.json
+          cmp /tmp/ctc_motility_cohort_audit.json \
+            docs/evidence/ctc/motility_cohort_sensitivity.json
       - name: Submission claim audit
         run: python scripts/validate_submission_claims.py
