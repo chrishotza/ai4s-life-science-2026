@@ -37,7 +37,7 @@ In the completed 168-frame **image-derived** CTC experiment, two post-hoc select
 
 Persistence here is **net displacement / traveled path**, a simple measure of how consistently motion translates into directional progress. Track 21 traverses more distance but ends closer to its start; track 19 travels less but advances further overall. Both pass the documented minimum-history and reliability gates for *descriptive computational* measurements.
 
-![A measured contrast between total movement and net displacement](https://github.com/chrishotza/ai4s-life-science-2026/blob/main/docs/figures/ctc_real_motility_example.svg)
+![A measured contrast between total movement and net displacement](https://raw.githubusercontent.com/chrishotza/ai4s-life-science-2026/main/docs/figures/ctc_real_motility_example.svg)
 
 **What this proves:** the temporal feature layer provides a measurable answer to a useful single-cell research question. **What it does not prove:** biological cell identity, treatment effect, independent phenotype labels or statistical significance. The tracks were chosen as illustrations, not a random cohort. Source: [real measured table and interpretation limits](https://github.com/chrishotza/ai4s-life-science-2026/blob/main/docs/CTC_REAL_MOTILITY_CASE_STUDY.md).
 
