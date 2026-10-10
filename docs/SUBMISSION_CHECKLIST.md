@@ -59,8 +59,8 @@ Official detail reflected in this checklist:
 - [x] Capture bounded pretrained Cellpose pilot metrics (4 frames per sequence; exploratory)
 - [x] Add a public real-data validation figure reviewers can access without login (`docs/figures/validation-evidence.svg`); it separates three protocols and states their evidence limits
 - [x] Produce reproducible demo video renderer
-- [ ] Paste Kaggle Writeup
-- [ ] Submit final technical report
+- [x] Team leader reports Kaggle Writeup submitted; **platform receipt/status not independently inspected**. The actual Kaggle page still needs authenticated verification and synchronization with final source; see `docs/FINAL_SUBMISSION_HANDOFF.md`.
+- [ ] Verify the publicly released 17-page technical PDF is actually **linked inside the submitted Kaggle Writeup** (GitHub release asset confirmed; submitted page content not independently inspected).
 - [ ] Add independent biological phenotype validation if time permits
 - [x] Produce and publicly publish narrated V10 demo (91 seconds); Kaggle public video: https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo; signed-out viewing verified
 - [ ] Review and document third-party microscopy data and pretrained-model visual-output/media redistribution rights before the final submission
