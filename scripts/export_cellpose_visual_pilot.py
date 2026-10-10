@@ -22,6 +22,7 @@ from ai4s_imaging import CellposeSegmenter, instances_to_detections
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset
 from ai4s_tracking import TrackingConfig, track_detections, infer_divisions
 from ai4s_imaging.track_colors import track_color_map
+from ai4s_imaging.identity_confidence import audit_track_color_continuity
 from benchmark_ctc_image_e2e import image_files
 from benchmark_ctc_tra_supervised import (
     frame_index, keyed_masks, restrict_instances_to_foi, segmentation_score,
@@ -62,7 +63,8 @@ def color(track_id: int) -> tuple[int, int, int]:
     return palette[int(track_id) % len(palette)]
 
 def render(i: int, raw: np.ndarray, mask: np.ndarray,
-           nodes, scores: dict, colors: dict) -> None:
+           nodes, scores: dict, colors: dict,
+           highlighted: set[int] | None = None) -> None:
     gray = normalized_u8(raw)
     raw_im = Image.fromarray(gray, "L").convert("RGB")
     over = raw_im.copy().convert("RGBA")
@@ -80,6 +82,8 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
         ys, xs = np.nonzero(mask == lab)
         if not len(xs):
             continue
+        if highlighted is not None and lookup[int(lab)] not in highlighted:
+            continue
         hue = colors[lookup[int(lab)]].rgb
         # Fill is deliberately translucent so raw cells remain visible.
         alpha = 47
@@ -91,6 +95,8 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     # Tracks computed from the same predicted observations.
     curr = nodes[nodes["t"] <= i]
     for ident, group in curr.groupby("track_id"):
+        if highlighted is not None and int(ident) not in highlighted:
+            continue
         g = group.sort_values("t")
         color_rgb = colors[int(ident)].rgb
         pts = [(float(r.x), float(r.y)) for r in g.itertuples()]
@@ -108,7 +114,7 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     board.paste(fit_square(overlay), (705, 160))
     d.text((108, 620), "RAW MICROSCOPY", font=P, fill=WHITE)
     d.text((705, 620), "CELLPOSESAM-v2 + TRACKS", font=P, fill=CYAN)
-    d.text((108, 666), "Colors = predicted track IDs, not fluorescence. Division hues = unvalidated candidates.", font=SM, fill=MUTED)
+    d.text((108, 666), "Only high-continuity predicted tracks are colored; others remain grayscale. Not biological IDs.", font=SM, fill=MUTED)
     board.save(OUT / f"pilot_{i:03d}.png")
 
 def main() -> None:
@@ -142,8 +148,19 @@ def main() -> None:
         voxel_size_um=DIC_C2DH_HELA_VOXEL_SIZE_UM,
     )
     palette = track_color_map(track_nodes, division_candidates)
+    audit = audit_track_color_continuity(np.stack(masks), track_nodes)
+    stable_ids = {int(k) for k, value in audit.items() if value["eligible"]}
+    strict = os.environ.get("AI4S_VISUAL_STRICT_IDENTITY", "1") == "1"
+    selection = os.environ.get("AI4S_VISUAL_FOCUS_TRACK_IDS", "").strip()
+    focused = {int(x.strip()) for x in selection.split(",") if x.strip()} if selection else None
+    highlighted = (stable_ids if strict else set(palette))
+    if focused is not None:
+        highlighted &= focused
+    if not highlighted:
+        raise RuntimeError("no predicted track passes the conservative color-continuity gate")
+    print("Color stability audit:", {str(k): v for k, v in audit.items()}, flush=True)
     for i, (im, mask) in enumerate(zip(frames, masks)):
-        render(i, im, mask, track_nodes, records[i], palette)
+        render(i, im, mask, track_nodes, records[i], palette, highlighted)
     (OUT / "visual_pilot_metrics.json").write_text(json.dumps({
         "model": "CellposeSAM-v2 cpsam_v2",
         "sequence": SEQ,
@@ -155,6 +172,11 @@ def main() -> None:
         "predicted_track_count": int(track_nodes["track_id"].nunique()),
         "predicted_temporal_link_count": int(len(edges)),
         "stable_identity_coloring": True,
+        "identity_continuity_audit": {str(k): v for k,v in audit.items()},
+        "colored_stable_predicted_track_ids": sorted(highlighted),
+        "strict_identity_mask_overlap_gate": strict,
+        "requested_focus_track_ids": sorted(focused) if focused is not None else None,
+        "noneligible_or_nonselected_tracks_remain_gray": True,
         "colors_keyed_by": "model-predicted track_id, NOT per-frame instance_id",
         "lineage_color_family_candidate_tracks": sorted(int(k) for k,v in palette.items() if v.lineage_candidate),
         "lineage_caveat": "Only unambiguous inferred candidates inherit related tones; NOT biological division proof.",
