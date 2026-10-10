@@ -1,0 +1,100 @@
+name: CTC Full-Population Native Identity Film
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ctc-population-identity.yml'
+      - 'scripts/export_cellpose_visual_pilot.py'
+      - 'src/ai4s_imaging/identity_confidence.py'
+      - 'tests/test_identity_confidence.py'
+  workflow_dispatch:
+    inputs:
+      frames:
+        description: 'Frames: 24 focused or entire 84-frame CTC seq02'
+        type: choice
+        required: true
+        default: '24'
+        options: ['24', '84']
+
+permissions:
+  contents: read
+concurrency:
+  group: ctc-population-identities-${{ github.ref }}-${{ inputs.frames || '24' }}
+  cancel-in-progress: true
+
+jobs:
+  full-field:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      AI4S_VISUAL_SEQUENCE: '02'
+      AI4S_VISUAL_POPULATION_MODE: '1'
+      AI4S_VISUAL_STRICT_IDENTITY: '1'
+      AI4S_VISUAL_FRAMES: ${{ inputs.frames || '24' }}
+      AI4S_VISUAL_START_FRAME: ${{ inputs.frames == '84' && '0' || '34' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - uses: actions/cache@v4
+        with:
+          path: .benchmark_cache
+          key: ctc-dic-c2dh-hela-v1-${{ runner.os }}
+      - name: Install CPU model and encoding dependencies
+        run: |
+          python -m pip install -e .
+          python -m pip install -r requirements-dev.txt
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          python -m pip install fastremap roifile fill-voids segment_anything opencv-python-headless natsort tqdm
+          python -m pip install --no-deps 'cellpose==4.2.1.1'
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Check anti-switch identity gates
+        run: pytest -q tests/test_identity_confidence.py tests/test_track_colors.py
+      - name: Inference on real sequential CTC microscope images
+        run: python scripts/export_cellpose_visual_pilot.py
+      - name: Audit original integer masks, track ownership, all-frame coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np, pandas as pd
+          base=Path('cellpose_visual_pilot')
+          metadata=json.loads((base/'visual_pilot_metrics.json').read_text())
+          frames=int(metadata['visualized_frames'])
+          assert frames==int(__import__('os').environ['AI4S_VISUAL_FRAMES'])
+          assert metadata['full_population_mode'] is True
+          assert metadata['uncertain_predicted_instances_remain_visible_uncolored'] is True
+          m=np.load(base/'model_predicted_instances.npz')['masks']
+          nodes=pd.read_csv(base/'model_predicted_track_nodes.csv')
+          assert len(m)==frames
+          assert len(metadata['model_native_colored_ids_by_frame'])==frames
+          for t,mask in enumerate(m):
+              observed={int(z) for z in np.unique(mask) if z>0}
+              exported=set(nodes.loc[nodes.t.eq(t),'instance_id'].astype(int))
+              assert observed==exported
+              assert len(observed)==metadata['frames'][t]['predicted_objects']
+          assert any(len(x)>=4 for x in metadata['model_native_colored_ids_by_frame'])
+          assert len(list(base.glob('pilot_*.png')))==frames
+          print('Full microscope population audited: masks+track IDs aligned per frame')
+          PY
+      - name: Encode true chronological frames without invented inbetweens
+        run: |
+          ffmpeg -y -hide_banner -loglevel error -framerate 1.5 \
+            -i cellpose_visual_pilot/pilot_%03d.png \
+            -c:v libx264 -crf 19 -pix_fmt yuv420p -r 24 \
+            -movflags +faststart ctc-population-real-tracks.mp4
+          ffmpeg -hide_banner -loglevel error -i ctc-population-real-tracks.mp4 -f null -
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ctc-full-field-native-real-population
+          path: |
+            cellpose_visual_pilot/
+            ctc-population-real-tracks.mp4
+          if-no-files-found: warn
+          retention-days: 90
