@@ -47,6 +47,20 @@ Persistence here is **net displacement / traveled path**, a simple measure of ho
 
 The [reproducible full-cohort audit](CTC_COHORT_MOTILITY_AUDIT.md) checks the **entire 126-profile exported population**, not only two illustrative cells. The production confidence gate permits descriptive reporting for **51** trajectories. At an exploratory persistence cutoff below **0.20**, **33/51** meet the criterion; the share changes to **31/35** with at least ten observations and **10/19** with reliability at least 0.65. Sequence 01 contributes **12/24**, and sequence 02 **21/27**, under the original gate. These are sensitivity diagnostics, **not the prevalence of a biological state**; localization jitter and track fragmentation may inflate traveled path.
 
+### Biological-label signal from ALFI — exploratory expert-track probe
+
+To test whether temporal information adds value beyond a still-frame description, we evaluated a **separate supervised mitosis-stage task using genuine ALFI expert stage labels**. Both variants used the **same class-balanced logistic regression and the same held-out sequences**; the only distinction was static expert-box geometry versus that geometry plus six **present-and-past motion/shape-change features**. We trained on MI01–MI04 (**405 observations; 21 tracks**) and evaluated on MI05–MI08 (**930 observations; 72 tracks**).
+
+| Held-out ALFI MI05–MI08 | Static expert boxes | Static + past motion |
+|---|---:|---:|
+| Mitosis-stage macro F1 | **0.5138** | **0.5676** |
+| LateMitosis F1 | 0.1761 | **0.2742** |
+| Correct LateMitosis observations | 25 | **41** |
+
+The absolute macro-F1 improvement was **+0.0538**. A descriptive **whole-sequence** bootstrap (10,000 resamples of four held-out sequences) gave a 95% percentile interval of **[+0.0134, +0.1754]**, but only **four sequence-level test units** were available, and the corpus/task had been explored before this comparison. This is **not** an untouched prospective replication, and its interval does not adjust for prior model/task selection.
+
+**Crucial input boundary:** cell boxes, IDs and trajectories for this test came from **expert annotations**, not from our image segmentation/tracking. Therefore the result supports a modest, testable claim—**past temporal features can improve a labeled mitosis-stage readout under expert geometry**—but **not** an automatic microscopy-to-mitosis classifier or cross-domain phenotype discovery. In fact, the ALFI raw-image CellposeSAM-v2 instance F1 of **0.2282** remains a serious transfer bottleneck. [Reproducible assay-specific protocol and caveats](ALFI_PRODUCT_TEMPORAL_PROBE_RESULTS.md) · [successful evaluation run](https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37973172342) · [product causal feature API](../src/ai4s_phenotype/causal.py).
+
 ### Empirical localization-error audit — measured limitation, not an accuracy guarantee
 
 A subsequent preregistered spatial-quality audit compared pretrained CellposeSAM-v2 instance-mask centroids to **CTC ST/SEG silver-reference mask centroids**, using **16 evenly sampled frames** (8 per sequence). With one-to-one IoU ≥ 0.50 matching, **193 of 199 silver-reference objects** were matched to **193 of 211 predicted instances**; **6 reference cells and 18 predictions remained unmatched**. Among matched pairs, the median geometric-center discrepancy was **0.909 µm**, with **p95 2.701 µm** and maximum **4.289 µm** at 0.19 µm/pixel. This is a reference-mask discrepancy on a subset of the same two sequences, **not** a ground-truth biological cell-center error, an independent holdout or a bound on every trajectory location.
