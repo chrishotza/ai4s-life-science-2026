@@ -1,0 +1,25 @@
+{
+  "title": "Temporal Cellular Phenotype Engine: Reproducible Single-Cell Tracking and Temporal Phenotype Analysis",
+  "creators": [
+    {
+      "name": "Mendoza, Christian Marcelo",
+      "orcid": "0009-0003-5333-7395"
+    }
+  ],
+  "description": "<p>Open-source, auditable research prototype for image-derived cell segmentation, deterministic tracking, temporal motion features and confidence-gated descriptive cellular phenotype groups. The strongest internally evaluated CellposeSAM-v2 to tracking workflow used 168 DIC-C2DH-HeLa frames, reporting segmentation F1 0.9354, detection F1 0.9684 and temporal-link F1 0.9808 (not official CTC leaderboard results). Reference-centroid controls are separate. No independent biological phenotype, treatment-effect or organ-on-chip validation is claimed.</p><p>Source code and reproduction: <a href=\"https://github.com/chrishotza/ai4s-life-science-2026\">github.com/chrishotza/ai4s-life-science-2026</a>. Public narrated video: <a href=\"https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo\">AI4S V10 demo</a>. Project developed under the public GitHub identity Chris Hotza. Original upstream microscopy datasets and pretrained weights are not redistributed in this software release and remain governed by their own terms.</p>",
+  "version": "0.1.0",
+  "license": "mit",
+  "access_right": "open",
+  "upload_type": "software",
+  "language": "eng",
+  "keywords": [
+    "cell tracking",
+    "time-lapse microscopy",
+    "single-cell analysis",
+    "temporal phenotype",
+    "reproducible research",
+    "CellposeSAM-v2",
+    "scientific software",
+    "AI4S 2026"
+  ]
+}

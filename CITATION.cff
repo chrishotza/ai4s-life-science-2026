@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this research software, please cite the archived Zenodo software release."
+type: software
+title: "Temporal Cellular Phenotype Engine"
+abstract: >-
+  Reproducible image-derived single-cell microscopy tracking and
+  confidence-gated temporal phenotype descriptors. Research prototype
+  with distinct internal validation protocols and explicit limitations.
+authors:
+  - given-names: "Christian Marcelo"
+    family-names: "Mendoza"
+    orcid: "https://orcid.org/0009-0003-5333-7395"
+version: "0.1.0"
+date-released: 2026-10-09
+repository-code: "https://github.com/chrishotza/ai4s-life-science-2026"
+url: "https://github.com/chrishotza/ai4s-life-science-2026"
+license: "MIT"
+keywords:
+  - "single-cell tracking"
+  - "time-lapse microscopy"
+  - "temporal phenotype analysis"
+  - "CellposeSAM-v2"
+  - "reproducible scientific software"
