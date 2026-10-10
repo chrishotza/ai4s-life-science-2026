@@ -34,3 +34,10 @@
 - The code is MIT licensed but upstream datasets, model weights and third-party media retain their own conditions.
 
 **Submission over model tuning:** when time is short, eligibility and public deliverables outrank optional demonstration embellishments.
+
+## CTC public-video redistribution gate (independently verified Oct 10)
+
+The [official Cell Tracking Challenge dataset-use conditions](https://celltrackingchallenge.net/datasets/) require acknowledgment of the source/Nature Methods paper; they also state that *public non-CTC scientific use* of the datasets requires explicit permission from CTC organizers, and prohibit cloning datasets or parts (including reference annotations). **AI4S is a separate competition, not a CTC entry.** Do not assume open download automatically authorizes public redistribution of 24 or 66 original raw microscope frames in a third-party Kaggle dataset/GitHub release. The recorded CTC visualization outputs are internally valid evidence, but a further public media upload should be gated on written permission or a specific documented authorization/license analysis.
+
+The **existing V10 Kaggle public demo also needs the same rights review**; this note does not establish that it was licensed or unlicensed. Avoid claiming permission was checked merely because the source data are publicly downloadable. Link back to CTC's original dataset download page and include the official citation. Do not delete the team's published materials automatically as a substitute for an organizer rights decision.
+
