@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Match standard Markdown inline links and linked images, not fenced code.
 INLINE = re.compile(r"!?(?:\[[^\]]*\])\((<[^>]+>|[^)\s]+)(?:\s+['\"][^)]*['\"])?\)")
 DEFINITION = re.compile(r"^\s{0,3}\[[^\]]+\]:\s*(<[^>]+>|\S+)", re.MULTILINE)
-FENCES = re.compile(r"^\s*\\`\\`\\`|^\s*~~~")
+FENCES = re.compile(r"^\s*(?:\x60{3}|~{3})")
 
 
 def remove_fenced_code(body: str) -> str:
