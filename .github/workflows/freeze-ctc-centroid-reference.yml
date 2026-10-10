@@ -1,0 +1,82 @@
+name: Freeze verified CTC centroid calibration artifact
+
+on:
+  push:
+    branches: [evidence/ctc-centroid-reference-evaluation-20261010]
+    paths:
+      - .github/workflows/freeze-ctc-centroid-reference.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_RUN: "38016428084"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the original inference was successful
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/actions/runs/$SOURCE_RUN" --jq '.conclusion')" = "success"
+      - name: Download only the original completed numeric artifact
+        run: |
+          set -euo pipefail
+          mkdir -p original-evidence
+          gh run download "$SOURCE_RUN" \
+            --repo "$GH_REPO" \
+            --name ctc-real-silver-centroid-offsets-16-frames \
+            --dir original-evidence
+      - name: Independently verify exported summary, raw rows and SHA-256
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, pathlib, statistics
+          root = pathlib.Path("original-evidence")
+          raw = (root/"ctc_centroid_reference_matches.csv").read_bytes()
+          result = json.loads((root/"ctc_centroid_reference_results.json").read_text())
+          rows = list(csv.DictReader(raw.decode("utf-8").splitlines()))
+          assert result["status"]=="EMPIRICAL_OFFSET_TO_CTC_SILVER_SEGMENTATION_CENTROID"
+          assert result["experiment"]["total_sampled_frames"] == 16
+          assert len(result["experiment"]["sampled_frame_ids"]["01"]) == 8
+          assert len(result["experiment"]["sampled_frame_ids"]["02"]) == 8
+          assert hashlib.sha256(raw).hexdigest()==result["experiment"]["per_match_csv_sha256"]
+          assert len(rows)==result["pooled"]["matched_instances"]
+          assert len({(r["sequence"],r["frame"],r["silver_label"]) for r in rows})==len(rows)
+          assert len({(r["sequence"],r["frame"],r["predicted_label"]) for r in rows})==len(rows)
+          for r in rows:
+            dy=(float(r["predicted_center_y_px"])-float(r["reference_center_y_px"]))*0.19
+            dx=(float(r["predicted_center_x_px"])-float(r["reference_center_x_px"]))*0.19
+            assert math.isclose(math.hypot(dx,dy),float(r["offset_um"]),abs_tol=1e-6)
+          offsets=sorted(float(r["offset_um"]) for r in rows)
+          assert math.isclose(statistics.median(offsets),result["pooled"]["centroid_offset_um"]["median"],abs_tol=1e-6)
+          h=(len(offsets)-1)*0.95
+          lo=int(h); hi=min(lo+1,len(offsets)-1)
+          p95=offsets[lo]+(h-lo)*(offsets[hi]-offsets[lo])
+          assert math.isclose(p95,result["pooled"]["centroid_offset_um"]["p95"],abs_tol=1e-6)
+          assert result["pooled"]["reference_instances"]>=len(rows)
+          assert result["pooled"]["predicted_instances"]>=len(rows)
+          assert all("not" in s.lower() or "NOT" in s for s in result["limitations"])
+          print("PASS: 16 real frames, matched",len(rows),
+                "median",statistics.median(offsets),"p95",p95)
+          PY
+      - name: Commit immutable numeric evidence to feature branch
+        run: |
+          set -euo pipefail
+          mkdir -p docs/evidence/ctc
+          cp original-evidence/ctc_centroid_reference_results.json \
+            docs/evidence/ctc/cellpose_centroid_reference_16_frames.json
+          cp original-evidence/ctc_centroid_reference_matches.csv \
+            docs/evidence/ctc/cellpose_centroid_matches_16_frames.csv
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/evidence/ctc/cellpose_centroid_reference_16_frames.json \
+                  docs/evidence/ctc/cellpose_centroid_matches_16_frames.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "evidence(ctc): freeze empirically matched silver-centroid offsets from run 38016428084"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
