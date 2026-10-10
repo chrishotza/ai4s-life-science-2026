@@ -14,25 +14,34 @@
 
 ## Project Summary
 
-Time-lapse microscopy contains information about how cells move, persist, divide, and change over time, but many workflows stop at segmentation or tracking. The Temporal Cellular Phenotype Engine turns microscopy sequences into trajectory-derived phenotype profiles that describe dynamic behavior rather than only object locations.
+A cell can travel a long distance without migrating far from its starting point. That distinction matters in time-lapse microscopy: a segmentation mask tells a researcher where a cell is, but not whether its movement is sustained, wandering, or too poorly observed to interpret. Our Temporal Cellular Phenotype Engine turns raw microscopy into reproducible per-cell histories and transparent behavioral measurements.
 
-The system integrates microscopy preprocessing, cell detection, temporal association, lineage/event inference, trajectory feature extraction, unsupervised phenotype discovery, and confidence-gated interpretation. On the Cell Tracking Challenge DIC-C2DH-HeLa dataset, the image-derived CellposeSAM-v2 → detection → association → phenotype path was evaluated on 168 raw frames. It reached segmentation F1@IoU0.5 0.9354, detection F1 0.9684, and temporal-link F1 0.9808. Ground-truth masks and identities were used only for scoring, not as input detections; this is internal CTC validation, not official leaderboard scoring.
+We did not train a new foundation segmentation model. Instead, we integrated pretrained CellposeSAM-v2 predictions with physically calibrated, deterministic cell tracking, trajectory-feature extraction, candidate lineage analysis, descriptive grouping, and confidence gates that prevent unsupported interpretation. The result is an inspectable workflow from images to research hypotheses rather than another isolated segmentation score.
 
-A separate association-isolation experiment using perfect reference centroids reached precision 0.99135, recall 0.99322, and F1 0.99228, plus py-ctcmetrics TRA/LNK checks on preserved reference geometry. These numbers validate temporal association, not image segmentation.
+In an internal image-derived evaluation across 168 raw DIC-C2DH-HeLa frames, the system achieved segmentation F1 **0.9354**, detection F1 **0.9684**, and temporal-link F1 **0.9808**. Reference annotations were used for scoring, not supplied as detections. The outputs included 126 trajectory profiles; 51 were eligible for descriptive computational reporting, 21 were low-confidence descriptive, and 54 remained audit-only.
 
-The phenotype layer generated 126 image-derived CTC trajectory profiles. Because 43 tracks have only one observation, the repository now applies confidence gates: 54 profiles are audit-only, 21 are descriptive low confidence, and 51 are descriptive computational groups. No biological cell-state claim is made without independent labels. Transfer to organ-on-a-chip data remains untested.
+A real example shows why the temporal layer matters: one measured track accumulated **142.10 µm** of movement yet displaced only **4.29 µm** overall. Such differences can guide which cells deserve further review, but they do not establish biological cell states. Results are internal protocol measurements, not official Cell Tracking Challenge rankings. Drug-response, independent biological-phenotype, and organ-on-chip validation remain future experiments.
 
 ## From cell tracking to dynamic phenotype
 
-### A concrete life-science research use case
+### A concrete life-science research use case — observed, not hypothetical
 
-**Question:** In a time-lapse experiment, which individual cells persist in one direction, which change speed or direction, and which trajectories are too short to support interpretation? A single static image or an unlabeled track ID does not answer that question.
+**Question:** Which cells move actively but achieve little net displacement? A frame-wise mask or unannotated track ID cannot show the difference between traveled distance and sustained directional movement.
 
-**Runnable computational workflow:** Given a microscopy sequence, the engine produces instance observations, temporal associations, per-cell duration, motion and directional-persistence features, candidate lineage events, and confidence-gated descriptive groups. A researcher can review and compare these outputs before deciding which cells warrant closer biological investigation. The strongest image-derived CTC run analyzed **168 real frames**, yielding segmentation F1 **0.9354**, detection F1 **0.9684**, and temporal-link F1 **0.9808** under its documented internal protocol. From the resulting **126 profiles**, only **51** passed the project's descriptive-computational confidence gate; 21 were downgraded and 54 were audit-only.
+In the completed 168-frame **image-derived** CTC experiment, two post-hoc selected predicted tracks in sequence 02 give a concrete example:
 
-**Testable future experiment, not an observed biological effect:** Compare treated versus control cell cultures imaged with matched acquisition settings. Predefine motion/persistence endpoints; blind or hold out independent wells and acquisition batches; evaluate segmentation and identity accuracy before comparing groups; then test whether predicted differences reproduce across batches against independently recorded condition labels. This experiment has **not** been conducted here, and no drug-response or organ-on-a-chip effect is claimed.
+| Track | Frames observed | Total path (µm) | Net displacement (µm) | Directional persistence | Reliability |
+|---|---:|---:|---:|---:|---:|
+| **21** | 66 | **142.10** | 4.29 | 0.030 | 0.607 |
+| **19** | 57 | 84.79 | **16.83** | 0.198 | 0.625 |
 
-**Why this is useful now:** the current result is an inspectable, reproducible *measurement and hypothesis-generation workflow*. Biologically meaningful conclusions require external validation. CellposeSAM-v2 supplies image segmentation; the submission's added value is the temporal feature, tracking, quality-gate and evidence-reporting layer. [Detailed use case and falsifiable validation plan](BIOLOGICAL_IMPACT_CASE.md).
+Persistence here is **net displacement / traveled path**, a simple measure of how consistently motion translates into directional progress. Track 21 traverses more distance but ends closer to its start; track 19 travels less but advances further overall. Both pass the documented minimum-history and reliability gates for *descriptive computational* measurements.
+
+![A measured contrast between total movement and net displacement](figures/ctc_real_motility_example.svg)
+
+**What this proves:** the temporal feature layer provides a measurable answer to a useful single-cell research question. **What it does not prove:** biological cell identity, treatment effect, independent phenotype labels or statistical significance. The tracks were chosen as illustrations, not a random cohort. Source: [real measured table and interpretation limits](CTC_REAL_MOTILITY_CASE_STUDY.md).
+
+**Our innovation:** pretrained CellposeSAM-v2 supplies image segmentation; we contribute physically calibrated tracking, temporal descriptors, data-quality gates and reproducible evidence reporting. For future state predictions, *past-only* means no later frames are used to predict earlier ones; this is protection from temporal leakage, not proof of biological causation.
 
 ### Problem
 
