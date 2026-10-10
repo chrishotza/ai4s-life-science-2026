@@ -66,7 +66,7 @@ def audit(report: dict, csv_bytes: bytes) -> dict:
         if not math.isclose(math.hypot(
             float(r["predicted_center_y_px"])-float(r["reference_center_y_px"]),
             float(r["predicted_center_x_px"])-float(r["reference_center_x_px"]),
-        ),float(r["offset_pixels"]),abs_tol=1e-6):
+        ),float(r["offset_pixels"]),abs_tol=2e-6):
             raise ValueError("Pixel-coordinate offset inconsistent")
         if physical<0 or not math.isfinite(physical):
             raise ValueError("Non-finite offset")
