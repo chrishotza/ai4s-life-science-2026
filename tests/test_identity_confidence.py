@@ -89,7 +89,8 @@ def test_identity_swap_never_resumes_same_hue_after_suspect_link():
     data = audit_track_color_prefixes(masks, nodes)
     assert data[0]["colored_through_frame"] == 2
     assert data[0]["first_failure"] is not None
-    assert data[1]["colored_through_frame"] == 2
+    # The OTHER predicted identity is still spatially coherent; do not blank it.
+    assert data[1]["colored_through_frame"] == 3
 
 
 def test_new_three_frame_track_is_not_suppressed_by_missing_early_frames():
