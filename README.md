@@ -10,6 +10,8 @@ This publicly auditable research prototype treats tracking as infrastructure for
 
 **A concrete biological-use scenario:** a researcher studying time-dependent cell migration can use the exported tracks to inspect which cells move faster, reverse direction, or have too little temporal evidence to interpret. This is an **analysis workflow**, not evidence that treatment effects or biological states have been discovered. [See the proposed validation experiment](docs/BIOLOGICAL_IMPACT_CASE.md).
 
+**Observed single-cell example:** [two genuinely image-derived trajectories from the same CTC sequence](docs/CTC_REAL_MOTILITY_CASE_STUDY.md) show why *movement* and *net migration* are different measurements: one traveled 142.10 µm but ended just 4.29 µm from its start. See the [evidence-based comparison figure](docs/figures/ctc_real_motility_example.svg). This is descriptive motion analysis, not a validated biological state.
+
 **Public narrated demo (91 seconds):** [Watch the V10 microscopy-to-tracks explainer on Kaggle](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo). It shows an 8-frame CellposeSAM-v2 real-prediction *visual pilot*, not the full 168-frame benchmark. Published as a public dataset with an in-browser MP4 player and verified signed-out access on October 9, 2026.
 
 **Reviewer shortcut:** start with the [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
