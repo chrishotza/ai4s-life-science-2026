@@ -1,0 +1,296 @@
+{
+  "status": "EMPIRICAL_OFFSET_TO_CTC_SILVER_SEGMENTATION_CENTROID",
+  "experiment": {
+    "dataset": "CTC DIC-C2DH-HeLa training sequences 01 and 02",
+    "reference_type": "silver ST/SEG manual/curated segmentation masks",
+    "model": "pretrained cpsam_v2, min_size=200, flow=0.4, cellprob=0",
+    "sampling": "fixed evenly spaced image/mask paired frames per sequence",
+    "per_sequence_requested": 8,
+    "total_sampled_frames": 16,
+    "image_evaluation_historical_run": "37930909373",
+    "micrometers_per_pixel_yx": [
+      0.19,
+      0.19
+    ],
+    "matching": "one-to-one Hungarian maximum IoU, >=0.50",
+    "python": "3.11.17",
+    "sampled_frame_ids": {
+      "01": [
+        0,
+        11,
+        23,
+        35,
+        47,
+        59,
+        71,
+        83
+      ],
+      "02": [
+        0,
+        11,
+        23,
+        35,
+        47,
+        59,
+        71,
+        83
+      ]
+    },
+    "per_match_csv_sha256": "168ca1d518a65cb9f298c0700f020a9310817b0f673fa391be26d5b24ac2b34f"
+  },
+  "pooled": {
+    "frames": 16,
+    "matched_instances": 193,
+    "reference_instances": 199,
+    "predicted_instances": 211,
+    "matched_reference_fraction": 0.9698492462311558,
+    "matched_prediction_fraction": 0.9146919431279621,
+    "mean_frame_f1_iou50": 0.9391425221181694,
+    "centroid_offset_um": {
+      "mean": 1.1032585417015524,
+      "median": 0.9093115790555423,
+      "p90": 2.2934157918449825,
+      "p95": 2.700614346011882,
+      "max": 4.288958888679203,
+      "rmse": 1.3719488596245781
+    },
+    "relative_error_to_silver_equivalent_radius": {
+      "median": 0.0814298138294904,
+      "p95": 0.26298684907538716
+    },
+    "fraction_with_offset_le_um": {
+      "0.1": 0.025906735751295335,
+      "0.25": 0.08808290155440414,
+      "0.5": 0.21761658031088082,
+      "1.0": 0.5751295336787565,
+      "2.0": 0.8601036269430051
+    }
+  },
+  "by_sequence": {
+    "01": {
+      "frames": 8,
+      "matched_instances": 99,
+      "reference_instances": 104,
+      "predicted_instances": 112,
+      "matched_reference_fraction": 0.9519230769230769,
+      "matched_prediction_fraction": 0.8839285714285714,
+      "mean_frame_f1_iou50": 0.913927577990078,
+      "centroid_offset_um": {
+        "mean": 1.1242267030633464,
+        "median": 0.9058733997028404,
+        "p90": 2.291310511349435,
+        "p95": 3.136175871404723,
+        "max": 4.288958888679203,
+        "rmse": 1.426260293872291
+      },
+      "relative_error_to_silver_equivalent_radius": {
+        "median": 0.09098472369849768,
+        "p95": 0.2889971086586395
+      },
+      "fraction_with_offset_le_um": {
+        "0.1": 0.020202020202020204,
+        "0.25": 0.09090909090909091,
+        "0.5": 0.25252525252525254,
+        "1.0": 0.5757575757575758,
+        "2.0": 0.8585858585858586
+      }
+    },
+    "02": {
+      "frames": 8,
+      "matched_instances": 94,
+      "reference_instances": 95,
+      "predicted_instances": 99,
+      "matched_reference_fraction": 0.9894736842105263,
+      "matched_prediction_fraction": 0.9494949494949495,
+      "mean_frame_f1_iou50": 0.9643574662462608,
+      "centroid_offset_um": {
+        "mean": 1.0811750526077484,
+        "median": 0.9106466144257026,
+        "p90": 2.275930129991395,
+        "p95": 2.562906951949258,
+        "max": 3.878706968291065,
+        "rmse": 1.3123205239366698
+      },
+      "relative_error_to_silver_equivalent_radius": {
+        "median": 0.07625358339769991,
+        "p95": 0.25667599149231907
+      },
+      "fraction_with_offset_le_um": {
+        "0.1": 0.031914893617021274,
+        "0.25": 0.0851063829787234,
+        "0.5": 0.18085106382978725,
+        "1.0": 0.574468085106383,
+        "2.0": 0.8617021276595744
+      }
+    }
+  },
+  "per_frame": [
+    {
+      "sequence": "01",
+      "frame": 0,
+      "reference_instances": 10,
+      "predicted_instances": 8,
+      "matched_instances_iou50": 7,
+      "unmatched_reference_instances": 3,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.7777777777777778
+    },
+    {
+      "sequence": "01",
+      "frame": 11,
+      "reference_instances": 11,
+      "predicted_instances": 13,
+      "matched_instances_iou50": 11,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 2,
+      "frame_f1_iou50": 0.9166666666666666
+    },
+    {
+      "sequence": "01",
+      "frame": 23,
+      "reference_instances": 12,
+      "predicted_instances": 12,
+      "matched_instances_iou50": 12,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 0,
+      "frame_f1_iou50": 1.0
+    },
+    {
+      "sequence": "01",
+      "frame": 35,
+      "reference_instances": 12,
+      "predicted_instances": 14,
+      "matched_instances_iou50": 12,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 2,
+      "frame_f1_iou50": 0.9230769230769231
+    },
+    {
+      "sequence": "01",
+      "frame": 47,
+      "reference_instances": 13,
+      "predicted_instances": 15,
+      "matched_instances_iou50": 13,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 2,
+      "frame_f1_iou50": 0.9285714285714286
+    },
+    {
+      "sequence": "01",
+      "frame": 59,
+      "reference_instances": 13,
+      "predicted_instances": 14,
+      "matched_instances_iou50": 13,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.9629629629629629
+    },
+    {
+      "sequence": "01",
+      "frame": 71,
+      "reference_instances": 15,
+      "predicted_instances": 17,
+      "matched_instances_iou50": 15,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 2,
+      "frame_f1_iou50": 0.9375
+    },
+    {
+      "sequence": "01",
+      "frame": 83,
+      "reference_instances": 18,
+      "predicted_instances": 19,
+      "matched_instances_iou50": 16,
+      "unmatched_reference_instances": 2,
+      "unmatched_predicted_instances": 3,
+      "frame_f1_iou50": 0.8648648648648649
+    },
+    {
+      "sequence": "02",
+      "frame": 0,
+      "reference_instances": 10,
+      "predicted_instances": 10,
+      "matched_instances_iou50": 9,
+      "unmatched_reference_instances": 1,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.9
+    },
+    {
+      "sequence": "02",
+      "frame": 11,
+      "reference_instances": 9,
+      "predicted_instances": 10,
+      "matched_instances_iou50": 9,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.9473684210526315
+    },
+    {
+      "sequence": "02",
+      "frame": 23,
+      "reference_instances": 9,
+      "predicted_instances": 10,
+      "matched_instances_iou50": 9,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.9473684210526315
+    },
+    {
+      "sequence": "02",
+      "frame": 35,
+      "reference_instances": 10,
+      "predicted_instances": 11,
+      "matched_instances_iou50": 10,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.9523809523809523
+    },
+    {
+      "sequence": "02",
+      "frame": 47,
+      "reference_instances": 12,
+      "predicted_instances": 12,
+      "matched_instances_iou50": 12,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 0,
+      "frame_f1_iou50": 1.0
+    },
+    {
+      "sequence": "02",
+      "frame": 59,
+      "reference_instances": 13,
+      "predicted_instances": 13,
+      "matched_instances_iou50": 13,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 0,
+      "frame_f1_iou50": 1.0
+    },
+    {
+      "sequence": "02",
+      "frame": 71,
+      "reference_instances": 15,
+      "predicted_instances": 16,
+      "matched_instances_iou50": 15,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 1,
+      "frame_f1_iou50": 0.967741935483871
+    },
+    {
+      "sequence": "02",
+      "frame": 83,
+      "reference_instances": 17,
+      "predicted_instances": 17,
+      "matched_instances_iou50": 17,
+      "unmatched_reference_instances": 0,
+      "unmatched_predicted_instances": 0,
+      "frame_f1_iou50": 1.0
+    }
+  ],
+  "limitations": [
+    "Reference ST/SEG masks are SILVER annotations; their geometric centroids are not verified biological cell centers.",
+    "Localization discrepancy is conditional on matching at IoU>=0.50. Unmatched objects are reported but have no interpretable centroid offset.",
+    "The sampled frames belong to the two original CTC sequences and are NOT an independent dataset or a new domain-transfer benchmark.",
+    "Observed offsets for matched instances do NOT provide a guaranteed uniform maximum localization-error radius for all 51 phenotype tracks.",
+    "The study does not independently validate temporal association, lineage events, causal treatment responses or biological phenotypes."
+  ]
+}
