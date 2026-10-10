@@ -1,19 +1,15 @@
 # Kaggle Project Summary (200–300 words)
 
-**Temporal Cellular Phenotype Engine — End-to-End System for Single-cell Phenotype Analysis**
+**Temporal Cellular Phenotype Engine — End-to-End System**
 
-Time-lapse microscopy contains information about how cells move, persist, divide, and change over time, but many workflows stop at segmentation or tracking. The Temporal Cellular Phenotype Engine turns those trajectories into interpretable temporal phenotype profiles.
+Time-lapse microscopy can show a cell moving without making much net progress. A static mask cannot answer whether individual cells travel persistently, change direction, or have too little evidence to interpret. Our Temporal Cellular Phenotype Engine transforms microscopy sequences into auditable cell tracks, motion measurements, and confidence-gated descriptive profiles.
 
-The system integrates microscopy preprocessing, cell detection, deterministic 3-D temporal association, lineage/event inference, trajectory feature extraction, and unsupervised phenotype discovery. Tracking is treated as infrastructure; the scientific output is dynamic cellular behavior.
+**Innovation:** We do not claim a new foundation segmentation model. We combine pretrained CellposeSAM-v2 masks with physically calibrated deterministic temporal linking, trajectory features, candidate lineage relationships, reproducible outputs, and explicit quality gates. Tracking is infrastructure; the useful research output is a transparent description of temporal cellular behavior.
 
-The canonical engine can start from microscopy frames and execute the public detection-to-phenotype path. For rigorous real-data measurement, the CTC experiment intentionally uses **reference centroids as detections** to isolate temporal association from segmentation.
+On two DIC-C2DH-HeLa sequences comprising **168 raw frames**, the image-derived pipeline achieved **segmentation F1 0.9354**, **detection F1 0.9684**, and **temporal-link F1 0.9808** under documented internal evaluation. Reference annotations were used for scoring, not supplied as input cell detections.
 
-On DIC-C2DH-HeLa sequences 01 and 02, mutual-nearest-neighbor association with an 8.0 µm gate achieved **0.99135 mean precision, 0.99322 mean recall, and 0.99228 mean F1**. Downstream phenotype preservation on the same reference centroids achieved **0.9451 mean trajectory coverage, 1.0000 median coverage, and 0.0439 directional-persistence MAE**.
+The system exported **126 image-derived trajectories**: 54 remained audit-only, 21 were low-confidence descriptive, and 51 qualified for descriptive computational interpretation. In a new complete-cohort sensitivity audit, **33 of those 51** had directional persistence below an exploratory threshold of 0.20. This fraction changed when minimum track duration and reliability thresholds were tightened, and differed between the two sequences. The thresholds are not biological cell-state labels.
 
-A separate exploratory Cellpose-SAM pilot on only four frames per sequence (eight total) measured segmentation F1@IoU50 **0.87490**, image-derived detection F1 **0.88810**, and tracking-edge F1 **0.89180**. These pilot results do not establish stable generalization or biological phenotype validity.
+A concrete trajectory traveled **142.10 µm** yet displaced only **4.29 µm** net. Such measurements can help researchers select cells for closer review. These are computational observations, **not** evidence of drug response, independently confirmed biological phenotypes, organ-on-chip transfer, or official Cell Tracking Challenge leaderboard performance.
 
-The same association path was independently evaluated with pinned **py-ctcmetrics==1.3.3** using preserved reference object geometry: **sequence 01 TRA 0.997315 / LNK 0.979091; sequence 02 TRA 0.997207 / LNK 0.978239**.
-
-These are reference-geometry association-isolation metrics, not end-to-end segmentation or biological phenotype classification. They are not official Cell Tracking Challenge leaderboard scores. No-oracle sensitivity left TRA/LNK unchanged on both sequences. Biological validity still requires independent labels or perturbation annotations.
-
-The contribution is a reproducible microscopy-to-phenotype bridge; transfer to organ-on-a-chip data remains untested.
+**Reproducibility:** [Source and audited workflows](https://github.com/chrishotza/ai4s-life-science-2026) · [Complete-cohort evidence](CTC_COHORT_MOTILITY_AUDIT.md) · [91-second narrated demo](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo).
