@@ -16,6 +16,8 @@ Imagine comparing cell migration in microscopy time series. A researcher needs t
 
 **Public 91-second video:** [V10 narrated microscopy demo on Kaggle](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo). The video uses real image-derived masks/tracks from the 8-frame visual pilot; it does not portray the full 168-frame benchmark footage.
 
+**Concrete observed example:** [Why total cell motion differs from net migration](CTC_REAL_MOTILITY_CASE_STUDY.md). An image-derived predicted track traveled 142.10 µm but moved only 4.29 µm net; the [figure](figures/ctc_real_motility_example.svg) compares two real tracks. This is an exploratory computational example and **not** a biological phenotype or treatment result.
+
 ## What to read first
 
 1. `README.md` for the public-facing summary and quick reproduction path.
