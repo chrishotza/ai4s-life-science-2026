@@ -22,7 +22,9 @@ from ai4s_imaging import CellposeSegmenter, instances_to_detections
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset
 from ai4s_tracking import TrackingConfig, track_detections, infer_divisions
 from ai4s_imaging.track_colors import track_color_map
-from ai4s_imaging.identity_confidence import audit_track_color_continuity
+from ai4s_imaging.identity_confidence import (
+    audit_track_color_continuity, audit_track_color_prefixes,
+)
 from benchmark_ctc_image_e2e import image_files
 from benchmark_ctc_tra_supervised import (
     frame_index, keyed_masks, restrict_instances_to_foi, segmentation_score,
@@ -64,7 +66,8 @@ def color(track_id: int) -> tuple[int, int, int]:
 
 def render(i: int, raw: np.ndarray, mask: np.ndarray,
            nodes, scores: dict, colors: dict,
-           highlighted: set[int] | None = None) -> None:
+           highlighted: set[int] | None = None,
+           show_ids: bool = False) -> None:
     gray = normalized_u8(raw)
     raw_im = Image.fromarray(gray, "L").convert("RGB")
     over = raw_im.copy().convert("RGBA")
@@ -106,6 +109,10 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
         if int(recent.t) == i:
             x, y = float(recent.x), float(recent.y)
             od.ellipse((x-5, y-5, x+5, y+5), fill=color_rgb, outline=(255,255,255), width=2)
+            if show_ids:
+                od.text((max(0,x+8), max(0,y-22)), f'{int(ident):02d}',
+                        font=SM, fill=color_rgb, stroke_width=2,
+                        stroke_fill=(5,15,25))
     board = Image.new("RGB", (1280, 720), BG)
     d = ImageDraw.Draw(board)
     d.text((72, 44), "Real CTC microscopy — image-derived predictions", font=B, fill=WHITE)
@@ -150,17 +157,38 @@ def main() -> None:
     palette = track_color_map(track_nodes, division_candidates)
     audit = audit_track_color_continuity(np.stack(masks), track_nodes)
     stable_ids = {int(k) for k, value in audit.items() if value["eligible"]}
+    population_mode = os.environ.get("AI4S_VISUAL_POPULATION_MODE", "0") == "1"
+    prefix_audit = (audit_track_color_prefixes(np.stack(masks), track_nodes)
+                    if population_mode else {})
     strict = os.environ.get("AI4S_VISUAL_STRICT_IDENTITY", "1") == "1"
     selection = os.environ.get("AI4S_VISUAL_FOCUS_TRACK_IDS", "").strip()
     focused = {int(x.strip()) for x in selection.split(",") if x.strip()} if selection else None
-    highlighted = (stable_ids if strict else set(palette))
+    highlighted = (set(palette) if population_mode else
+                   (stable_ids if strict else set(palette)))
     if focused is not None:
         highlighted &= focused
     if not highlighted:
         raise RuntimeError("no predicted track passes the conservative color-continuity gate")
+    highlighted_by_frame = []
+    for i in range(len(masks)):
+        frame_ids = (
+            {int(k) for k, row in prefix_audit.items()
+             if row["colored_through_frame"] is not None
+             and row["first_frame"] <= i <= row["colored_through_frame"]}
+            if population_mode else highlighted.copy()
+        )
+        highlighted_by_frame.append(frame_ids & highlighted)
     print("Color stability audit:", {str(k): v for k, v in audit.items()}, flush=True)
     for i, (im, mask) in enumerate(zip(frames, masks)):
-        render(i, im, mask, track_nodes, records[i], palette, highlighted)
+        render(i, im, mask, track_nodes, records[i], palette,
+               highlighted_by_frame[i], show_ids=population_mode)
+    if population_mode:
+        # Preserve exact Cellpose integer instances and tracker ownership.
+        # These are predicted outputs, not CTC ground-truth masks.
+        np.savez_compressed(OUT / "model_predicted_instances.npz",
+                            masks=np.stack(masks).astype(np.int32))
+        track_nodes.to_csv(OUT / "model_predicted_track_nodes.csv", index=False)
+        edges.to_csv(OUT / "model_predicted_temporal_edges.csv", index=False)
     (OUT / "visual_pilot_metrics.json").write_text(json.dumps({
         "model": "CellposeSAM-v2 cpsam_v2",
         "sequence": SEQ,
@@ -172,6 +200,11 @@ def main() -> None:
         "predicted_track_count": int(track_nodes["track_id"].nunique()),
         "predicted_temporal_link_count": int(len(edges)),
         "stable_identity_coloring": True,
+        "full_population_mode": population_mode,
+        "population_prefix_quality_audit": {str(k): v for k,v in prefix_audit.items()},
+        "model_native_colored_ids_by_frame": [sorted(x) for x in highlighted_by_frame],
+        "uncertain_predicted_instances_remain_visible_uncolored": True,
+        "no_biological_identity_or_division_claim": True,
         "identity_continuity_audit": {str(k): v for k,v in audit.items()},
         "colored_stable_predicted_track_ids": sorted(highlighted),
         "strict_identity_mask_overlap_gate": strict,
