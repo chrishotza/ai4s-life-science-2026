@@ -1,0 +1,69 @@
+name: AI4S V11 final media fetch
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/ai4s-v11-media.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fetch_media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install downloader
+        run: python -m pip install -q kaggle requests
+      - name: Fetch verified ElevenLabs narration
+        env:
+          AUDIO_URL: 'https://storage.googleapis.com/xi-backend/database/workspace/3171e722dd8447dc9baf52c160de1964/content_generation/ZhcpmhZempRg2RAp2lRp/J4DL5APeC9jxWsnd8IU2/content.mp3?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=xi-backend-prod%40xi-labs.iam.gserviceaccount.com%2F20261010%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261010T025838Z&X-Goog-Expires=7200&X-Goog-SignedHeaders=host&X-Goog-Signature=9543a6c1c8cc2bf40257a16296341c91add4a83364d2be8f4f82ed437ed4c601ef52182d5a5249d75ad6d5b3cde880a866d9300ebe476358a02f8f73d3800a2cc31ff232d26c1ce72f1f2bd27a8988992df29619d81dc307e57327376149262cd9d6b3b32e7305ecee9e95e69199666bfb0d5bf2577558fba7fdc23d72a7347f9ba113ea47db3bb6db992fa46cf77e6957544d929df2b5667a5fb6a9c97a31a46622be16f82da90ed8ea1a82703f7d7f7cbd19675e5a4047518b4b78134217c93ead34124faee501b858ea49b8c31f7fec3226077e2f3a1211b54549dd8f21aaf8dd1520a8c4394858d4ad04343121a6e9ec96b10c08d8ca678acb1b910cee5a'
+        run: |
+          python - <<'PY'
+          import os,requests
+          r=requests.get(os.environ['AUDIO_URL'],timeout=90)
+          r.raise_for_status()
+          assert len(r.content)>100000 and r.content[:3] in (b'ID3',b'\xff\xfb',b'\xff\xf3',b'\xff\xf2'),(len(r.content),r.content[:10])
+          open('ai4s_v11_narration.mp3','wb').write(r.content)
+          print('Narration MP3 bytes:',len(r.content))
+          PY
+      - name: Download public V10 real microscopy demo from Kaggle
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          mkdir -p kaggle_source
+          set +e
+          kaggle datasets download chrishotza/ai4s-2026-temporal-cellular-phenotype-demo -p kaggle_source --unzip -o
+          rc=$?
+          echo "Kaggle CLI exit: $rc"
+          find kaggle_source -maxdepth 3 -type f -printf '%p %s bytes\n'
+          if ! find kaggle_source -type f -iname '*.mp4' | grep -q .; then
+            python - <<'PY'
+          import requests
+          u="https://www.kaggle.com/api/v1/datasets/download/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo"
+          try:
+            r=requests.get(u,timeout=90)
+            print('Public Kaggle API:',r.status_code,'bytes:',len(r.content))
+            if r.status_code==200 and r.content[:2]==b'PK':
+              open('kaggle_source/public_demo.zip','wb').write(r.content)
+          except Exception as e:
+            print('Public dataset fallback failed:',e)
+          PY
+            if test -f kaggle_source/public_demo.zip; then unzip -oq kaggle_source/public_demo.zip -d kaggle_source; fi
+          fi
+          count=$(find kaggle_source -type f -iname '*.mp4' | wc -l)
+          test "$count" -ge 1 || { echo "::error::No genuine narrated V10 microscopy source found"; exit 1; }
+      - name: Record media inventory
+        run: |
+          ffprobe -v error -show_entries format=duration,size -of json "$(find kaggle_source -type f -iname '*.mp4' | head -1)"
+          ffprobe -v error -show_entries format=duration,size -of json ai4s_v11_narration.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai4s-v11-real-source-and-voice
+          path: |
+            kaggle_source/**/*.mp4
+            kaggle_source/*.mp4
+            ai4s_v11_narration.mp3
+          retention-days: 7
