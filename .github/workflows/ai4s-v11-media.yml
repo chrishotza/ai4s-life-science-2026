@@ -57,8 +57,8 @@ jobs:
           test "$count" -ge 1 || { echo "::error::No genuine narrated V10 microscopy source found"; exit 1; }
       - name: Record media inventory
         run: |
-          ffprobe -v error -show_entries format=duration,size -of json "$(find kaggle_source -type f -iname '*.mp4' | head -1)"
-          ffprobe -v error -show_entries format=duration,size -of json ai4s_v11_narration.mp3
+          du -h kaggle_source/* ai4s_v11_narration.mp3
+          file kaggle_source/*.mp4 ai4s_v11_narration.mp3
       - uses: actions/upload-artifact@v4
         with:
           name: ai4s-v11-real-source-and-voice
