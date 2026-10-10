@@ -17,9 +17,12 @@
 - [x] **Submit organizer registration form.** Team leader confirmed this completed on October 9, 2026; this is self-reported and the form's confirmation receipt was not independently inspected.
 - [ ] Verify registered team roster **and one leader** match the report; report currently contains **Chris Hotza as the single draft member**, not verified registration.
 - [x] **Publish the V10 narrated demo publicly:** https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo; public dataset with MP4 in-browser player, verified from signed-out Kaggle session on October 9, 2026. **Upstream dataset and model-weight usage rights still require review** before final competition submission.
-- [ ] Paste and submit the Kaggle Writeup with **the public video URL**, public code URL, category declaration and technical-report content or valid public PDF.
-- [ ] Reopen the Writeup and video links in a logged-out/private browsing session to verify external judges can access them.
-- [ ] Check that Kaggle reports the submission as actually submitted (not a saved draft).
+- [x] **Team leader reports that the Kaggle Writeup was submitted** (recorded in the judge guide; this is a human attestation, **not** an independently authenticated platform receipt). Reported entry: https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/writeups/new-writeup-1791588412439.
+- [ ] **Critical authenticated check before the platform deadline:** log in to the registered Kaggle account, open that exact Writeup, confirm it shows **Submitted** (not merely a draft), its competition/team/category are correct, and that the video, repository and technical PDF appear in the **actual Kaggle content**.
+- [ ] **Synchronize the submitted Kaggle page with the latest GitHub Writeup source:** https://github.com/chrishotza/ai4s-life-science-2026/blob/main/docs/KAGGLE_WRITEUP.md. GitHub commits do **not** edit a Kaggle Writeup automatically. The current source includes the real ALFI expert-track mitosis-stage comparison, 193-cell silver-centroid discrepancy audit and absolute public evidence links. If editing the submitted Kaggle page is permitted before cutoff, update and resubmit/save it, then confirm status again.
+- [ ] **Verify third-party media and pretrained-model/dataset redistribution rights** for the published video and supporting files before submission cutoff.
+- [ ] Check external access to the published video in a fresh signed-out browser. Our independent machine-fetch retrieved the Kaggle dataset title but its frontend crashed while loading a CSS asset, so current in-browser playback is **not independently reconfirmed**.
+- [ ] If the Kaggle Writeup URL returns a signed-out 404, do **not** infer that the project was never submitted: private/draft/access restrictions can cause ambiguous errors. Verify in the competition account and record the confirmed submission page/status.
 
 ## Claims to protect in the final paste
 
