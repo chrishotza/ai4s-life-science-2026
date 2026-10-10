@@ -115,7 +115,8 @@ def matched_image_identity_audit(
         pd.Series(matched_pred["track_id"].to_numpy(dtype=int),
                   index=matched_pred["node_id"].to_numpy(dtype=int)),
     ).to_numpy(dtype=np.int64)
-    count_pairs = lambda x: int(np.sum(x * (x - 1) // 2))
+    def count_pairs(values: np.ndarray) -> int:
+        return int(np.sum(values * (values - 1) // 2))
     tp = count_pairs(contingency.ravel())
     predicted_pairs = count_pairs(contingency.sum(axis=0))
     truth_pairs = count_pairs(contingency.sum(axis=1))
