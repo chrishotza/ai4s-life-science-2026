@@ -18,7 +18,7 @@ A cell can travel a long distance without migrating far from its starting point.
 
 We did not train a new foundation segmentation model. Instead, we integrated pretrained CellposeSAM-v2 predictions with physically calibrated, deterministic cell tracking, trajectory-feature extraction, candidate lineage analysis, descriptive grouping, and confidence gates that prevent unsupported interpretation. The result is an inspectable workflow from images to research hypotheses rather than another isolated segmentation score.
 
-In an internal image-derived evaluation across 168 raw DIC-C2DH-HeLa frames, the system achieved segmentation F1 **0.9354**, detection F1 **0.9684**, and temporal-link F1 **0.9808**. Reference annotations were used for scoring, not supplied as detections. The outputs included 126 trajectory profiles; 51 were eligible for descriptive computational reporting, 21 were low-confidence descriptive, and 54 remained audit-only.
+In an internal image-derived evaluation across 168 raw DIC-C2DH-HeLa frames, the system achieved segmentation F1 **0.9354**, detection F1 **0.9684**, and **mapped-endpoint** temporal-link F1 **0.9808**. Reference annotations were used for scoring, not supplied as detections. The historical edge metric omits model links whose endpoints cannot be matched and does not measure complete identity continuity. The outputs included 126 trajectory profiles; 51 were eligible for descriptive computational reporting, 21 were low-confidence descriptive, and 54 remained audit-only.
 
 Separately, on expert-annotated ALFI mitosis tracks, adding past motion features improved held-out macro F1 from **0.5138** to **0.5676**. This exploratory oracle-track result does **not** establish automatic image-to-mitosis prediction.
 
