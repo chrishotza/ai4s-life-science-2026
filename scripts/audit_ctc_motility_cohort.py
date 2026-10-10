@@ -93,6 +93,19 @@ def _cohort(features: pd.DataFrame, minimum: int, reliability: float) -> dict:
         "median_net_displacement_um": _rounded_median(eligible["displacement"]),
         "persistence_threshold_sensitivity": {},
     }
+    result["sequence_stratified_sensitivity"] = {}
+    for seq in sorted(features["sequence"].unique()):
+        subset = eligible.loc[eligible["sequence"] == seq]
+        result["sequence_stratified_sensitivity"][str(seq)] = {
+            "n_trajectories": int(len(subset)),
+            "persistence_lt_0_20": {
+                "count": int((subset["directional_persistence"] < 0.20).sum()),
+                "fraction": (
+                    round(float((subset["directional_persistence"] < 0.20).mean()), 6)
+                    if len(subset) else None
+                ),
+            },
+        }
     for threshold in PERSISTENCE_CUTS:
         n = int((eligible["directional_persistence"] < threshold).sum())
         result["persistence_threshold_sensitivity"][f"lt_{threshold:.2f}"] = {
@@ -167,7 +180,7 @@ def generate_report(features: pd.DataFrame, stability: dict, *,
             "Analysis of existing model-predicted tracks, not new independent "
             "biological experiments. Cutpoints 0.10/0.20 for persistence are "
             "exploratory computational descriptors, not biological states. "
-            "The two sequences are not independent biological replicates. "
+            "Sequence differences are descriptive and do not establish generalization. The two sequences are not independent biological replicates. Segmentation centroid jitter or track fragmentation may inflate traveled path. "
             "No causal, drug-response, or cross-domain generalization claim."
         ),
     }
