@@ -46,6 +46,22 @@
           "count": 33,
           "fraction": 0.647059
         }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 24,
+          "persistence_lt_0_20": {
+            "count": 12,
+            "fraction": 0.5
+          }
+        },
+        "02": {
+          "n_trajectories": 27,
+          "persistence_lt_0_20": {
+            "count": 21,
+            "fraction": 0.777778
+          }
+        }
       }
     },
     "at_least_10_observations": {
@@ -67,6 +83,22 @@
         "lt_0.20": {
           "count": 31,
           "fraction": 0.885714
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 12,
+          "persistence_lt_0_20": {
+            "count": 10,
+            "fraction": 0.833333
+          }
+        },
+        "02": {
+          "n_trajectories": 23,
+          "persistence_lt_0_20": {
+            "count": 21,
+            "fraction": 0.913043
+          }
         }
       }
     },
@@ -90,6 +122,22 @@
           "count": 22,
           "fraction": 0.916667
         }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 9,
+          "persistence_lt_0_20": {
+            "count": 7,
+            "fraction": 0.777778
+          }
+        },
+        "02": {
+          "n_trajectories": 15,
+          "persistence_lt_0_20": {
+            "count": 15,
+            "fraction": 1
+          }
+        }
       }
     },
     "reliability_at_least_0_65": {
@@ -112,6 +160,22 @@
           "count": 10,
           "fraction": 0.526316
         }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 10,
+          "persistence_lt_0_20": {
+            "count": 4,
+            "fraction": 0.4
+          }
+        },
+        "02": {
+          "n_trajectories": 9,
+          "persistence_lt_0_20": {
+            "count": 6,
+            "fraction": 0.666667
+          }
+        }
       }
     },
     "at_least_10_and_reliability_0_65": {
@@ -133,6 +197,22 @@
         "lt_0.20": {
           "count": 10,
           "fraction": 0.833333
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 4,
+          "persistence_lt_0_20": {
+            "count": 4,
+            "fraction": 1
+          }
+        },
+        "02": {
+          "n_trajectories": 8,
+          "persistence_lt_0_20": {
+            "count": 6,
+            "fraction": 0.75
+          }
         }
       }
     }
@@ -161,5 +241,5 @@
       "selection_policy": "illustrative post-hoc comparison; no inferential test"
     }
   ],
-  "interpretation_boundary": "Analysis of existing model-predicted tracks, not new independent biological experiments. Cutpoints 0.10/0.20 for persistence are exploratory computational descriptors, not biological states. The two sequences are not independent biological replicates. No causal, drug-response, or cross-domain generalization claim."
+  "interpretation_boundary": "Analysis of existing model-predicted tracks, not new independent biological experiments. Cutpoints 0.10/0.20 for persistence are exploratory computational descriptors, not biological states. Sequence differences are descriptive and do not establish generalization. The two sequences are not independent biological replicates. Segmentation centroid jitter or track fragmentation may inflate traveled path. No causal, drug-response, or cross-domain generalization claim."
 }
