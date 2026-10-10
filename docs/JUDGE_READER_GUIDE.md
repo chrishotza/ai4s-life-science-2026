@@ -58,7 +58,7 @@ The current confidence policy blocks or downgrades weak cases instead of present
 
 The team leader confirmed the [Kaggle Writeup was submitted](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/writeups/new-writeup-1791588412439). The [public narrated demo](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo) and [technical-report PDF](https://github.com/chrishotza/ai4s-life-science-2026/releases/tag/ai4s-2026-technical-report) are linked. The Kaggle submission is controlled independently from GitHub edits: a changed repository Writeup source **does not automatically update** an already submitted Kaggle article.
 
-The remaining limitations are scientific: two microscopy sequences are not independent experimental batches, cross-domain ALFI transfer is weak, and independent biological phenotype and organ-on-chip validation have not been demonstrated.
+The remaining limitations are scientific: two microscopy sequences are not independent experimental batches, cross-domain ALFI transfer is weak, biological phenotypes have not been independently validated, and **organ-on-a-chip transfer remains untested**.
 
 ## One-sentence reviewer takeaway
 
