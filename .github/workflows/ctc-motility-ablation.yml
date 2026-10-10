@@ -1,0 +1,51 @@
+name: Real CTC Motility-Only Ablation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ctc-motility-ablation.yml'
+      - 'src/ai4s_phenotype/discovery.py'
+      - 'scripts/benchmark_ctc_motility_feature_ablation.py'
+      - 'docs/evidence/ctc/derived_phenotype_features.csv'
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install project
+        run: python -m pip install -e .
+      - name: Paired real 168-frame experiment
+        run: |
+          python scripts/benchmark_ctc_motility_feature_ablation.py \
+            --output /tmp/ctc_motility_ablation.json
+          python - <<'PY'
+          import json
+          p = json.load(open('/tmp/ctc_motility_ablation.json'))
+          assert p['cohorts']['min_3_observations']['profiles'] == 72
+          assert p['cohorts']['descriptive_ok_reliability_ge_0_5']['profiles'] == 51
+          for c in p['cohorts'].values():
+              for r in c['results'].values():
+                  assert r['n_bootstraps'] == 80
+                  assert -1 <= r['bootstrap_ari_p05'] <= r['bootstrap_ari_median'] <= 1
+          print('Scientific model-family ablation verified on frozen real data')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ctc-real-motility-feature-ablation
+          path: /tmp/ctc_motility_ablation.json
+          retention-days: 90
