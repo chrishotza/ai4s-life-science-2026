@@ -213,6 +213,23 @@ def evaluate_sequence(
     }
     mapped_edge_df = pd.DataFrame(sorted(mapped_edge_pairs), columns=["source_id", "target_id"])
     edge = link_metrics(mapped_edge_df, gt_edge_df)
+    # Historical edge-F1 only counts model links whose *both* endpoints matched
+    # a CTC tracking marker. A second conservative diagnostic counts each
+    # unmatched-endpoint predicted link as false positive, preventing silent
+    # omission of failed model detections from the precision denominator.
+    excluded_predicted_links = sum(
+        int(row.source_id) not in node_mapping or int(row.target_id) not in node_mapping
+        for row in edges.itertuples(index=False)
+    )
+    strict_tp = int(edge["true_positive"])
+    strict_fp = int(edge["false_positive"]) + excluded_predicted_links
+    strict_fn = int(edge["false_negative"])
+    strict_prec = strict_tp / (strict_tp + strict_fp) if strict_tp + strict_fp else 0.0
+    strict_rec = strict_tp / (strict_tp + strict_fn) if strict_tp + strict_fn else 0.0
+    strict_f1 = (
+        2 * strict_prec * strict_rec / (strict_prec + strict_rec)
+        if strict_prec + strict_rec else 0.0
+    )
     matched_identity = matched_image_identity_audit(tracked, truth_nodes, edges, node_mapping)
     frame_df = pd.DataFrame(per_frame)
     profile_path = ROOT / f"ctc_cellpose_phenotypes_seq{sequence}.csv"
@@ -279,6 +296,18 @@ def evaluate_sequence(
             "edge_precision": float(edge["precision"]),
             "edge_recall": float(edge["recall"]),
             "edge_f1": float(edge["f1"]),
+            "historical_matching_scope": (
+                "Mapped-endpoint predicted links only; links with either unmatched"
+                " predicted endpoint were dropped before edge scoring."
+            ),
+            "predicted_links_with_unmatched_endpoint": excluded_predicted_links,
+            "strict_edge_precision_all_predicted_links": float(strict_prec),
+            "strict_edge_recall_all_predicted_links": float(strict_rec),
+            "strict_edge_f1_all_predicted_links": float(strict_f1),
+            "strict_edge_method": (
+                "Count predicted links with unmatched endpoints as false positives;"
+                " retain all reference consecutive edges as recall denominator."
+            ),
             "true_positive_links": float(edge["true_positive"]),
             "false_positive_links": float(edge["false_positive"]),
             "false_negative_links": float(edge["false_negative"]),
