@@ -20,8 +20,6 @@ This publicly auditable research prototype treats tracking as infrastructure for
 
 **Release status:** [v0.1.0](https://github.com/chrishotza/ai4s-life-science-2026/releases/tag/v0.1.0) is a fixed archival software snapshot. The active `main` branch includes additional experiments and visualization work after that release; do **not** assume the tag represents the newest video or the submitted Kaggle Writeup.
 
-**Reviewer shortcut:** start with the [Judge Reader Guide](docs/JUDGE_READER_GUIDE.md) for the biological question, protocol map, CellposeSAM-v2 boundary, phenotype-claim policy, and remaining submission blockers.
-
 ## What it does
 
 Microscopy frames → **instance masks** → centroids and bounding boxes → **temporal tracks** → lineage candidates → **causal motion and morphology** → unsupervised phenotype groups or supervised cell-state scores.
