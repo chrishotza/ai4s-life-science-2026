@@ -135,7 +135,7 @@
           "n_trajectories": 15,
           "persistence_lt_0_20": {
             "count": 15,
-            "fraction": 1
+            "fraction": 1.0
           }
         }
       }
@@ -204,7 +204,7 @@
           "n_trajectories": 4,
           "persistence_lt_0_20": {
             "count": 4,
-            "fraction": 1
+            "fraction": 1.0
           }
         },
         "02": {
