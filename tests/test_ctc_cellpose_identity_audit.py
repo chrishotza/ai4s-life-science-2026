@@ -67,7 +67,7 @@ def test_duplicate_reference_match_fails_closed():
 
 def test_cross_frame_match_fails_closed():
     predicted, reference, edges, mapping = _inputs()
-    mapping[13] = 91
+    mapping[13] = 94
     with pytest.raises(ValueError, match="different times"):
         matched_image_identity_audit(predicted, reference, edges, mapping)
 
