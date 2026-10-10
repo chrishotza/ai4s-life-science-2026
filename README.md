@@ -1,5 +1,7 @@
 # Temporal Cellular Phenotype Engine
 
+[![CI](https://github.com/chrishotza/ai4s-life-science-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/chrishotza/ai4s-life-science-2026/actions/workflows/ci.yml) · [MIT license](LICENSE) · [Independent review](docs/INDEPENDENT_REVIEW_PACKET.md)
+
 **AI4S Open Innovation: AI for Life Science (2026)** · **End-to-End System** · **Single-cell Phenotype Analysis**
 
 **From time-lapse microscopy to cell trajectories, interpretable temporal features and testable cell-state hypotheses.**
@@ -61,7 +63,7 @@ pip install -e .
 python demo.py
 ```
 
-For the test suite: `pip install -r requirements-dev.txt && pytest -q`. The CI verifies packaging, contracts, tests and real benchmark scripts. The synthetic demo is a **functionality smoke test**; it is **not** the 168-frame CTC result.
+For the test suite: `pip install -r requirements-dev.txt && pytest -q`. The CI verifies packaging, contracts, tests and real benchmark scripts. [Workflow map by scientific question](docs/WORKFLOW_MAP.md) explains which jobs actually rerun pretrained models, which are reference-geometry controls, and which create video artifacts. The synthetic demo is a **functionality smoke test**; it is **not** the 168-frame CTC result.
 
 Run on your TIFF stack or directory of per-frame TIFFs:
 
