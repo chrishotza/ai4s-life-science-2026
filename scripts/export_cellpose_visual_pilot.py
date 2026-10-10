@@ -108,7 +108,6 @@ def render(i: int, raw: np.ndarray, mask: np.ndarray,
     board.paste(fit_square(overlay), (705, 160))
     d.text((108, 620), "RAW MICROSCOPY", font=P, fill=WHITE)
     d.text((705, 620), "CELLPOSESAM-v2 + TRACKS", font=P, fill=CYAN)
-    lineage_n = sum(bool(c.lineage_candidate) for c in colors.values())
     d.text((108, 666), "Colors = predicted track IDs, not fluorescence. Division hues = unvalidated candidates.", font=SM, fill=MUTED)
     board.save(OUT / f"pilot_{i:03d}.png")
 
