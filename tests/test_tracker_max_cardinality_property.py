@@ -23,6 +23,7 @@ def _oracle(valid: np.ndarray, cost: np.ndarray) -> tuple[int, float]:
                        total + float(cost[row, column]), count + 1)
 
     search(0, set(), 0.0, 0)
+    return best_count, best_cost
 
 
 def test_gated_assignment_maximizes_cardinality_then_minimizes_cost():
