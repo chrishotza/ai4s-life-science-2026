@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 from scipy import ndimage
-from sklearn.ensemble import RandomForestClassifier
+if TYPE_CHECKING:
+    from sklearn.ensemble import RandomForestClassifier
 
 
 def _normalize(image: np.ndarray) -> np.ndarray:
@@ -172,6 +174,10 @@ class Supervised2DSegmenter:
         classes = np.unique(y)
         if len(classes) < 2 or not np.any(y > 0):
             raise ValueError("Training masks must contain both background and cell pixels")
+
+        # Only the supervised training path needs scikit-learn; image/identity
+        # utilities should import without loading the training backend.
+        from sklearn.ensemble import RandomForestClassifier
 
         self.model = RandomForestClassifier(
             n_estimators=self.n_estimators,
