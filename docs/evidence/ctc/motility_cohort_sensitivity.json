@@ -1,0 +1,245 @@
+{
+  "status": "DESCRIPTIVE_CTC_MOTILITY_SENSITIVITY_NOT_BIOLOGICAL_VALIDATION",
+  "source": {
+    "dataset": "CTC DIC-C2DH-HeLa, sequences 01 and 02",
+    "raw_image_frames": 168,
+    "pretrained_backend": "CellposeSAM-v2",
+    "source_workflow_run": "37930909373",
+    "committed_feature_csv_sha256": "db29350638077a0a19a30e33e5b0c1aeaf9df4857326008a77ba1f5267e3279c",
+    "total_image_derived_profiles": 126
+  },
+  "production_confidence_gate_counts": {
+    "total_profiles": 126,
+    "audit_only": 54,
+    "descriptive_low_confidence": 21,
+    "descriptive_ok": 51,
+    "blocked_biological_claim": 75,
+    "descriptive_computational_group_only": 51,
+    "by_interpretation_permission": {
+      "audit_only": 54,
+      "descriptive_low_confidence": 21,
+      "descriptive_ok": 51
+    },
+    "by_claim_gate": {
+      "blocked_biological_claim": 75,
+      "descriptive_computational_group_only": 51
+    }
+  },
+  "sensitivity_cohorts": {
+    "standard": {
+      "minimum_observations": 3,
+      "minimum_reliability": 0.5,
+      "n_trajectories": 51,
+      "n_by_sequence": {
+        "01": 24,
+        "02": 27
+      },
+      "median_directional_persistence": 0.182946,
+      "median_mean_speed_um_per_frame": 1.795952,
+      "median_net_displacement_um": 5.173755,
+      "persistence_threshold_sensitivity": {
+        "lt_0.10": {
+          "count": 11,
+          "fraction": 0.215686
+        },
+        "lt_0.20": {
+          "count": 33,
+          "fraction": 0.647059
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 24,
+          "persistence_lt_0_20": {
+            "count": 12,
+            "fraction": 0.5
+          }
+        },
+        "02": {
+          "n_trajectories": 27,
+          "persistence_lt_0_20": {
+            "count": 21,
+            "fraction": 0.777778
+          }
+        }
+      }
+    },
+    "at_least_10_observations": {
+      "minimum_observations": 10,
+      "minimum_reliability": 0.5,
+      "n_trajectories": 35,
+      "n_by_sequence": {
+        "01": 12,
+        "02": 23
+      },
+      "median_directional_persistence": 0.127692,
+      "median_mean_speed_um_per_frame": 1.618513,
+      "median_net_displacement_um": 7.317887,
+      "persistence_threshold_sensitivity": {
+        "lt_0.10": {
+          "count": 11,
+          "fraction": 0.314286
+        },
+        "lt_0.20": {
+          "count": 31,
+          "fraction": 0.885714
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 12,
+          "persistence_lt_0_20": {
+            "count": 10,
+            "fraction": 0.833333
+          }
+        },
+        "02": {
+          "n_trajectories": 23,
+          "persistence_lt_0_20": {
+            "count": 21,
+            "fraction": 0.913043
+          }
+        }
+      }
+    },
+    "at_least_20_observations": {
+      "minimum_observations": 20,
+      "minimum_reliability": 0.5,
+      "n_trajectories": 24,
+      "n_by_sequence": {
+        "01": 9,
+        "02": 15
+      },
+      "median_directional_persistence": 0.126129,
+      "median_mean_speed_um_per_frame": 1.653296,
+      "median_net_displacement_um": 9.692388,
+      "persistence_threshold_sensitivity": {
+        "lt_0.10": {
+          "count": 10,
+          "fraction": 0.416667
+        },
+        "lt_0.20": {
+          "count": 22,
+          "fraction": 0.916667
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 9,
+          "persistence_lt_0_20": {
+            "count": 7,
+            "fraction": 0.777778
+          }
+        },
+        "02": {
+          "n_trajectories": 15,
+          "persistence_lt_0_20": {
+            "count": 15,
+            "fraction": 1.0
+          }
+        }
+      }
+    },
+    "reliability_at_least_0_65": {
+      "minimum_observations": 3,
+      "minimum_reliability": 0.65,
+      "n_trajectories": 19,
+      "n_by_sequence": {
+        "01": 10,
+        "02": 9
+      },
+      "median_directional_persistence": 0.192107,
+      "median_mean_speed_um_per_frame": 1.566001,
+      "median_net_displacement_um": 5.173755,
+      "persistence_threshold_sensitivity": {
+        "lt_0.10": {
+          "count": 3,
+          "fraction": 0.157895
+        },
+        "lt_0.20": {
+          "count": 10,
+          "fraction": 0.526316
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 10,
+          "persistence_lt_0_20": {
+            "count": 4,
+            "fraction": 0.4
+          }
+        },
+        "02": {
+          "n_trajectories": 9,
+          "persistence_lt_0_20": {
+            "count": 6,
+            "fraction": 0.666667
+          }
+        }
+      }
+    },
+    "at_least_10_and_reliability_0_65": {
+      "minimum_observations": 10,
+      "minimum_reliability": 0.65,
+      "n_trajectories": 12,
+      "n_by_sequence": {
+        "01": 4,
+        "02": 8
+      },
+      "median_directional_persistence": 0.131653,
+      "median_mean_speed_um_per_frame": 1.468154,
+      "median_net_displacement_um": 9.477542,
+      "persistence_threshold_sensitivity": {
+        "lt_0.10": {
+          "count": 3,
+          "fraction": 0.25
+        },
+        "lt_0.20": {
+          "count": 10,
+          "fraction": 0.833333
+        }
+      },
+      "sequence_stratified_sensitivity": {
+        "01": {
+          "n_trajectories": 4,
+          "persistence_lt_0_20": {
+            "count": 4,
+            "fraction": 1.0
+          }
+        },
+        "02": {
+          "n_trajectories": 8,
+          "persistence_lt_0_20": {
+            "count": 6,
+            "fraction": 0.75
+          }
+        }
+      }
+    }
+  },
+  "measured_illustrative_examples": [
+    {
+      "sequence": "02",
+      "track_id": 21,
+      "observations": 66,
+      "path_length_um": 142.095316,
+      "net_displacement_um": 4.289433,
+      "mean_speed_um_per_frame": 2.186082,
+      "directional_persistence": 0.030187,
+      "reliability": 0.607252,
+      "selection_policy": "illustrative post-hoc comparison; no inferential test"
+    },
+    {
+      "sequence": "02",
+      "track_id": 19,
+      "observations": 57,
+      "path_length_um": 84.790698,
+      "net_displacement_um": 16.825129,
+      "mean_speed_um_per_frame": 1.51412,
+      "directional_persistence": 0.198431,
+      "reliability": 0.625242,
+      "selection_policy": "illustrative post-hoc comparison; no inferential test"
+    }
+  ],
+  "interpretation_boundary": "Analysis of existing model-predicted tracks, not new independent biological experiments. Cutpoints 0.10/0.20 for persistence are exploratory computational descriptors, not biological states. Sequence differences are descriptive and do not establish generalization. The two sequences are not independent biological replicates. Segmentation centroid jitter or track fragmentation may inflate traveled path. No causal, drug-response, or cross-domain generalization claim."
+}

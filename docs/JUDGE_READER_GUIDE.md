@@ -18,6 +18,8 @@ Imagine comparing cell migration in microscopy time series. A researcher needs t
 
 **Concrete observed example:** [Why total cell motion differs from net migration](CTC_REAL_MOTILITY_CASE_STUDY.md). An image-derived predicted track traveled 142.10 µm but moved only 4.29 µm net; the [figure](figures/ctc_real_motility_example.svg) compares two real tracks. This is an exploratory computational example and **not** a biological phenotype or treatment result.
 
+**Beyond the two selected cells:** [audited full-cohort motility sensitivity](CTC_COHORT_MOTILITY_AUDIT.md) analyzes all **126 image-derived tracks** using the production confidence gate (51 accepted as descriptive). Low directional persistence under one *exploratory* cutoff occurs in **33/51**, but its rate shifts with observation and reliability requirements, and differs between sequences. The [machine-readable frozen result](evidence/ctc/motility_cohort_sensitivity.json) is checked in CI. Detector centroid jitter and track fragmentation remain possible confounds; this is not a validated biological state frequency.
+
 ## What to read first
 
 1. `README.md` for the public-facing summary and quick reproduction path.
@@ -52,14 +54,11 @@ The current confidence policy blocks or downgrades weak cases instead of present
 - low-confidence groups are descriptive only;
 - biological state, treatment-response, clinical, and organ-on-a-chip claims require evidence not yet present in the repository.
 
-## Final submission risks
+## Submission and scientific boundaries
 
-The remaining risks are presentation and official submission completeness, not core repository architecture:
+The team leader confirmed the [Kaggle Writeup was submitted](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/writeups/new-writeup-1791588412439). The [public narrated demo](https://www.kaggle.com/datasets/chrishotza/ai4s-2026-temporal-cellular-phenotype-demo) and [technical-report PDF](https://github.com/chrishotza/ai4s-life-science-2026/releases/tag/ai4s-2026-technical-report) are linked. The Kaggle submission is controlled independently from GitHub edits: a changed repository Writeup source **does not automatically update** an already submitted Kaggle article.
 
-- final demo video must be public, under 5 minutes, and viewable without login, approval, or payment;
-- Kaggle Writeup and technical report links must be pasted into the official submission flow;
-- team roster and registration must match the report;
-- organ-on-a-chip transfer remains untested and must stay explicit.
+The remaining limitations are scientific: two microscopy sequences are not independent experimental batches, cross-domain ALFI transfer is weak, biological phenotypes have not been independently validated, and **organ-on-a-chip transfer remains untested**.
 
 ## One-sentence reviewer takeaway
 

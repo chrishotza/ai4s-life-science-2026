@@ -43,46 +43,13 @@ Persistence here is **net displacement / traveled path**, a simple measure of ho
 
 **Our innovation:** pretrained CellposeSAM-v2 supplies image segmentation; we contribute physically calibrated tracking, temporal descriptors, data-quality gates and reproducible evidence reporting. For future state predictions, *past-only* means no later frames are used to predict earlier ones; this is protection from temporal leakage, not proof of biological causation.
 
-### Problem
+### Cohort-wide sensitivity — all 126 image-derived tracks
 
-Time-lapse microscopy captures rich cellular behavior, but conventional pipelines often stop at segmentation or tracking. A track ID tells us where a cell went; it does not directly describe how the cell behaved.
+The [reproducible full-cohort audit](CTC_COHORT_MOTILITY_AUDIT.md) checks the **entire 126-profile exported population**, not only two illustrative cells. The production confidence gate permits descriptive reporting for **51** trajectories. At an exploratory persistence cutoff below **0.20**, **33/51** meet the criterion; the share changes to **31/35** with at least ten observations and **10/19** with reliability at least 0.65. Sequence 01 contributes **12/24**, and sequence 02 **21/27**, under the original gate. These are sensitivity diagnostics, **not the prevalence of a biological state**; localization jitter and track fragmentation may inflate traveled path.
 
-The goal of this project is to turn temporal microscopy into an interpretable **single-cell phenotype representation**.
+### What is evaluated, and what we contributed
 
-### Approach
-
-The system is organized as an end-to-end pipeline:
-
-1. microscopy frame preprocessing;
-2. cell detection;
-3. temporal association;
-4. 3-D trajectory reconstruction;
-5. lineage and division-event inference;
-6. temporal phenotype extraction;
-7. unsupervised phenotype discovery.
-
-The submission implementation is deliberately deterministic and reproducible.
-
-### What is novel about the submission
-
-The main contribution is not another isolated tracker. Tracking is treated as infrastructure for a downstream phenotype layer.
-
-For each trajectory, the engine derives:
-
-- duration;
-- displacement;
-- path geometry;
-- mean speed;
-- directional persistence;
-- parent/child relationships;
-- division events;
-- descendant structure.
-
-These features form a compact temporal phenotype profile that can be clustered into interpretable behavioral groups.
-
-### End-to-end implementation boundary
-
-The public engine provides a canonical image-to-phenotype path through baseline detection, while the real CTC experiment intentionally bypasses segmentation by using reference centroids. This separation makes the quantitative association result interpretable instead of presenting a centroid benchmark as an image-segmentation score.
+The principal image-derived result starts from **raw microscopy** and uses pretrained CellposeSAM-v2 masks followed by **our physically calibrated temporal tracking, trajectory feature extraction, and confidence-gated reporting**. Reference annotations are used only for scoring. A distinct association-control experiment **does** supply reference centroids; its higher F1 must never be presented as raw-image performance. The public pipeline also retains weaker, transparent segmentation baselines as reproducibility diagnostics, not as its strongest validation path.
 
 ### Image-level validation track
 

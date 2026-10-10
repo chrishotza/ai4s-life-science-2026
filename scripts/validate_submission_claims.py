@@ -20,11 +20,23 @@ CRITICAL_VALUES = (
     "0.89180",
 )
 
+# The detailed protocol references must preserve ALL auxiliary controls.
+# Requiring each control score in the short judge-facing abstract creates
+# misleading redundancy, so the short summary gets a separate stronger
+# main-image-derived evidence contract below.
 CRITICAL_VALUE_FILES = (
     ROOT / "docs" / "RESULTS.md",
     ROOT / "docs" / "KAGGLE_WRITEUP.md",
     ROOT / "docs" / "TECHNICAL_REPORT.md",
-    ROOT / "docs" / "KAGGLE_SUMMARY.md",
+)
+
+SUMMARY_HEADLINE_VALUES = (
+    "0.9354",
+    "0.9684",
+    "0.9808",
+    "168 raw frames",
+    "126 image-derived trajectories",
+    "33 of those 51",
 )
 
 REQUIRED_CAVEATS = (
@@ -33,7 +45,7 @@ REQUIRED_CAVEATS = (
     "not official cell tracking challenge leaderboard scores",
 )
 
-CAVEAT_FILES = CRITICAL_VALUE_FILES
+CAVEAT_FILES = CRITICAL_VALUE_FILES + (ROOT / "docs" / "KAGGLE_SUMMARY.md",)
 
 FORMAL_REQUIREMENTS = (
     (
@@ -215,6 +227,11 @@ def main() -> None:
         for value in CRITICAL_VALUES:
             if value not in text:
                 missing.append(f"{path.relative_to(ROOT)} missing {value}")
+
+    summary_text = (ROOT / "docs" / "KAGGLE_SUMMARY.md").read_text(encoding="utf-8")
+    for value in SUMMARY_HEADLINE_VALUES:
+        if value.lower() not in summary_text.lower():
+            missing.append(f"docs/KAGGLE_SUMMARY.md missing main-image evidence: {value}")
 
     for path in CAVEAT_FILES:
         lowered = path.read_text(encoding="utf-8").lower()
