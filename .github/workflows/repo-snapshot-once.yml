@@ -1,0 +1,24 @@
+name: One-time Auditable Source Snapshot
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repo-snapshot-once.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package committed source only (no secrets, no .git)
+        run: |
+          git archive --format zip --output /tmp/ai4s-main-source.zip HEAD
+          unzip -t /tmp/ai4s-main-source.zip | tail -1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai4s-source-snapshot-audit-once
+          path: /tmp/ai4s-main-source.zip
+          retention-days: 3
