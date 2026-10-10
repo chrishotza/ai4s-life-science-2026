@@ -1,0 +1,29 @@
+# Two independent AI review reports — reconciled triage (2026-10-10)
+
+**Source:** Two external AI reviewer reports supplied to the project team on 2026-10-10. Reviewer A conducted a limited browser/code reading without executing tests or accessing the new independent review packet; Reviewer B cloned commit `d7c281f1d89e1e6ca143033b6e3b28fb8358ba7e`, executed synthetic tracking tests, but could not install scikit-learn or reproduce 168-frame CTC/ALFI inference. Neither report independently replicated the main real-image metrics. **Verdict across both: REVISE, not reject.**
+
+## Highest-priority substantiated issues
+
+1. **Track edge quality is not whole-trajectory identity.** We must evaluate real image-derived `track_id` switches, mergers, fragmentation and matched-observation coverage; the native visual-color filter is *only a rendering gate*. The historical 168-frame F1 `0.9808` is an **internal matched-endpoint edge** score, not whole-track identity F1 or official CTC TRA. Source inspection found the old scorer also dropped predicted links with unmatched endpoints from its precision denominator. Fix committed in [benchmark_ctc_cellpose.py](../scripts/benchmark_ctc_cellpose.py): new matched-only identity diagnostics **and** strict full-predicted-link metrics. Both MUST be measured by a fresh completed Cellpose inference before being public results. Do not invent their values.
+2. **Protocol selection and external segmentation dependency.** The 8.0 µm reference-centroid gate was tuned within the tested HeLa sequences, and 8.0 is the prior grid maximum. `0.99228` is exploratory/in-sample with oracle reference centroids; `0.9354/0.9684/0.9808` is the separate pre-trained Cellpose image-derived benchmark. We corrected the [RESULTS](RESULTS.md) landing section and conditional matched-track phenotype summary. Pre-trained CellposeSAM-v2 is an external backend, not a model invented by this project.
+3. **ALFI biological evidence remains conditional.** ALFI +0.0538 macro F1 (0.5138→0.5676) uses **expert-provided boxes and track IDs** on four held-out sequences after prior corpus exploration. The limited clustered bootstrap is not prospective biological confirmation. Raw-image transfer F1 is only about 0.2282. Do not upgrade oracle-box evidence into raw-image cell-state accuracy.
+4. **Publication rights are a real release gate, not an automatic legal violation.** The official [CTC terms](https://celltrackingchallenge.net/datasets/) require explicit permission for public non-CTC scientific use, and restrict cloning images/parts; the [AI4S video rules](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview/challenge-organization) require proper third-party rights. [Upstream Cellpose](https://github.com/MouseLand/cellpose) reports that its model training data are CC-BY-NC; the exact scope of model-weight/output rights needs separate review. No authorization or infringement finding is asserted here.
+
+## What the external auditors overstated or did not establish
+
+- Reviewer A rated `0.99228` in the current README as an unqualified top result. The actual current README already headlines **the raw-image `0.9354/0.9684/0.9808` experiment** and explicitly labels the `0.99228` reference-centroid control. However, the previous `RESULTS.md` ordering and in-sample gate selection were still confusing and are now clarified.
+- Reviewer B classified `ModuleNotFoundError: sklearn` as an application-blocking P0. The package metadata already requires `scikit-learn>=1.4`; the reviewer could not install it due to an environment/PyPI proxy error, so this does not establish a broken normally installed package. Nevertheless, we **fixed eager import coupling** by lazy-loading sklearn during supervised fitting and added [a subprocess import regression](../tests/test_optional_sklearn_import.py).
+- Reviewer B's synthetic crossing counterexample is evidence that MNN can produce ID switches/fragmentation, not a measured identity-switch count on all 168 CTC frames. Both reviewers lacked independent biological-identity verification and do not give a true final public V17 artifact check.
+- Reviewer A's suggested Cellpose pretraining overlap and ALFI label-density artifact are **testable hypotheses, not confirmed leaks**; require upstream provenance and controlled experiments.
+
+## Repair status and required next gate
+
+- [x] Remove sklearn eager import from light imaging / identity path; add isolated regression.
+- [x] Clarify post-selection oracle gate, matched-track phenotype-coverage bias and image-derived score in `RESULTS.md`.
+- [x] Add **matched-detection-only** identity error diagnostics with missing-detection coverage and a separate strict all-predicted-edge F1 alongside historical metrics, plus synthetic regression tests.
+- [ ] Wait for the *new* full 168-frame image-derived run to finish; audit metrics, manifest and source commit; only then link new numeric evidence in README/writeup.
+- [ ] Verify official CTC third-party microscopy permission and Cellpose pretrained-weight licensing before publishing a replacement public video.
+- [ ] Authenticate Kaggle Writeup submission status and ensure the actual public Kaggle submission links match the promoted media, source and technical report.
+- [ ] Only if time allows: cross-sequence gate selection beyond 8.0 µm; ALFI eight-sequence holdout and annotation-density/permutation controls; pixel-error propagation to 51 descriptive-only tracks.
+
+**No AI review overrides measured experiment status:** `main` CI success verifies software contracts, not independent life-science truth, challenge eligibility or the public Kaggle Writeup. The next scientific decision must be driven by actual error-profile results, not aesthetic continuity in a video.
