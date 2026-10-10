@@ -2,6 +2,24 @@
 
 **Deadline:** AI4S preliminary round ends **October 10, 2026**; check the Kaggle platform's exact local cutoff time before the final submit action.
 
+
+## Final public-submission release gate — October 10
+
+This section is a **truthful release-readiness snapshot**, not an assertion that GitHub has updated Kaggle automatically.
+
+| Component | Publicly verified or recorded | Final gate |
+|---|---|---|
+| Source repo | Public GitHub `main`, CI passing on prior commits; use the [latest CI badge](../README.md) to verify the newest source revision | Keep release/Writeup references pinned to the actual inspected commit |
+| Required technical report | [17-page GitHub PDF release](https://github.com/chrishotza/ai4s-life-science-2026/releases/tag/ai4s-2026-technical-report) exists | Verify the **submitted Kaggle page** contains the publicly accessible PDF link |
+| Public demo | Kaggle **V10** (91 s), not the newer local V17 preview | Verify signed-out video playback, copyright/data/media rights and actual Writeup video link |
+| AI auditing | [Two skeptical independent review reports reconciled](EXTERNAL_AI_REVIEW_TRIAGE_2026-10-10.md) | Preserve negative results and distinguish confirmed defects from hypothetical issues |
+| Full CTC image-derived tracking identity | New [168-frame run](https://github.com/chrishotza/ai4s-life-science-2026/actions/workflows/ctc-cellpose-validation.yml) computes identity switches and strict all-predicted-link F1 alongside the historical conditional metric | **Not a verified numeric result until a completed/successful run and matching artifact exist**. Do not replace historical 0.9808 without evidence |
+| Registration and actual Writeup status | Team leader reports form and Writeup submitted | **Authenticated Kaggle check required**; GitHub and a public URL cannot confirm the user's logged-in submission status |
+| Third-party rights | [Cell Tracking Challenge use conditions](https://celltrackingchallenge.net/datasets/) require permission for public non-CTC scientific use and prohibit redistribution of dataset parts; [Cellpose source](https://github.com/MouseLand/cellpose) flags CC-BY-NC training data | Verify permissions/licensing for the public video and pretrained inference outputs; do not upload new CTC footage before authorization |
+
+**Release rule:** If there is no time for another complete experiment, preserve the existing qualified benchmark and already-public demo; never substitute an in-progress inference score or a privately rendered video for confirmed public submission content. The most consequential remaining action is verifying **Submitted** in the Kaggle account with all three mandatory public deliverables present, not tuning cosmetic effects.
+
+
 ## Official links
 
 - [Competition and submission rules](https://www.kaggle.com/competitions/ai-4-s-open-innovation-artificial-intelligence-for-life-scien/overview/challenge-organization)
