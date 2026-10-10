@@ -32,7 +32,7 @@ The product exposes three segmentation choices: transparent intensity thresholdi
 
 | Evaluation | Actual input to the evaluated component | Measured outcome | Scientific boundary |
 |---|---|---|---|
-| **Full image-derived CTC**, DIC-C2DH-HeLa seq01/02, **168 frames** | Raw microscopy → pretrained CellposeSAM-v2 → tracking → phenotype profiles | **Segmentation F1 0.9354; detection F1 0.9684; edge F1 0.9808** | Two CTC sequences; derived phenotype groups do not have independent biological labels |
+| **Full image-derived CTC**, DIC-C2DH-HeLa seq01/02, **168 frames** | Raw microscopy → pretrained CellposeSAM-v2 → tracking → phenotype profiles | **Segmentation F1 0.9354; detection F1 0.9684; mapped-endpoint edge F1 0.9808** | Internal matched-endpoint edge score, **not complete-ID F1**; derived phenotype groups lack independent labels |
 | **Association isolation**, CTC seq01/02 | **Perfect reference centroids** → temporal linker | Mean edge-association F1 **0.9923** | Isolates the linker; **not** end-to-end detection |
 | **Independent ALFI oracle-tracking audit**, eight MI sequences | **Expert bounding boxes and cell IDs** → actual tracker | Hungarian edge F1 **0.9943** across 16,256 gold temporal links | Strong component check; expert detections supplied |
 | **ALFI mitosis-stage readout** | Expert-labeled track boxes: train MI01–MI04, evaluate MI05–MI08 | Macro-F1 **0.5138 static → 0.5676** with past motion features | Exploratory; oracle boxes and previously explored cohort; no raw-image phenotype validation |
