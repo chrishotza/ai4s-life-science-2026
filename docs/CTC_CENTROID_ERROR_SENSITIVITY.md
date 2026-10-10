@@ -2,6 +2,8 @@
 
 **Status: retrospective mathematical sensitivity test, NOT a measured cell-center error, independent biological experiment or statistical confidence interval.**
 
+**New empirical companion:** In [16 systematically sampled frames](CTC_EMPIRICAL_CENTROID_CALIBRATION.md), pretrained CellposeSAM-v2 matched **193** CTC silver masks with median **0.909 µm** centroid discrepancy and p95 **2.701 µm**. Those measured **reference-centroid discrepancies are not true-position error bounds**, but caution strongly against treating hypothetical epsilon values of 0.10–0.50 µm as calibrated conditions.
+
 ## Why this control matters
 
 A track can accumulate a large traveled path even when endpoint displacement is small. Mask-boundary variation, fluctuating centroids, and poor links may inflate the path length, making *directional persistence* (net displacement divided by accumulated path) appear lower than the underlying physical motion. High instance-segmentation F1 and temporal edge F1 **do not guarantee micrometer-accurate centroid trajectories**.
