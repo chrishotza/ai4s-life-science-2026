@@ -99,7 +99,7 @@ def stability_for_cohort(
         assigned = trained.transform(cohort)["phenotype_cluster"].to_numpy(dtype=int)
         boot_ari.append(float(adjusted_rand_score(original, assigned)))
 
-    transformed = ref.scaler.transform(cohort[FEATURES].fillna(0.0).to_numpy(float))
+    transformed = ref.scaler.transform(cohort[FEATURES].astype(float).fillna(0.0))
     return {
         "n_profiles": int(len(cohort)),
         "n_sequences": len(seq_groups),
