@@ -19,6 +19,7 @@ from ai4s_imaging import CellposeSegmenter, instances_to_detections
 from ai4s_io import DIC_C2DH_HELA_VOXEL_SIZE_UM, ensure_ctc_dataset, load_ctc_tracking
 from ai4s_pipeline import PipelineConfig, TemporalPhenotypeEngine
 from ai4s_tracking import TrackingConfig, link_metrics
+from ai4s_tracking.evaluation import tracking_error_profile
 from benchmark_ctc_tra_supervised import (
     MAX_DISTANCE_UM,
     f1_from_counts,
@@ -40,6 +41,102 @@ MIN_SIZE = 200
 FLOW_THRESHOLD = 0.4
 CELLPROB_THRESHOLD = 0.0
 INVERT = False
+
+
+
+def matched_image_identity_audit(
+    predicted_nodes: pd.DataFrame,
+    reference_nodes: pd.DataFrame,
+    predicted_edges: pd.DataFrame,
+    predicted_to_reference: dict[int, int],
+) -> dict[str, object]:
+    """Evaluate predicted-ID continuity only where raw-image objects match GT.
+
+    The one-to-one instance-to-GT marker mapping comes from the *evaluation*
+    function, never from detector or tracker input. Unmatched predictions and
+    GT objects are explicitly counted and excluded from pairwise ID metrics.
+    Thus this diagnostic is CONDITIONAL ON MATCHING and is not full CTC TRA,
+    full identity recall, or biological confirmation of a movie track.
+    """
+    required = {"node_id", "track_id", "t"}
+    if not required.issubset(predicted_nodes) or not required.issubset(reference_nodes):
+        raise ValueError("predicted and reference nodes need node_id, track_id and t")
+    for name, frame in (("predicted", predicted_nodes), ("reference", reference_nodes)):
+        if frame["node_id"].duplicated().any():
+            raise ValueError(f"duplicate {name} node_id")
+    p = predicted_nodes.set_index("node_id")
+    g = reference_nodes.set_index("node_id")
+    matched_count = len(predicted_to_reference)
+    if len(set(predicted_to_reference.values())) != matched_count:
+        raise ValueError("reference detection matched to multiple predictions")
+    if set(predicted_to_reference) - set(p.index):
+        raise ValueError("matching references unknown predicted nodes")
+    if set(predicted_to_reference.values()) - set(g.index):
+        raise ValueError("matching references unknown GT nodes")
+
+    base = {
+        "scope": "matched_model_predicted_instances_only",
+        "not_official_ctc_identity_metric": True,
+        "not_full_population_identity_recall": True,
+        "reference_detections": int(len(g)),
+        "predicted_detections": int(len(p)),
+        "matched_detections": matched_count,
+        "unmatched_reference_detections": int(len(g) - matched_count),
+        "unmatched_predicted_detections": int(len(p) - matched_count),
+        "reference_detection_coverage": float(matched_count / len(g)) if len(g) else 0.0,
+    }
+    if matched_count == 0:
+        return {**base, "matched_predicted_tracks": 0, "matched_reference_tracks": 0,
+                "pairwise_identity_precision_matched_only": None,
+                "pairwise_identity_recall_matched_only": None,
+                "pairwise_identity_f1_matched_only": None, "error_profile_matched_only": None}
+    gt_rows = []
+    for pid, gid in sorted(predicted_to_reference.items()):
+        pt, gt = p.loc[pid], g.loc[gid]
+        if int(pt.t) != int(gt.t):
+            raise ValueError("matched model and reference observations have different times")
+        gt_rows.append({"node_id": pid, "track_id": int(gt.track_id), "t": int(gt.t)})
+    matched_gt = pd.DataFrame(gt_rows)
+    matched_pred = predicted_nodes.loc[
+        predicted_nodes["node_id"].isin(predicted_to_reference),
+        ["node_id", "track_id", "t"],
+    ].copy()
+    edges_of_matched = predicted_edges.loc[
+        predicted_edges["source_id"].isin(predicted_to_reference)
+        & predicted_edges["target_id"].isin(predicted_to_reference),
+        ["source_id", "target_id"],
+    ].copy()
+    truth_of_matched = truth_edges(matched_gt)
+    profile = tracking_error_profile(
+        matched_gt, matched_pred, truth_of_matched, edges_of_matched,
+    )
+    contingency = pd.crosstab(
+        matched_gt.set_index("node_id").loc[matched_pred["node_id"], "track_id"].astype(int),
+        pd.Series(matched_pred["track_id"].to_numpy(dtype=int),
+                  index=matched_pred["node_id"].to_numpy(dtype=int)),
+    ).to_numpy(dtype=np.int64)
+    count_pairs = lambda x: int(np.sum(x * (x - 1) // 2))
+    tp = count_pairs(contingency.ravel())
+    predicted_pairs = count_pairs(contingency.sum(axis=0))
+    truth_pairs = count_pairs(contingency.sum(axis=1))
+    prec = tp / predicted_pairs if predicted_pairs else 0.0
+    rec = tp / truth_pairs if truth_pairs else 0.0
+    f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
+    return {
+        **base,
+        "matched_predicted_tracks": int(matched_pred["track_id"].nunique()),
+        "matched_reference_tracks": int(matched_gt["track_id"].nunique()),
+        "pairwise_identity_precision_matched_only": float(prec),
+        "pairwise_identity_recall_matched_only": float(rec),
+        "pairwise_identity_f1_matched_only": float(f1),
+        "error_profile_matched_only": profile,
+        "interpretation": (
+            "GT track labels used ONLY post-hoc for evaluation of matched "
+            "predictions; unmatched objects excluded and reported above. "
+            "Not equivalent to CTC official TRA or a proof of full biological identity."
+        ),
+    }
+
 
 
 def evaluate_sequence(
@@ -115,6 +212,7 @@ def evaluate_sequence(
     }
     mapped_edge_df = pd.DataFrame(sorted(mapped_edge_pairs), columns=["source_id", "target_id"])
     edge = link_metrics(mapped_edge_df, gt_edge_df)
+    matched_identity = matched_image_identity_audit(tracked, truth_nodes, edges, node_mapping)
     frame_df = pd.DataFrame(per_frame)
     profile_path = ROOT / f"ctc_cellpose_phenotypes_seq{sequence}.csv"
     phenotype_profiles.to_csv(profile_path, index=False)
@@ -175,6 +273,7 @@ def evaluate_sequence(
             **detection,
             "matching_rule": "one-to-one overlap with CTC GT/TRA marker pixels",
         },
+        "tracking_identity_matched_only": matched_identity,
         "tracking": {
             "edge_precision": float(edge["precision"]),
             "edge_recall": float(edge["recall"]),
