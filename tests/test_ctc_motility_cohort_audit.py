@@ -47,6 +47,10 @@ def test_stability_to_input_order_and_gate_monotonicity():
         "count": 1, "fraction": 0.5,
     }
     assert cohorts["standard"]["n_by_sequence"] == {"01": 1, "02": 1}
+    seq = cohorts["standard"]["sequence_stratified_sensitivity"]
+    assert seq["01"]["persistence_lt_0_20"]["count"] == 0
+    assert seq["02"]["persistence_lt_0_20"]["count"] == 1
+    assert sum(v["n_trajectories"] for v in seq.values()) == 2
     assert "NOT_BIOLOGICAL_VALIDATION" in left["status"]
     assert json.loads(json.dumps(left)) == left
 
