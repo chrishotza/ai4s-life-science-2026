@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="485" viewBox="0 0 1040 485" role="img" aria-labelledby="title desc">
+<title id="title">Real CTC image-derived movement example: total traveled distance versus net displacement</title>
+<desc id="desc">Selected two image-derived tracks from DIC-C2DH-HeLa sequence 02: track 21 traveled 142.10 micrometers and displaced 4.29 micrometers, direction persistence 0.030; track 19 traveled 84.79 and displaced 16.83 micrometers, direction persistence 0.198. Both are only descriptive computational measurements.</desc>
+<rect width="1040" height="485" fill="#ffffff"/>
+<text x="48" y="51" font-size="29" font-weight="700" font-family="Arial,sans-serif" fill="#102a43">More movement does not mean more net migration</text>
+<text x="48" y="78" font-size="15" font-family="Arial,sans-serif" fill="#446276">Real CellposeSAM-v2 image-derived tracks · CTC DIC-C2DH-HeLa · sequence 02</text>
+<rect x="599" y="108" width="20" height="16" fill="#236da9"/><text x="628" y="122" font-size="15" font-family="Arial,sans-serif" fill="#203b53">Path length</text>
+<rect x="754" y="108" width="20" height="16" fill="#e88726"/><text x="783" y="122" font-size="15" font-family="Arial,sans-serif" fill="#203b53">Net displacement</text>
+<g font-family="Arial,sans-serif" fill="#1c3545">
+<text x="45" y="190" font-size="20" font-weight="700">Track 21</text><text x="45" y="215" font-size="15">66 observations</text><text x="45" y="239" font-size="14">persistence 0.030</text>
+<text x="45" y="304" font-size="20" font-weight="700">Track 19</text><text x="45" y="329" font-size="15">57 observations</text><text x="45" y="353" font-size="14">persistence 0.198</text>
+</g>
+<g stroke="#d9e1e6" stroke-width="1"><line x1="255" y1="143" x2="255" y2="366"/><line x1="455" y1="143" x2="455" y2="366"/><line x1="655" y1="143" x2="655" y2="366"/><line x1="855" y1="143" x2="855" y2="366"/></g>
+<g font-size="14" font-family="Arial,sans-serif" fill="#40586a"><text x="250" y="388">0</text><text x="448" y="388">50</text><text x="644" y="388">100</text><text x="843" y="388">150 µm</text></g>
+<rect x="255" y="168" width="568.4" height="24" rx="2" fill="#236da9"/>
+<rect x="255" y="201" width="17.16" height="24" rx="2" fill="#e88726"/>
+<rect x="255" y="282" width="339.16" height="24" rx="2" fill="#236da9"/>
+<rect x="255" y="315" width="67.32" height="24" rx="2" fill="#e88726"/>
+<g font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#102a43">
+<text x="831" y="186">142.10 µm</text><text x="283" y="219">4.29 µm</text>
+<text x="602" y="300">84.79 µm</text><text x="331" y="333">16.83 µm</text>
+</g>
+<text x="48" y="432" font-size="13" font-family="Arial,sans-serif" fill="#526576">Illustrative post-hoc selection; track identities are predicted, not independent biological ground truth.</text>
+<text x="48" y="451" font-size="13" font-family="Arial,sans-serif" fill="#526576">Source: docs/evidence/ctc/derived_phenotype_features.csv · confidence criteria: ≥3 observations and reliability ≥0.5.</text>
+</svg>
