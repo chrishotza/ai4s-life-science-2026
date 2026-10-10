@@ -20,6 +20,8 @@ Imagine comparing cell migration in microscopy time series. A researcher needs t
 
 **Beyond the two selected cells:** [audited full-cohort motility sensitivity](CTC_COHORT_MOTILITY_AUDIT.md) analyzes all **126 image-derived tracks** using the production confidence gate (51 accepted as descriptive). Low directional persistence under one *exploratory* cutoff occurs in **33/51**, but its rate shifts with observation and reliability requirements, and differs between sequences. The [machine-readable frozen result](evidence/ctc/motility_cohort_sensitivity.json) is checked in CI. Detector centroid jitter and track fragmentation remain possible confounds; this is not a validated biological state frequency.
 
+**Additional robustness check:** [Hypothetical centroid-localization error bounds](CTC_CENTROID_ERROR_SENSITIVITY.md) quantify when low directional persistence remains mathematically guaranteed despite bounded positional error. **These are conditional bounds, not measured accuracy or validated biological effects.** The [frozen numerical audit](evidence/ctc/centroid_localization_bounds.json) is reproduced by CI.
+
 ## What to read first
 
 1. `README.md` for the public-facing summary and quick reproduction path.
