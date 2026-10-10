@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.audit_repo_integrity import (
     ROOT, local_links, remove_fenced_code, scan_tree,
