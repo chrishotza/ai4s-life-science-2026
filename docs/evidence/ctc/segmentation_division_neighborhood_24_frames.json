@@ -1,0 +1,177 @@
+{
+  "status": "FOCUSED_SEGMENTATION_QA_NOT_AUTOMATIC_DIVISION_VALIDATION",
+  "source": {
+    "run_id": 37999545353,
+    "run_url": "https://github.com/chrishotza/ai4s-life-science-2026/actions/runs/37999545353",
+    "artifact_id": 11649936578,
+    "artifact_name": "cellpose-division-window-24-real-predictions",
+    "original_metrics_sha256": "744e220c2f5a541bf83fd53aa1b6f96296ad6c71a2990f6403df3e496029c630",
+    "model": "CellposeSAM-v2 pretrained",
+    "dataset": "CTC DIC-C2DH-HeLa sequence 02",
+    "selection": "CTC reference lineage metadata used to choose window around annotated division at frame 46; annotations are not predictions"
+  },
+  "frames_evaluated": 24,
+  "start_frame": 34,
+  "end_frame": 57,
+  "mean_per_frame_segmentation_f1_iou50": 0.9559062589316212,
+  "lowest_frame": {
+    "frame": 51,
+    "segmentation_f1_iou50": 0.8,
+    "reference_objects": 12,
+    "predicted_objects": 13
+  },
+  "predicted_tracks_exported": 17,
+  "predicted_temporal_links_exported": 272,
+  "per_frame": [
+    {
+      "frame": 34,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 10,
+      "predicted_objects": 10
+    },
+    {
+      "frame": 35,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 36,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 37,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 38,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 11,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 39,
+      "segmentation_f1_iou50": 0.9090909090909091,
+      "reference_objects": 10,
+      "predicted_objects": 12
+    },
+    {
+      "frame": 40,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 41,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 42,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 43,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 44,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 11,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 45,
+      "segmentation_f1_iou50": 0.9523809523809523,
+      "reference_objects": 10,
+      "predicted_objects": 11
+    },
+    {
+      "frame": 46,
+      "segmentation_f1_iou50": 0.9565217391304348,
+      "reference_objects": 11,
+      "predicted_objects": 12
+    },
+    {
+      "frame": 47,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 12,
+      "predicted_objects": 12
+    },
+    {
+      "frame": 48,
+      "segmentation_f1_iou50": 0.9166666666666666,
+      "reference_objects": 12,
+      "predicted_objects": 12
+    },
+    {
+      "frame": 49,
+      "segmentation_f1_iou50": 0.9600000000000001,
+      "reference_objects": 12,
+      "predicted_objects": 13
+    },
+    {
+      "frame": 50,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 13,
+      "predicted_objects": 13
+    },
+    {
+      "frame": 51,
+      "segmentation_f1_iou50": 0.8,
+      "reference_objects": 12,
+      "predicted_objects": 13
+    },
+    {
+      "frame": 52,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 13,
+      "predicted_objects": 13
+    },
+    {
+      "frame": 53,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 13,
+      "predicted_objects": 13
+    },
+    {
+      "frame": 54,
+      "segmentation_f1_iou50": 0.9285714285714286,
+      "reference_objects": 14,
+      "predicted_objects": 14
+    },
+    {
+      "frame": 55,
+      "segmentation_f1_iou50": 0.962962962962963,
+      "reference_objects": 13,
+      "predicted_objects": 14
+    },
+    {
+      "frame": 56,
+      "segmentation_f1_iou50": 1,
+      "reference_objects": 14,
+      "predicted_objects": 14
+    },
+    {
+      "frame": 57,
+      "segmentation_f1_iou50": 0.888888888888889,
+      "reference_objects": 13,
+      "predicted_objects": 14
+    }
+  ],
+  "boundaries": [
+    "Reference labels select the candidate division neighborhood and score masks; they are not substituted for model-predicted masks or tracks.",
+    "These 24 frames are an event-enriched window, not a random holdout or additional independent microscopy sequence.",
+    "Frame segmentation quality and the existence of tracked links do NOT establish successful automatic mother/daughter lineage reconstruction.",
+    "The separate completed 168-frame CTC evaluation remains the primary end-to-end benchmark; it must not be combined with these 24 targeted frames."
+  ]
+}
