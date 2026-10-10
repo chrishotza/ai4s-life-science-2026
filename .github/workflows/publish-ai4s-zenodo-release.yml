@@ -1,0 +1,47 @@
+name: Publish Zenodo-ready AI4S software release v0.1.0
+
+on:
+  push:
+    branches:
+      - automation/publish-zenodo-v0.1.0-20261009
+    paths:
+      - .github/workflows/publish-ai4s-zenodo-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check metadata exists on audited main snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          SNAPSHOT="47498d7299d5138e362789e403351091972ac520"
+          for path in .zenodo.json CITATION.cff LICENSE; do
+            gh api "repos/$GH_REPO/contents/$path?ref=$SNAPSHOT" --jq .sha > /dev/null
+          done
+          echo "Metadata, citation and MIT license verified for exact release commit $SNAPSHOT"
+      - name: Create immutable GitHub release for Zenodo GitHub integration
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if gh release view v0.1.0 --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "Release v0.1.0 already exists; not replacing."
+            gh release view v0.1.0 --repo "$GH_REPO" --json url,tagName,targetCommitish
+            exit 0
+          fi
+          gh release create v0.1.0 \
+            --repo "$GH_REPO" \
+            --target "47498d7299d5138e362789e403351091972ac520" \
+            --title "Temporal Cellular Phenotype Engine v0.1.0 - AI4S 2026" \
+            --notes "First archived research-software snapshot for the AI4S 2026 submission. Public MIT-licensed source and evidence, with ORCID-backed authorship and Zenodo metadata. Main internal image-derived CTC experiment: 168 frames; segmentation F1 0.9354, detection F1 0.9684, temporal-link F1 0.9808. Scores are not official CTC leaderboard results, and descriptive computational phenotypes are not biologically validated. Pretrained model weights and raw microscopy data are not included. See README, CITATION.cff and .zenodo.json. If the GitHub repo is enabled in Zenodo, this published release should be archived there automatically." \
+            --latest
+          gh release view v0.1.0 --repo "$GH_REPO" --json url,tagName,targetCommitish
