@@ -1,16 +1,33 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
 def _edge_set(edges: pd.DataFrame) -> set[tuple[int, int]]:
+    """Use exact, validated integer link identities; never truncate fractions.
+
+    Malformed IDs must not become true positives in an experimental score.
+    """
     required = {"source_id", "target_id"}
     if not required.issubset(edges.columns):
         raise ValueError("edges must contain source_id and target_id")
-    return {
-        (int(source_id), int(target_id))
-        for source_id, target_id in edges[["source_id", "target_id"]].to_numpy()
-    }
+    if edges.empty:
+        return set()
+
+    for column in ("source_id", "target_id"):
+        series = edges[column]
+        if (pd.api.types.is_bool_dtype(series)
+                or not pd.api.types.is_numeric_dtype(series)):
+            raise ValueError(f"{column} must contain finite integer identifiers")
+        values = series.to_numpy(dtype=float)
+        if (not np.isfinite(values).all()
+                or not np.all(values == np.floor(values))
+                or np.any(np.abs(values) > (2**53 - 1))):
+            raise ValueError(f"{column} must contain finite integer identifiers")
+    # The float safety bound prevents IDs beyond exact IEEE-754 integer
+    # range from being silently conflated while checking input.
+    return set(map(tuple, edges[["source_id", "target_id"]].astype("int64").to_numpy()))
 
 
 def link_metrics(predicted_edges: pd.DataFrame, true_edges: pd.DataFrame) -> dict[str, float]:
@@ -21,8 +38,8 @@ def link_metrics(predicted_edges: pd.DataFrame, true_edges: pd.DataFrame) -> dic
     if not required.issubset(true_edges.columns):
         raise ValueError("true_edges must contain source_id and target_id")
 
-    pred = set(map(tuple, predicted_edges[["source_id", "target_id"]].astype(int).to_numpy()))
-    true = set(map(tuple, true_edges[["source_id", "target_id"]].astype(int).to_numpy()))
+    pred = _edge_set(predicted_edges)
+    true = _edge_set(true_edges)
 
     tp = len(pred & true)
     fp = len(pred - true)
