@@ -29,3 +29,20 @@ def test_greedy_track_overlap_is_deterministic():
         (10, 200, 2, 1.0),
         (20, 100, 2, 1.0),
     ]
+
+
+def test_greedy_track_overlap_rejects_duplicate_node_ids():
+    truth = pd.DataFrame(
+        [(0, 10, 0), (0, 20, 1)],
+        columns=["node_id", "track_id", "t"],
+    )
+    predicted = pd.DataFrame(
+        [(0, 100, 0), (1, 100, 1)],
+        columns=["node_id", "track_id", "t"],
+    )
+    import pytest
+
+    with pytest.raises(ValueError, match="truth_nodes contains duplicate node_id"):
+        greedy_track_overlap(truth, predicted)
+    with pytest.raises(ValueError, match="predicted_nodes contains duplicate node_id"):
+        greedy_track_overlap(predicted, truth)
