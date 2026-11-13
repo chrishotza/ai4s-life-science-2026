@@ -17,6 +17,11 @@ def greedy_track_overlap(
     if not required.issubset(predicted_nodes.columns):
         raise ValueError("predicted_nodes missing node alignment columns")
 
+    # Duplicate node IDs create a many-to-many join and inflate coverage.
+    for name, frame in (("truth_nodes", truth_nodes), ("predicted_nodes", predicted_nodes)):
+        if frame["node_id"].duplicated().any():
+            raise ValueError(f"{name} contains duplicate node_id values")
+
     truth = truth_nodes[["node_id", "track_id", "t"]].copy()
     pred = predicted_nodes[["node_id", "track_id", "t"]].copy()
 
