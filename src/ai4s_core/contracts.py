@@ -98,11 +98,17 @@ def scale_coordinates(
     nodes: pd.DataFrame,
     voxel_size_um: tuple[float, float, float],
 ) -> pd.DataFrame:
-    if len(voxel_size_um) != 3 or any(value <= 0 for value in voxel_size_um):
-        raise ValueError("voxel_size_um must contain three positive values")
+    if len(voxel_size_um) != 3:
+        raise ValueError("voxel_size_um must contain three finite positive values")
+    spacing = np.asarray(voxel_size_um, dtype=float)
+    if not np.isfinite(spacing).all() or (spacing <= 0).any():
+        raise ValueError("voxel_size_um must contain three finite positive values")
+    coords = nodes[["z", "y", "x"]].to_numpy(float)
+    if not np.isfinite(coords).all():
+        raise ValueError("node coordinates must be finite")
+    scaled = coords * spacing
+    if not np.isfinite(scaled).all():
+        raise ValueError("scaled node coordinates must be finite")
     out = nodes.copy()
-    out[["z", "y", "x"]] = out[["z", "y", "x"]].to_numpy(float) * np.asarray(
-        voxel_size_um,
-        dtype=float,
-    )
+    out[["z", "y", "x"]] = scaled
     return out
