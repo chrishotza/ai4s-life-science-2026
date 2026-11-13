@@ -65,3 +65,27 @@ def test_edge_contract_rejects_fractional_identifiers():
     edges = pd.DataFrame({"source_id": [0.5], "target_id": [1.0]})
     with pytest.raises(ValueError, match="integer identifiers"):
         validate_edges(edges, nodes)
+
+
+@pytest.mark.parametrize("invalid_spacing", [
+    (float("nan"), 1.0, 1.0),
+    (1.0, float("inf"), 1.0),
+    (1.0, 0.0, 1.0),
+])
+def test_scale_coordinates_rejects_invalid_spacing(invalid_spacing):
+    with pytest.raises(ValueError, match="finite positive"):
+        scale_coordinates(base_nodes(), invalid_spacing)
+
+
+def test_scale_coordinates_rejects_nonfinite_input_coordinates():
+    nodes = base_nodes()
+    nodes.loc[0, "x"] = float("nan")
+    with pytest.raises(ValueError, match="node coordinates must be finite"):
+        scale_coordinates(nodes, (1.0, 1.0, 1.0))
+
+
+def test_scale_coordinates_rejects_overflow():
+    nodes = base_nodes()
+    nodes.loc[0, "x"] = 1e308
+    with pytest.raises(ValueError, match="scaled node coordinates"):
+        scale_coordinates(nodes, (1.0, 1.0, 1e308))
